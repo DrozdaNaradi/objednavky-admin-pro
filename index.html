@@ -1355,11 +1355,17 @@ async function loadItemNotes(orderId, itemCount) {
     const regularNotes = allNotes.filter(n => n.content !== '__SUPPLIER_ORDER__');
     // Nastav stav tlačítka
     const btn = document.getElementById('supplier-btn-' + i);
-    if (btn && supplierNote.length > 0) {
-      const sn = supplierNote[supplierNote.length - 1];
-      btn.classList.add('active');
-      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Objednáno u dodavatele`;
-      btn.title = `Objednal: ${sn.author||'?'} · ${formatTime(sn.created_at)}`;
+    if (btn) {
+      if (supplierNote.length > 0) {
+        const sn = supplierNote[supplierNote.length - 1];
+        btn.classList.add('active');
+        btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Objednáno u dodavatele`;
+        btn.title = `Objednal: ${sn.author||'?'} · ${formatTime(sn.created_at)}`;
+      } else {
+        btn.classList.remove('active');
+        btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 9l1.5 9h15L21 9H3z"/><path d="M8 9V6a4 4 0 018 0v3"/></svg> Objednáno u dodavatele`;
+        btn.title = '';
+      }
     }
     // Zobraz poznámky + supplier záznamy v historii
     const allDisplay = [...regularNotes, ...supplierNote].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
