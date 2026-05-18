@@ -1982,6 +1982,7 @@ function pplText(str) {
   if (!str) return '—';
   const s = escHtml(str);
   if (str.toUpperCase().includes('PPL')) return `<span style="color:#003087;font-weight:700">${s}</span>`;
+  if (str.includes('Osobní odběr prodejna Rudná u Prahy')) return `<span style="color:#16a34a;font-weight:700">${s}</span>`;
   return s;
 }
 function toast(msg, type='') {
