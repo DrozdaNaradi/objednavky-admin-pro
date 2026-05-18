@@ -1382,13 +1382,18 @@ async function toggleSupplierOrder(idx) {
   const btn = document.getElementById('supplier-btn-' + idx);
   if (!btn) return;
   const isActive = btn.classList.contains('active');
-  if (isActive) return; // jednou objednáno nelze odvolat
   btn.disabled = true;
-  const { error } = await db.from('order_notes').insert({ order_id: currentOrderId, item_index: idx, content: '__SUPPLIER_ORDER__', author });
-  if (error) { toast('Chyba: ' + error.message, 'error'); btn.disabled = false; return; }
-  await logActivity('supplier_order', { item_index: idx });
+  if (isActive) {
+    // Odvolat — smazat všechny __SUPPLIER_ORDER__ záznamy pro tuto položku
+    await db.from('order_notes').delete().eq('order_id', currentOrderId).eq('item_index', idx).eq('content', '__SUPPLIER_ORDER__');
+    toast('Objednávka u dodavatele zrušena');
+  } else {
+    const { error } = await db.from('order_notes').insert({ order_id: currentOrderId, item_index: idx, content: '__SUPPLIER_ORDER__', author });
+    if (error) { toast('Chyba: ' + error.message, 'error'); btn.disabled = false; return; }
+    await logActivity('supplier_order', { item_index: idx });
+    toast('Objednáno u dodavatele ✓', 'ok');
+  }
   btn.disabled = false;
-  toast('Objednáno u dodavatele ✓', 'ok');
   await loadItemNotes(currentOrderId, document.querySelectorAll('[id^="item-row-"]').length);
 }
 
