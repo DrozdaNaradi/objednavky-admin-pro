@@ -207,6 +207,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .item-note-time{font-size:11px;color:var(--muted)}
 .item-note-text{font-size:12px;font-weight:600;color:var(--warn-ink);background:var(--warn-bg);border-radius:4px;padding:5px 8px;line-height:1.4}
 .item-note-input-row{display:flex;gap:6px}
+.supplier-btn{height:26px;padding:0 10px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid #d4d4d4;background:#f5f5f5;color:#737373;display:inline-flex;align-items:center;gap:5px;font-family:inherit;transition:all .15s;white-space:nowrap;letter-spacing:.02em}
+.supplier-btn.active{background:#16a34a;border-color:#15803d;color:#fff}
+.supplier-btn svg{flex-shrink:0}
 .item-note-input{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;resize:none;outline:none;transition:.12s;line-height:1.4;background:var(--card);color:var(--ink)}
 .item-note-input:focus{border-color:var(--accent)}
 .item-note-save{padding:0 12px;height:30px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.1s;text-transform:uppercase;letter-spacing:.04em}.item-note-save:hover{background:var(--accent2)}
@@ -1312,7 +1315,13 @@ function itemRow(it, idx, orderId) {
       <div class="item-thumb-wrap" style="flex:1;min-width:0">
         <div class="item-info" style="flex:1;min-width:0">
           <div class="item-name">${escHtml(it.name||'Položka')}</div>
-          ${it.sku ? `<div class="item-sku-red">${escHtml(it.sku)}</div>` : ''}
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
+            ${it.sku ? `<div class="item-sku-red">${escHtml(it.sku)}</div>` : ''}
+            <button class="supplier-btn" id="supplier-btn-${idx}" onclick="toggleSupplierOrder(${idx})">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 9l1.5 9h15L21 9H3z"/><path d="M8 9V6a4 4 0 018 0v3"/></svg>
+              Objednáno u dodavatele
+            </button>
+          </div>
         </div>
         <div class="item-qty-price">
           <div class="item-qty">${it.qty||1} ks</div>
@@ -1335,13 +1344,46 @@ async function loadItemNotes(orderId, itemCount) {
   for (let i = 0; i < itemCount; i++) {
     const el = document.getElementById('item-notes-' + i);
     if (!el) continue;
-    const notes = (data||[]).filter(n => n.item_index === i);
-    el.innerHTML = notes.length ? notes.map(n => `
-      <div class="item-note-entry">
-        <div class="item-note-header"><span class="item-note-author">${escHtml(n.author||'')}</span><span class="item-note-time">${formatTime(n.created_at)}</span></div>
-        <div class="item-note-text">${escHtml(n.content)}</div>
-      </div>`).join('') : '';
+    const allNotes = (data||[]).filter(n => n.item_index === i);
+    const supplierNote = allNotes.filter(n => n.content === '__SUPPLIER_ORDER__');
+    const regularNotes = allNotes.filter(n => n.content !== '__SUPPLIER_ORDER__');
+    // Nastav stav tlačítka
+    const btn = document.getElementById('supplier-btn-' + i);
+    if (btn && supplierNote.length > 0) {
+      const sn = supplierNote[supplierNote.length - 1];
+      btn.classList.add('active');
+      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Objednáno u dodavatele`;
+      btn.title = `Objednal: ${sn.author||'?'} · ${formatTime(sn.created_at)}`;
+    }
+    // Zobraz poznámky + supplier záznamy v historii
+    const allDisplay = [...regularNotes, ...supplierNote].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    el.innerHTML = allDisplay.length ? allDisplay.map(n => {
+      if (n.content === '__SUPPLIER_ORDER__') return `
+        <div class="item-note-entry" style="background:#f0fdf4;border-color:#bbf7d0">
+          <div class="item-note-header"><span class="item-note-author" style="color:#16a34a">🛒 ${escHtml(n.author||'')}</span><span class="item-note-time">${formatTime(n.created_at)}</span></div>
+          <div class="item-note-text" style="background:#dcfce7;color:#15803d">Objednáno u dodavatele</div>
+        </div>`;
+      return `
+        <div class="item-note-entry">
+          <div class="item-note-header"><span class="item-note-author">${escHtml(n.author||'')}</span><span class="item-note-time">${formatTime(n.created_at)}</span></div>
+          <div class="item-note-text">${escHtml(n.content)}</div>
+        </div>`;
+    }).join('') : '';
   }
+}
+
+async function toggleSupplierOrder(idx) {
+  const btn = document.getElementById('supplier-btn-' + idx);
+  if (!btn) return;
+  const isActive = btn.classList.contains('active');
+  if (isActive) return; // jednou objednáno nelze odvolat
+  btn.disabled = true;
+  const { error } = await db.from('order_notes').insert({ order_id: currentOrderId, item_index: idx, content: '__SUPPLIER_ORDER__', author });
+  if (error) { toast('Chyba: ' + error.message, 'error'); btn.disabled = false; return; }
+  await logActivity('supplier_order', { item_index: idx });
+  btn.disabled = false;
+  toast('Objednáno u dodavatele ✓', 'ok');
+  await loadItemNotes(currentOrderId, document.querySelectorAll('[id^="item-row-"]').length);
 }
 
 async function saveItemNote(idx) {
@@ -1521,6 +1563,9 @@ function activityItem(a) {
   } else if (a.action === 'email_sent') {
     icon = '📧'; cls = 'ai-email';
     text = `<strong>${escHtml(a.author)}</strong> odeslal(a) email: <em>${escHtml(a.details?.subject||'')}</em>`;
+  } else if (a.action === 'supplier_order') {
+    icon = '🛒'; cls = 'ai-note';
+    text = `<strong>${escHtml(a.author)}</strong> objednal(a) u dodavatele položku č. ${(a.details?.item_index ?? 0) + 1}`;
   } else if (a.action === 'created') {
     icon = '🆕'; cls = 'ai-created';
     text = `<strong>${escHtml(a.author)}</strong> vytvořil(a) objednávku`;
