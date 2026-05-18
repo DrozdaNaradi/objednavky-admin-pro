@@ -1097,7 +1097,7 @@ function orderRow(o) {
     <div class="ocard-right">
       <span class="ocard-price">${totalStr}</span>
       <span class="badge ${badgeCls}">${badgeLbl}</span>
-      <div class="ocard-meta">${shipShort ? escHtml(shipShort)+'<br>' : ''}${dateStr}</div>
+      <div class="ocard-meta">${shipShort ? (shipShort.toUpperCase().includes('PPL') ? '<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/PPL_logo.svg/120px-PPL_logo.svg.png" style="height:12px;vertical-align:middle;margin-right:3px;opacity:.85">' : '') + escHtml(shipShort)+'<br>' : ''}${dateStr}</div>
     </div>
   </div>`;
 }
