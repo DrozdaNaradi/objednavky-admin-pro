@@ -1100,7 +1100,7 @@ function orderRow(o) {
     <div class="ocard-right">
       <span class="ocard-price">${totalStr}</span>
       <span class="badge ${badgeCls}">${badgeLbl}</span>
-      <div class="ocard-meta">${shipShort ? (shipShort.toUpperCase().includes('PPL') ? '<svg viewBox="0 0 80 28" style="height:13px;vertical-align:middle;margin-right:4px;display:inline-block" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="4" width="18" height="3.5" fill="#003087"/><rect x="0" y="11" width="18" height="3.5" fill="#003087"/><rect x="0" y="18" width="18" height="3.5" fill="#003087"/><text x="22" y="22" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="20" fill="#003087">PPL</text></svg>' : '') + escHtml(shipShort)+'<br>' : ''}${dateStr}</div>
+      <div class="ocard-meta">${shipShort ? (shipShort.toUpperCase().includes('PPL') ? '<svg viewBox="0 0 80 28" style="height:13px;vertical-align:middle;margin-right:4px;display:inline-block" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="4" width="18" height="3.5" fill="#003087"/><rect x="0" y="11" width="18" height="3.5" fill="#003087"/><rect x="0" y="18" width="18" height="3.5" fill="#003087"/><text x="22" y="22" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="20" fill="#003087">PPL</text></svg>' : '') + pplText(shipShort)+'<br>' : ''}${dateStr}</div>
     </div>
   </div>`;
 }
@@ -1262,7 +1262,7 @@ function renderPanelOverview() {
 
     <div class="delivery-row">
       <div class="delivery-label">Způsob dopravy</div>
-      <div class="delivery-val">${escHtml(o.shipping_method||'—')}</div>
+      <div class="delivery-val">${pplText(o.shipping_method||'—')}</div>
     </div>
     <div class="delivery-row">
       <div class="delivery-label">Způsob platby</div>
@@ -1691,7 +1691,7 @@ h1{font-size:22px;font-weight:800;letter-spacing:-.4px}
 
 <div class="sec-title">Doprava a platba</div>
 <div class="info-grid">
-  <div class="info-box"><div class="info-box-title">Způsob dopravy</div><div class="info-box-val">${escHtml(o.shipping_method||'—')}</div></div>
+  <div class="info-box"><div class="info-box-title">Způsob dopravy</div><div class="info-box-val">${pplText(o.shipping_method||'—')}</div></div>
   <div class="info-box"><div class="info-box-title">Způsob platby</div><div class="info-box-val">${escHtml(o.payment_method||'—')}</div></div>
   <div class="info-box"><div class="info-box-title">Datum objednávky</div><div class="info-box-val">${dateStr}</div></div>
   <div class="info-box"><div class="info-box-title">Variabilní symbol</div><div class="info-box-val">${escHtml(o.order_number||'—')}</div></div>
@@ -1958,6 +1958,12 @@ function formatTime(iso) {
 function escHtml(str) {
   if (!str) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+function pplText(str) {
+  if (!str) return '—';
+  const s = escHtml(str);
+  if (str.toUpperCase().includes('PPL')) return `<span style="color:#003087;font-weight:700">${s}</span>`;
+  return s;
 }
 function toast(msg, type='') {
   const c = document.getElementById('toast-container');
