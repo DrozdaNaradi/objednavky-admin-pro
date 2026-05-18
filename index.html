@@ -1047,7 +1047,8 @@ function orderRow(o) {
   const items = allItems.filter(it => !it.type);
   const allNotes = Array.isArray(o.order_notes) ? o.order_notes : [];
   const orderNotes = allNotes.filter(n => n.item_index === null || n.item_index === undefined);
-  const recentNotes = orderNotes.slice().sort((a,b) => new Date(b.created_at)-new Date(a.created_at)).slice(0,2);
+  const itemNotes = allNotes.filter(n => n.item_index !== null && n.item_index !== undefined);
+  const recentNotes = [...orderNotes, ...itemNotes].slice().sort((a,b) => new Date(b.created_at)-new Date(a.created_at)).slice(0,3);
 
   const dateStr = o.order_date ? new Date(o.order_date).toLocaleDateString('cs-CZ',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
   const totalStr = o.total_amount ? Number(o.total_amount).toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' Kč' : '—';
@@ -1067,11 +1068,13 @@ function orderRow(o) {
   const notesHtml = recentNotes.length ? recentNotes.map(n => {
     const isRed = n.content.startsWith('[[red]]');
     const text = isRed ? n.content.slice(7) : n.content;
+    const isItem = n.item_index !== null && n.item_index !== undefined;
     const d = new Date(n.created_at);
     const dl = d.toLocaleDateString('cs-CZ',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'});
     const preview = text.length>80 ? text.substring(0,80)+'…' : text;
     return `<div class="row-note-line${isRed?' note-contrast':''}">
       ${isRed ? '<span style="font-size:13px;flex-shrink:0">⚠️</span>' : ''}
+      ${isItem ? `<span style="font-size:10px;background:#e5e5e5;border-radius:3px;padding:1px 5px;flex-shrink:0;color:#525252">pol.${n.item_index+1}</span>` : ''}
       <span class="row-note-author">${escHtml(n.author||'')}</span>
       <span class="row-note-date">${dl}</span>
       <span class="row-note-text">${escHtml(preview)}</span>
