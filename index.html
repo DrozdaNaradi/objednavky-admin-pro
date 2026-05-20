@@ -18,10 +18,8 @@
   --ink:#0a0a0a;--ink-2:#404040;--ink-3:#525252;--muted:#737373;
   --warn:#ca8a04;--warn-bg:#fefce8;--warn-ink:#713f12;--warn-border:#fef08a;
   --ok:#16a34a;--ok-bg:#f0fdf4;--ok-ink:#14532d;--ok-border:#86efac;
-  --blue:#dc2626;--blue-bg:#fff5f5;--blue-border:#fca5a5;
   --sidebar-bg:#fafafa;--sidebar-hover:rgba(0,0,0,.04);
   --radius:8px;--radius-sm:6px;--radius-lg:10px;--radius-pill:20px;
-  --shadow:0 1px 4px rgba(0,0,0,.06);
   --panel-w:960px;--sidebar-w:220px;
 }
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
@@ -73,7 +71,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .btn{height:30px;padding:0 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:.1s;border:1px solid var(--border);background:var(--card);color:var(--ink);display:inline-flex;align-items:center;gap:5px;font-family:inherit;white-space:nowrap}
 .btn:hover{background:var(--card-alt)}
 .btn-red{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-red:hover{background:var(--accent2);border-color:var(--accent2)}
-.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-accent:hover{background:var(--accent2);border-color:var(--accent2)}
 .btn-gray{background:var(--card);color:var(--ink);border-color:var(--border)}.btn-gray:hover{background:var(--card-alt)}
 .btn-sm{height:28px;padding:0 10px;font-size:11px}
 .btn-ghost{background:transparent;color:var(--ink-2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--card-alt);color:var(--ink)}
@@ -96,7 +93,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .orders-area{flex:1;padding:20px 24px;overflow-y:auto;background:#e3e3e3}
 .orders-section{margin-bottom:16px}
 .section-label{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:0 2px}
-.section-label-dot{display:none}
 .section-label-text{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-family:inherit;background:#fff;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.11),0 0 0 .5px rgba(0,0,0,.07);padding:3px 9px}
 .section-label-text.is-new{color:var(--accent)}
 .section-label-text.is-open{color:var(--warn)}
@@ -116,7 +112,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .ocard-customer{display:flex;align-items:center;gap:5px;flex:1;min-width:0;overflow:hidden}
 .ocard-customer .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
 .ocard-name-chip{font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#fff;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.13),0 0 0 .5px rgba(0,0,0,.09);padding:4px 10px;line-height:1.2}
-.ocard-product{display:none}
 /* spodní řádek: thumbs vlevo, meta chipy vpravo */
 .ocard-bottom-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
 .ocard-thumbs{display:flex;gap:3px;flex-wrap:wrap}
@@ -280,8 +275,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .addr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .addr-box{border:1px solid var(--border-soft);border-radius:8px;padding:14px;background:var(--card)}
 .addr-box-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border-soft);font-family:inherit}
-.addr-line{font-size:13px;color:var(--ink);line-height:1.7}
-.addr-line b{font-weight:600}
+.addr-line{display:block;font-size:13px;color:var(--ink);line-height:1.7}
+.addr-line b{font-weight:600;margin-right:3px}
 .addr-line a{color:var(--accent);text-decoration:none}.addr-line a:hover{text-decoration:underline}
 .delivery-row{margin-bottom:8px;padding:10px 12px;background:var(--card);border-radius:6px;border:1px solid var(--border-soft)}
 .delivery-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;font-family:inherit}
@@ -306,7 +301,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .item-tbl-qty{font-size:12px;color:var(--ink-3);font-family:inherit}
 .items-table .row-extra td{font-size:12px;color:var(--ink-3);padding-top:6px;padding-bottom:6px;background:var(--card-alt)}
 .items-table .row-total td{font-weight:700;font-size:13px;border-top:1px solid var(--border);background:var(--card-alt)}
-.items-table .row-grand td{font-weight:800;font-size:15px;color:var(--accent);border-top:2px solid var(--ink);padding-top:12px;padding-bottom:12px}
 /* ── ITEM NOTE ROW ─── */
 .row-item-note td{padding:0!important}
 .row-item-note .item-note-input{width:100%;min-height:32px;padding:7px 12px;border:1px solid var(--border-soft);border-radius:6px;font-size:12px;font-family:inherit;resize:none;outline:none;line-height:1.4;background:var(--card);color:var(--ink);transition:.12s}
@@ -333,9 +327,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .copy-btn{display:inline-flex;align-items:center;gap:3px;padding:1px 5px;border-radius:4px;border:1px solid var(--border-soft);background:#fafafa;color:var(--muted);font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;transition:.1s;line-height:1.6;vertical-align:middle;margin-left:4px;letter-spacing:.02em}
 .copy-btn:hover{border-color:var(--accent);color:var(--accent);background:#fff5f3}
 .copy-btn.copied{background:var(--ok);border-color:var(--ok);color:#fff}
-.addr-line{display:block;line-height:1.7}
-.addr-line b{margin-right:3px}
-.addr-line a{color:var(--accent);text-decoration:none}.addr-line a:hover{text-decoration:underline}
 
 /* ── TOAST ─── */
 .toast-container{position:fixed;bottom:20px;right:20px;z-index:500;display:flex;flex-direction:column;gap:6px}
@@ -343,6 +334,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .toast.show{transform:translateY(0);opacity:1}
 .toast.success{background:var(--ok)}
 .toast.error{background:var(--accent)}
+.toast.warn{background:var(--warn);color:var(--warn-ink)}
 
 /* ── SETUP SCREEN ─── */
 .setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px;background:#f4f4f4}
@@ -373,9 +365,6 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
   .main-wrap{margin-left:0}
   .panel{width:100vw}
   .modal-grid{grid-template-columns:1fr}
-  .table-head{display:none}
-  .order-row-main{grid-template-columns:auto 1fr!important;gap:4px 8px!important}
-  .order-row-main > div:nth-child(n+3){display:none}
 }
 </style>
 </head>
@@ -625,7 +614,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
           <div style="display:flex;align-items:center;gap:10px">
             <div class="note-char" id="note-char">0 znaků</div>
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--ink-2);user-select:none">
-              <input type="checkbox" id="note-contrast" onchange="toggleContrastPreview()" style="display:none">
+              <input type="checkbox" id="note-contrast" style="display:none">
               <span id="note-contrast-btn" onclick="toggleNoteContrast()" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-alt);cursor:pointer;transition:.15s;font-size:12px;font-weight:600;color:var(--ink-2)">
                 <span style="width:10px;height:10px;border-radius:2px;background:var(--border);flex-shrink:0;transition:.15s" id="note-contrast-dot"></span>
                 Kontrastní
@@ -1439,37 +1428,6 @@ function renderPanelOverview() {
   loadItemNotes(o.id, items.length);
 }
 
-function itemRow(it, idx, orderId) {
-  const thumbHtml = it.img ? `<img class="item-thumb" src="${it.img}" alt="" onerror="this.style.display='none'" loading="lazy" referrerpolicy="no-referrer">` : '';
-  return `<div class="item-row" id="item-row-${idx}">
-    <div class="item-top">
-      ${thumbHtml}
-      <div class="item-thumb-wrap" style="flex:1;min-width:0">
-        <div class="item-info" style="flex:1;min-width:0">
-          <div class="item-name">${escHtml(it.name||'Položka')}</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
-            ${it.sku ? `<div class="item-sku-red">${escHtml(it.sku)}</div>` : ''}
-            <button class="supplier-btn" id="supplier-btn-${idx}" onclick="toggleSupplierOrder(${idx})">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 9l1.5 9h15L21 9H3z"/><path d="M8 9V6a4 4 0 018 0v3"/></svg>
-              Objednáno u dodavatele
-            </button>
-          </div>
-        </div>
-        <div class="item-qty-price">
-          <div class="item-qty">${it.qty||1} ks</div>
-          <div class="item-price">${it.price_with_vat ? Number(it.price_with_vat).toLocaleString('cs-CZ') + ' Kč' : ''}</div>
-        </div>
-      </div>
-    </div>
-    <div class="item-note-area">
-      <div class="item-notes-log" id="item-notes-${idx}"></div>
-      <div class="item-note-input-row">
-        <textarea class="item-note-input" rows="1" placeholder="Poznámka k položce…" id="item-note-input-${idx}"></textarea>
-        <button class="item-note-save" onclick="saveItemNote(${idx})">Uložit</button>
-      </div>
-    </div>
-  </div>`;
-}
 
 async function loadItemNotes(orderId, itemCount) {
   const { data } = await db.from('order_notes').select('*').eq('order_id', orderId).not('item_index','is',null).order('created_at',{ascending:true});
@@ -1561,7 +1519,7 @@ async function saveQuickNote() {
   const raw = ta.value.trim();
   if (!raw) { toast('Poznámka je prázdná', 'error'); return; }
   const content = _quickContrast ? '[[red]]' + raw : raw;
-  const btn = document.querySelector('#panel-notes-bar .btn-red') || document.querySelector('.pnb-actions .btn-red');
+  const btn = document.querySelector('.pnb-actions .btn-red');
   if (btn) btn.disabled = true;
   const { error } = await db.from('order_notes').insert({ order_id: currentOrderId, item_index: null, content, author });
   if (error) { toast('Chyba: ' + error.message, 'error'); if (btn) btn.disabled = false; return; }
@@ -2015,7 +1973,7 @@ async function repairMissingPhotos() {
           }
         }
       }
-    } catch(e) { console.warn('repairMissingPhotos: eshop API selhalo', e); }
+    } catch(e) { /* eshop API selhalo při opravě fotek */ }
     const hasEshopMap = Object.keys(eshopOrderMap).length > 0;
 
     // 3. Načti všechny objednávky z DB
@@ -2090,8 +2048,7 @@ async function fetchProductImages() {
   if (!xmlText) { try { const r = await fetchWithTimeout('https://corsproxy.io/?'+encodeURIComponent(FEED_URL), 20000); if (r.ok) { const raw = await r.text(); xmlText = raw.startsWith('{')?JSON.parse(raw).contents:raw; } } catch(e) {} }
   if (!xmlText) { try { const r = await fetchWithTimeout('https://api.allorigins.win/raw?url='+encodeURIComponent(FEED_URL), 20000); if (r.ok) xmlText = await r.text(); } catch(e) {} }
   if (!xmlText) {
-    console.warn('fetchProductImages: všechny proxy selhaly');
-    if (staleCache) { console.info('fetchProductImages: používám stale cache jako fallback'); return staleCache; }
+    if (staleCache) { return staleCache; }
     return {};
   }
   const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
