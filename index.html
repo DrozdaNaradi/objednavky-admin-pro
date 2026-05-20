@@ -1025,27 +1025,29 @@ function renderOrders() {
   }
 
   if (search) {
-    sections = sections.map(s => ({
-      ...s,
-      items: s.items.filter(o =>
-        (o.customer_name||'').toLowerCase().includes(search) ||
-        (o.order_number||'').toLowerCase().includes(search) ||
-        (o.delivery_address||'').toLowerCase().includes(search) ||
-        (o.customer_email||'').toLowerCase().includes(search) ||
-        (o.customer_phone||'').toLowerCase().includes(search) ||
-        (o.company||'').toLowerCase().includes(search) ||
-        (o.shipping_method||'').toLowerCase().includes(search) ||
-        (o.payment_method||'').toLowerCase().includes(search) ||
-        (Array.isArray(o.items) ? o.items : []).some(it =>
-          (it.name||'').toLowerCase().includes(search) ||
-          (it.sku||'').toLowerCase().includes(search)
-        ) ||
-        (Array.isArray(o.order_notes) ? o.order_notes : []).some(n =>
-          (n.content||'').toLowerCase().includes(search) ||
-          (n.author||'').toLowerCase().includes(search)
-        )
-      )
-    }));
+    const matchOrder = o =>
+      (o.customer_name||'').toLowerCase().includes(search) ||
+      (o.order_number||'').toLowerCase().includes(search) ||
+      (o.delivery_address||'').toLowerCase().includes(search) ||
+      (o.customer_email||'').toLowerCase().includes(search) ||
+      (o.customer_phone||'').toLowerCase().includes(search) ||
+      (o.company||'').toLowerCase().includes(search) ||
+      (o.shipping_method||'').toLowerCase().includes(search) ||
+      (o.payment_method||'').toLowerCase().includes(search) ||
+      (Array.isArray(o.items) ? o.items : []).some(it =>
+        (it.name||'').toLowerCase().includes(search) ||
+        (it.sku||'').toLowerCase().includes(search)
+      ) ||
+      (Array.isArray(o.order_notes) ? o.order_notes : []).some(n =>
+        (n.content||'').toLowerCase().includes(search) ||
+        (n.author||'').toLowerCase().includes(search)
+      );
+    // při hledání prohledáme všechny statusy
+    sections = [
+      { status:'new',    label:'Nové',     color:'#1a1a1a', items: newAll.filter(matchOrder) },
+      { status:'open',   label:'Otevřené', color:'#1a1a1a', items: openAll.filter(matchOrder) },
+      { status:'closed', label:'Uzavřené', color:'#1a1a1a', items: closedAll.filter(matchOrder) },
+    ].filter(s => s.items.length > 0);
   }
 
   const sortFn = (a, b) => {
