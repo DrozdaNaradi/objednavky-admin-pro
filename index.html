@@ -1866,9 +1866,9 @@ function importImagesFromXml(input) {
       });
     }
     const count = Object.keys(map).length;
-    if (!count) { toast('XML neobsahuje žádné produkty s fotkami', 'error'); input.value=''; return; }
+    if (!count) { toast('Špatný soubor! Nahraj heureka_cz.xml (ne dostupnost_heureka_cz.xml)', 'error'); input.value=''; return; }
     try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify({ ts: Date.now(), map })); } catch(e) {}
-    toast(`✅ Načteno ${count} fotek — spusť Sync`, 'success');
+    toast(`✅ Načteno ${count} fotek z XML — klikni Opravit fotky`, 'success');
     input.value = '';
   };
   reader.readAsText(file);
@@ -1980,7 +1980,7 @@ async function fetchProductImages() {
       staleCache = cached.map; // expired but usable as fallback
     }
   } catch(e) {}
-  const FEED_URL = 'https://www.drozda-naradi.cz/fotky92438/xml/dostupnost_heureka_cz.xml';
+  const FEED_URL = 'https://www.drozda-naradi.cz/fotky92438/xml/heureka_cz.xml';
   let xmlText;
   setSyncStatus('Načítám katalog fotek…');
   try { const r = await fetchWithTimeout(FEED_URL, 15000); if (r.ok) xmlText = await r.text(); } catch(e) {}
