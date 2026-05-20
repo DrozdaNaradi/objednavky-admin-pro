@@ -779,6 +779,23 @@ function showDebug() {
 
   html += `<br><b>🖼 Cache (localStorage):</b> ${cacheInfo}<br>`;
 
+  // Show sample imgMap keys to diagnose ITEM_ID format
+  try {
+    const cached = JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || 'null');
+    if (cached && cached.map) {
+      const sampleKeys = Object.keys(cached.map).slice(0, 8);
+      html += `<span style="color:#6B7280;font-size:11px">Ukázka klíčů imgMap: <b>${sampleKeys.join(', ')}</b></span><br>`;
+      // Show sample SKUs from orders WITHOUT photos
+      const noPhotoSkus = [];
+      orders.forEach(o => {
+        (Array.isArray(o.items)?o.items:[]).forEach(it => {
+          if (!it.img && !it.type && it.sku && noPhotoSkus.length < 6) noPhotoSkus.push(it.sku);
+        });
+      });
+      if (noPhotoSkus.length) html += `<span style="color:#6B7280;font-size:11px">SKU bez fotky: <b>${noPhotoSkus.join(', ')}</b></span><br>`;
+    }
+  } catch(e) {}
+
   html += `<br><b>🔴 JS Chyby (${_errors.length})</b><br>`;
   if (_errors.length === 0) html += `<span style="color:green">✅ Žádné</span><br>`;
   _errors.forEach(e => html += `<span style="color:#DC2626">[${e.type}] ${escHtml(e.msg)}${e.src?' @ '+e.src:''}</span><br>`);
@@ -1939,10 +1956,10 @@ async function repairMissingPhotos() {
     if (fixed) {
       toast(`✓ Opraveno ${fixed} objednávek, ${itemsFixed} fotek doplněno`, 'success');
       await loadOrders();
-    } else if (!hasEshopMap && !hasImgMap) {
-      toast('Nelze připojit k eshopu ani XML feedu — zkontroluj připojení', 'warn');
+    } else if (!hasImgMap) {
+      toast('Nejdřív klikni Fotky → nahraj XML soubor z eshopu, pak Opravit fotky znovu', 'warn');
     } else {
-      toast(`Fotky nenalezeny — produkty možná nejsou v Heureka XML feedu`, 'warn');
+      toast(`Fotky nenalezeny ani v XML feedu (${Object.keys(imgMap).length} produktů). Zkus Debug → ukaž klíče.`, 'warn');
     }
   } catch(e) {
     toast('Chyba: ' + e.message, 'error');
