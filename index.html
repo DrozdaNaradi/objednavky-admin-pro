@@ -1084,7 +1084,7 @@ function orderRow(o) {
   const unreadDot = !readOrders.has(o.id) ? '<span class="unread-dot" title="Nepřečteno"></span>' : '';
 
   const badgeCls = o.status==='new'?'badge-new':o.status==='open'?'badge-open':'badge-closed';
-  const badgeLbl = o.status==='new'?'NOVÁ':o.status==='open'?'OTEVŘ.':'ODESLÁNO';
+  const badgeLbl = o.status==='new'?'NOVÁ':o.status==='open'?'OTEVŘENÉ':'ODESLÁNO';
   const statusDotColor = o.status==='new'?'#dc2626':o.status==='open'?'#ca8a04':'#16a34a';
 
   const shipShort = o.shipping_method ? o.shipping_method.split(' - ')[0].split('[')[0].trim() : '';
@@ -1111,18 +1111,15 @@ function orderRow(o) {
 
   const selCls = o.id === currentOrderId ? ' selected' : '';
   return `<div class="order-card${selCls}" id="orow-${o.id}" onclick="openPanel('${o.id}')">
-    <!-- levá strana: jméno + fotky + poznámky -->
+    <!-- levá strana: badge + jméno + fotky + poznámky -->
     <div class="ocard-body">
-      <div class="ocard-customer"><span class="dot" style="background:${statusDotColor}"></span>${escHtml(o.customer_name||'—')}${unreadDot}</div>
+      <div class="ocard-customer"><span class="badge ${badgeCls}">${badgeLbl}</span><span class="dot" style="background:${statusDotColor}"></span>${escHtml(o.customer_name||'—')}${unreadDot}</div>
       ${thumbsHtml ? `<div class="ocard-thumbs">${thumbsHtml}</div>` : ''}
       ${notesHtml ? `<div class="ocard-notes">${notesHtml}</div>` : ''}
     </div>
-    <!-- pravá strana -->
+    <!-- pravá strana: cena nahoře, meta dole -->
     <div class="ocard-right">
-      <div class="ocard-right-top">
-        <span class="badge ${badgeCls}">${badgeLbl}</span>
-        <span class="ocard-price">${totalStr}</span>
-      </div>
+      <span class="ocard-price">${totalStr}</span>
       <div class="ocard-right-bottom">
         ${shipHtml ? `${shipHtml}<br>` : ''}${dateStr}<br>
         <span class="ocard-ordernum">#${escHtml(o.order_number||'')}</span>
