@@ -1858,65 +1858,91 @@ function importImagesFromXml(input) {
 }
 
 // ── OPRAVIT CHYBĚJÍCÍ FOTKY ──
-function normName(s) {
-  return String(s||'').toLowerCase().replace(/\s+/g,' ').trim().slice(0,80);
-}
-
 async function repairMissingPhotos() {
   const btn = document.getElementById('repair-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Opravuji…'; }
   try {
-    // 1. Načti všechny objednávky z DB
-    const { data: allOrders, error } = await db.from('orders').select('id, order_number, items');
-    if (error) throw error;
-
-    // 2. Sestav fallback mapy ze stávajících objednávek kde img existuje
-    const skuFallback  = {};
-    const nameFallback = {};
-    for (const o of (allOrders || [])) {
-      for (const it of (o.items || [])) {
-        if (!it.img || it.type) continue;
-        if (it.sku)  skuFallback[it.sku] = it.img;
-        if (it.name) nameFallback[normName(it.name)] = it.img;
-      }
-    }
-
-    // 3. Načti XML feed jako další zdroj (sku nebo name matching)
+    // 1. Načti XML feed → imgMap[product_id] = imgUrl
     const imgMap = await fetchProductImages();
     const hasImgMap = Object.keys(imgMap).length > 0;
 
-    let fixed = 0, skipped = 0, itemsFixed = 0;
-    for (const order of (allOrders || [])) {
+    // 2. Stáhni eshop API → získej product_id pro každý produkt
+    //    (imgMap je keyed by product_id = ITEM_ID v XML, ne SKU)
+    let eshopOrderMap = {}; // order_number → { sku → product_id }
+    try {
+      let text;
+      try {
+        const r = await fetchWithTimeout(ESHOP_API, 10000);
+        if (r.ok) text = await r.text();
+      } catch(e) {}
+      if (!text) {
+        const r2 = await fetchWithTimeout(CORS_PROXY + encodeURIComponent(ESHOP_API), 15000);
+        if (r2.ok) { const raw = await r2.text(); text = raw.trimStart().startsWith('{') ? JSON.parse(raw).contents : raw; }
+      }
+      if (text) {
+        const json = JSON.parse(text);
+        if (json.success) {
+          for (const o of (json.params?.orderList||[])) {
+            const num = String(o.number||o.id_order||'');
+            if (!num) continue;
+            const pidMap = {};
+            for (const p of (o.row_list||[])) {
+              const sku = String(p.product_number||'');
+              const pid = String(p.product_id||'');
+              if (sku && pid) pidMap[sku] = pid;
+            }
+            eshopOrderMap[num] = pidMap;
+          }
+        }
+      }
+    } catch(e) { console.warn('repairMissingPhotos: eshop API selhalo', e); }
+    const hasEshopMap = Object.keys(eshopOrderMap).length > 0;
+
+    // 3. Načti všechny objednávky z DB
+    const { data: allOrders, error } = await db.from('orders').select('id, order_number, items');
+    if (error) throw error;
+
+    // 4. Fallback ze stávajících objednávek s fotkami (sku→img)
+    const skuImgFallback = {};
+    for (const o of (allOrders||[])) {
+      for (const it of (o.items||[])) {
+        if (it.img && !it.type && it.sku) skuImgFallback[it.sku] = it.img;
+      }
+    }
+
+    let fixed = 0, itemsFixed = 0;
+    for (const order of (allOrders||[])) {
       const items = order.items;
       if (!Array.isArray(items)) continue;
+      const hasMissing = items.some(it => !it.img && !it.type);
+      if (!hasMissing) continue;
 
+      const pidMap = eshopOrderMap[order.order_number] || {};
       let changed = false;
       const newItems = items.map(it => {
         if (it.img || it.type) return it;
-        const nn = normName(it.name);
+        const pid = it.sku ? (pidMap[it.sku]||'') : '';
         const img =
-          (it.sku && skuFallback[it.sku])          ||  // stejný SKU v jiné obj.
-          (nn && nameFallback[nn])                   ||  // stejný název v jiné obj.
-          (hasImgMap && it.sku && imgMap[it.sku])   ||  // XML feed → SKU
+          (hasImgMap && pid && imgMap[pid])      ||  // product_id → XML feed (nejlepší zdroj)
+          (hasImgMap && it.sku && imgMap[it.sku])||  // zkus i sku přímo (fallback)
+          skuImgFallback[it.sku]                 ||  // stejné SKU v jiné obj.
           '';
         if (img) { changed = true; itemsFixed++; return { ...it, img }; }
         return it;
       });
-
       if (changed) {
         await db.from('orders').update({ items: newItems }).eq('id', order.id);
         fixed++;
-      } else {
-        skipped++;
       }
     }
 
     if (fixed) {
       toast(`✓ Opraveno ${fixed} objednávek, ${itemsFixed} fotek doplněno`, 'success');
       await loadOrders();
+    } else if (!hasEshopMap && !hasImgMap) {
+      toast('Nelze připojit k eshopu ani XML feedu — zkontroluj připojení', 'warn');
     } else {
-      // Nic nenalezeno — zkus přes Sync z eshopu který stáhne XML feed znovu
-      toast(`Žádné shody — zkus: 1) Fotky → nahraj XML, pak znovu Opravit. Nebo 2) Sync z eshopu.`, 'warn');
+      toast(`Fotky nenalezeny — produkty možná nejsou v Heureka XML feedu`, 'warn');
     }
   } catch(e) {
     toast('Chyba: ' + e.message, 'error');
