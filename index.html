@@ -54,6 +54,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .main-title{font-size:15px;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
 .rt-status{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
 .main-header-right{display:flex;align-items:center;gap:6px}
+/* ── TOOLTIPS ─── */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-size:11px;font-weight:500;line-height:1.45;padding:6px 10px;border-radius:6px;white-space:pre;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;min-width:160px;max-width:260px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+[data-tip]::before{content:'';position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1a1a1a;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999}
+[data-tip]:hover::after,[data-tip]:hover::before{opacity:1}
 .btn{height:30px;padding:0 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:.1s;border:1px solid var(--border);background:var(--card);color:var(--ink);display:inline-flex;align-items:center;gap:5px;font-family:inherit;white-space:nowrap}
 .btn:hover{background:var(--card-alt)}
 .btn-red{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-red:hover{background:var(--accent2);border-color:var(--accent2)}
@@ -477,20 +482,20 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         </div>
       </div>
       <div class="main-header-right">
-        <button class="btn btn-sm" id="debug-btn" onclick="showDebug()" style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;font-size:11px">⚠ Debug</button>
-        <div class="user-badge" onclick="changeAuthor()">
+        <button class="btn btn-sm" id="debug-btn" onclick="showDebug()" data-tip="Diagnostika aplikace&#10;Zobrazí stav dat, cache fotek&#10;a případné chyby" style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;font-size:11px">⚠ Debug</button>
+        <div class="user-badge" onclick="changeAuthor()" data-tip="Přepnout autora poznámek&#10;Tvoje jméno se zobrazuje&#10;u každé poznámky">
           <div class="user-dot" id="user-initial">?</div>
           <span id="user-name-display">Neznámý</span>
         </div>
-        <button class="btn btn-gray btn-sm" id="sync-btn" onclick="syncFromEshop()">
+        <button class="btn btn-gray btn-sm" id="sync-btn" onclick="syncFromEshop()" data-tip="Stáhne nové objednávky z eshopu&#10;a doplní fotky produktů.&#10;Spusť po každé nové objednávce.">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
           Sync z eshopu
         </button>
-        <button class="btn btn-gray btn-sm" onclick="document.getElementById('img-xml-input').click()">
+        <button class="btn btn-gray btn-sm" onclick="document.getElementById('img-xml-input').click()" data-tip="Nahraj soubor heureka_cz.xml&#10;z administrace eshopu.&#10;Aktualizuje databázi fotek produktů.">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           Fotky
         </button>
-        <button class="btn btn-gray btn-sm" id="repair-btn" onclick="repairMissingPhotos()" title="Doplní chybějící fotky u všech objednávek">
+        <button class="btn btn-gray btn-sm" id="repair-btn" onclick="repairMissingPhotos()" data-tip="Doplní chybějící fotky u objednávek&#10;kde se fotky nenačetly při syncu.&#10;Nejdřív nahraj XML přes Fotky.">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
           Opravit fotky
         </button>
