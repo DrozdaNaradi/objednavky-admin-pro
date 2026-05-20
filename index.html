@@ -106,7 +106,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .ocard-price{font-size:15px;font-weight:800;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
 .ocard-right-bottom{font-size:12px;color:var(--muted);line-height:1.6;font-weight:600;text-align:right}
 .ocard-ordernum{font-size:11px;color:#bbb;font-weight:400}
-.ocard-notes{display:flex;flex-direction:column;gap:3px;width:100%}
+.ocard-notes{display:flex;flex-direction:column;gap:0;width:100%;border-top:1px solid var(--border-soft);margin-top:4px;padding-top:2px}
 .unread-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;margin-left:2px;vertical-align:middle;flex-shrink:0}
 .empty-orders{text-align:center;padding:40px;color:var(--muted);font-size:13px;background:var(--card);border-radius:8px;border:1px solid var(--border-soft)}
 
@@ -117,11 +117,10 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .badge-closed{background:var(--ok-bg);color:var(--ok-ink)}
 
 /* ── ROW NOTES ─── */
-.row-note-line{display:flex;align-items:baseline;gap:6px;font-size:12px;padding:5px 0;border-top:1px solid var(--border-soft)}
-.row-note-line:first-child{border-top:none;padding-top:0}
-.row-note-author{font-weight:700;color:var(--ok);white-space:nowrap;flex-shrink:0}
-.row-note-date{color:var(--muted);font-size:10px;white-space:nowrap;flex-shrink:0}
-.row-note-text{color:var(--ok);font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.row-note-line{display:grid;grid-template-columns:72px 110px auto 1fr;align-items:baseline;gap:0 8px;font-size:12px;padding:4px 0;border-top:1px solid var(--border-soft)}
+.row-note-author{font-weight:700;color:var(--ok);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-note-date{color:var(--muted);font-size:10.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.row-note-text{color:var(--ok);font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ── SIDE PANEL ─── */
 .panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
@@ -232,11 +231,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .note-entry.note-contrast .note-author{color:rgba(255,255,255,.85)}
 .note-entry.note-contrast .note-time{color:rgba(255,255,255,.65)}
 .note-entry.note-contrast .note-text{color:#fff;font-weight:700}
-.row-note-line.note-contrast{background:none;border-left:none;padding:5px 0;border-top:1px solid var(--border-soft)}
-.row-note-line.note-contrast:first-child{border-top:none;padding-top:0}
 .row-note-line.note-contrast .row-note-author{color:var(--accent);font-weight:800}
 .row-note-line.note-contrast .row-note-date{color:var(--muted)}
-.row-note-line.note-contrast .row-note-text{color:var(--accent);font-weight:800;font-size:12px}
+.row-note-line.note-contrast .row-note-text{color:var(--accent);font-weight:800}
 
 /* ── ACTIVITY ─── */
 .activity-list{display:flex;flex-direction:column}
