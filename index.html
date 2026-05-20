@@ -1857,9 +1857,13 @@ const IMG_CACHE_KEY = 'productImgCache';
 const IMG_CACHE_TTL = 30 * 24 * 60 * 60 * 1000;
 
 async function fetchProductImages() {
+  let staleCache = null;
   try {
     const cached = JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || 'null');
-    if (cached && (Date.now() - cached.ts) < IMG_CACHE_TTL) return cached.map;
+    if (cached) {
+      if ((Date.now() - cached.ts) < IMG_CACHE_TTL) return cached.map; // fresh cache
+      staleCache = cached.map; // expired but usable as fallback
+    }
   } catch(e) {}
   const FEED_URL = 'https://www.drozda-naradi.cz/fotky92438/xml/dostupnost_heureka_cz.xml';
   let xmlText;
@@ -1867,7 +1871,11 @@ async function fetchProductImages() {
   try { const r = await fetchWithTimeout(FEED_URL, 15000); if (r.ok) xmlText = await r.text(); } catch(e) {}
   if (!xmlText) { try { const r = await fetchWithTimeout('https://corsproxy.io/?'+encodeURIComponent(FEED_URL), 20000); if (r.ok) { const raw = await r.text(); xmlText = raw.startsWith('{')?JSON.parse(raw).contents:raw; } } catch(e) {} }
   if (!xmlText) { try { const r = await fetchWithTimeout('https://api.allorigins.win/raw?url='+encodeURIComponent(FEED_URL), 20000); if (r.ok) xmlText = await r.text(); } catch(e) {} }
-  if (!xmlText) { console.warn('fetchProductImages: všechny proxy selhaly'); return {}; }
+  if (!xmlText) {
+    console.warn('fetchProductImages: všechny proxy selhaly');
+    if (staleCache) { console.info('fetchProductImages: používám stale cache jako fallback'); return staleCache; }
+    return {};
+  }
   const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
   const map = {};
   doc.querySelectorAll('SHOPITEM').forEach(item => {
@@ -1876,6 +1884,17 @@ async function fetchProductImages() {
     if (id && img) map[id] = img;
   });
   try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify({ ts: Date.now(), map })); } catch(e) {}
+  return map;
+}
+
+// Sestaví mapu SKU→img ze všech objednávek v DB (fallback pro nové objednávky bez XML)
+function buildSkuImgMapFromOrders(orders) {
+  const map = {};
+  for (const o of (orders||[])) {
+    for (const it of (o.items||[])) {
+      if (it.sku && it.img) map[it.sku] = it.img;
+    }
+  }
   return map;
 }
 
@@ -1915,6 +1934,9 @@ async function syncFromEshop() {
     if (!orderList.length) { toast('Eshop nemá žádné objednávky', ''); showLoading(false); if (btn) btn.disabled=false; if (btnS) btnS.disabled=false; return; }
     const imgMap = await fetchProductImages();
     const hasImgMap = Object.keys(imgMap).length > 0;
+    // Fallback: mapa SKU→img ze všech existujících objednávek v DB
+    const { data: allDbOrders } = await db.from('orders').select('items');
+    const skuImgFallback = buildSkuImgMapFromOrders(allDbOrders);
     setSyncStatus(`Nalezeno ${orderList.length} objednávek, importuji…`);
     let imported = 0, updated = 0;
     for (const o of orderList) {
@@ -1923,7 +1945,10 @@ async function syncFromEshop() {
       const c = o.customer?.delivery_information || {};
       const items = (o.row_list||[]).map(p => {
         const pid = String(p.product_id||'');
-        return { name:p.product_name||'', sku:p.product_number||'', qty:parseInt(p.count||1), price_with_vat:parseFloat(p.price_per_unit_with_vat||0), price_without_vat:parseFloat(p.price_per_unit||0), total_with_vat:parseFloat(p.price_total_with_vat||0), img:pid?(imgMap[pid]||''):'' };
+        const sku = String(p.product_number||'');
+        const imgFromMap = pid ? (imgMap[pid]||'') : '';
+        const imgFromFallback = sku ? (skuImgFallback[sku]||'') : '';
+        return { name:p.product_name||'', sku, qty:parseInt(p.count||1), price_with_vat:parseFloat(p.price_per_unit_with_vat||0), price_without_vat:parseFloat(p.price_per_unit||0), total_with_vat:parseFloat(p.price_total_with_vat||0), img: imgFromMap || imgFromFallback };
       });
       // Store shipping + payment as special items so we can display correct prices
       const shipVat = parseFloat(o.delivery?.postovne||0);
