@@ -1858,34 +1858,48 @@ function importImagesFromXml(input) {
 }
 
 // ── OPRAVIT CHYBĚJÍCÍ FOTKY ──
+function normName(s) {
+  return String(s||'').toLowerCase().replace(/\s+/g,' ').trim().slice(0,80);
+}
+
 async function repairMissingPhotos() {
   const btn = document.getElementById('repair-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Opravuji…'; }
   try {
-    // 1. Načti XML feed
-    const imgMap = await fetchProductImages();
-    const hasImgMap = Object.keys(imgMap).length > 0;
-
-    // 2. Načti všechny objednávky z DB
+    // 1. Načti všechny objednávky z DB
     const { data: allOrders, error } = await db.from('orders').select('id, order_number, items');
     if (error) throw error;
 
-    // 3. Sestav SKU→img fallback ze stávajících objednávek (kde img existuje)
-    const skuFallback = buildSkuImgMapFromOrders(allOrders);
+    // 2. Sestav fallback mapy ze stávajících objednávek kde img existuje
+    const skuFallback  = {};
+    const nameFallback = {};
+    for (const o of (allOrders || [])) {
+      for (const it of (o.items || [])) {
+        if (!it.img || it.type) continue;
+        if (it.sku)  skuFallback[it.sku] = it.img;
+        if (it.name) nameFallback[normName(it.name)] = it.img;
+      }
+    }
 
-    let fixed = 0, skipped = 0;
+    // 3. Načti XML feed jako další zdroj (sku nebo name matching)
+    const imgMap = await fetchProductImages();
+    const hasImgMap = Object.keys(imgMap).length > 0;
+
+    let fixed = 0, skipped = 0, itemsFixed = 0;
     for (const order of (allOrders || [])) {
       const items = order.items;
       if (!Array.isArray(items)) continue;
 
       let changed = false;
       const newItems = items.map(it => {
-        if (it.img || it.type) return it; // má fotku nebo je shipping/payment — přeskočit
-        // Zkus pid z img mapy (pokud eshop uložil product_id do SKU)
-        const imgFromMap = hasImgMap && it.sku ? (imgMap[it.sku] || '') : '';
-        const imgFromFallback = it.sku ? (skuFallback[it.sku] || '') : '';
-        const newImg = imgFromMap || imgFromFallback;
-        if (newImg) { changed = true; return { ...it, img: newImg }; }
+        if (it.img || it.type) return it;
+        const nn = normName(it.name);
+        const img =
+          (it.sku && skuFallback[it.sku])          ||  // stejný SKU v jiné obj.
+          (nn && nameFallback[nn])                   ||  // stejný název v jiné obj.
+          (hasImgMap && it.sku && imgMap[it.sku])   ||  // XML feed → SKU
+          '';
+        if (img) { changed = true; itemsFixed++; return { ...it, img }; }
         return it;
       });
 
@@ -1897,12 +1911,17 @@ async function repairMissingPhotos() {
       }
     }
 
-    toast(`✓ Opraveno ${fixed} objednávek (${skipped} beze změny)`, 'success');
-    await loadOrders();
+    if (fixed) {
+      toast(`✓ Opraveno ${fixed} objednávek, ${itemsFixed} fotek doplněno`, 'success');
+      await loadOrders();
+    } else {
+      // Nic nenalezeno — zkus přes Sync z eshopu který stáhne XML feed znovu
+      toast(`Žádné shody — zkus: 1) Fotky → nahraj XML, pak znovu Opravit. Nebo 2) Sync z eshopu.`, 'warn');
+    }
   } catch(e) {
     toast('Chyba: ' + e.message, 'error');
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Opravit fotky'; btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> Opravit fotky'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> Opravit fotky'; }
   }
 }
 
