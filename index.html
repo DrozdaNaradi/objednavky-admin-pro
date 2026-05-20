@@ -115,14 +115,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .ocard-top-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .ocard-customer{display:flex;align-items:center;gap:5px;flex:1;min-width:0;overflow:hidden}
 .ocard-customer .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
-.ocard-name-chip{font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#efefef;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.13),0 0 0 .5px rgba(0,0,0,.09);padding:3px 9px;line-height:1.35}
+.ocard-name-chip{font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#efefef;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.13),0 0 0 .5px rgba(0,0,0,.09);padding:4px 10px;line-height:1.2}
 .ocard-product{display:none}
 /* spodní řádek: thumbs vlevo, meta chipy vpravo */
 .ocard-bottom-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
 .ocard-thumbs{display:flex;gap:3px;flex-wrap:wrap}
 .ocard-thumb{width:51px;height:51px;object-fit:contain;border-radius:4px;border:1px solid #e5e5e5;background:#f5f5f4}
 .ocard-meta-chips{display:flex;flex-direction:column;gap:3px;align-items:flex-end;flex-shrink:0}
-.ocard-chip{background:#fff;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.11),0 0 0 .5px rgba(0,0,0,.07);padding:3px 8px;white-space:nowrap;text-align:right;line-height:1.35}
+.ocard-chip{background:#fff;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.11),0 0 0 .5px rgba(0,0,0,.07);padding:4px 10px;white-space:nowrap;text-align:right;line-height:1.2}
 .ocard-price{font-size:14px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
 .ocard-ship-chip{font-size:11px;font-weight:600}
 .ocard-date-chip{font-size:11px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
@@ -132,10 +132,10 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .empty-orders{text-align:center;padding:40px;color:var(--muted);font-size:13px;background:var(--card);border-radius:8px;border:1px solid var(--border-soft)}
 
 /* ── BADGE ─── */
-.badge{display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border-radius:5px;font-size:9px;font-weight:800;white-space:nowrap;letter-spacing:.08em;text-transform:uppercase;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.13),0 0 0 .5px rgba(0,0,0,.08)}
-.badge-new{background:var(--accent);color:#fff}
-.badge-open{background:#EAB308;color:#000}
-.badge-closed{background:var(--ok-bg);color:var(--ok-ink)}
+.badge{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:5px;font-size:9px;font-weight:800;white-space:nowrap;letter-spacing:.08em;text-transform:uppercase;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.13),0 0 0 .5px rgba(0,0,0,.08);background:#efefef;flex-shrink:0}
+.badge-new{color:var(--accent)}
+.badge-open{color:#ca8a04}
+.badge-closed{color:var(--ok)}
 
 /* ── ROW NOTES ─── */
 .row-note-line{display:grid;grid-template-columns:78px 142px 48px 1fr;align-items:baseline;gap:0 6px;font-size:13px;padding:5px 0;border-top:1px solid var(--border-soft)}
