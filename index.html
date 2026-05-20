@@ -1115,7 +1115,6 @@ function orderRow(o) {
         <span class="ocard-id"><span class="dot" style="background:${statusDotColor}"></span>#${escHtml(o.order_number||'')}${unreadDot}</span>
         <span class="ocard-customer">${escHtml(o.customer_name||'—')}</span>
       </div>
-      ${itemsPreview ? `<div class="ocard-product">${itemsPreview}</div>` : ''}
       ${thumbsHtml ? `<div class="ocard-thumbs">${thumbsHtml}</div>` : ''}
       ${notesHtml ? `<div class="ocard-notes">${notesHtml}</div>` : ''}
     </div>
