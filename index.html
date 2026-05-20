@@ -117,9 +117,10 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .badge-closed{background:var(--ok-bg);color:var(--ok-ink)}
 
 /* ── ROW NOTES ─── */
-.row-note-line{display:grid;grid-template-columns:72px 110px auto 1fr;align-items:baseline;gap:0 8px;font-size:12px;padding:4px 0;border-top:1px solid var(--border-soft)}
+.row-note-line{display:grid;grid-template-columns:70px 128px 44px 1fr;align-items:baseline;gap:0 6px;font-size:12px;padding:4px 0;border-top:1px solid var(--border-soft)}
 .row-note-author{font-weight:700;color:var(--ok);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row-note-date{color:var(--muted);font-size:10.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.row-note-badge{font-size:10px;background:#e5e5e5;border-radius:3px;padding:1px 5px;color:#525252;white-space:nowrap;text-align:center;overflow:hidden}
 .row-note-text{color:var(--ok);font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ── SIDE PANEL ─── */
@@ -1096,12 +1097,11 @@ function orderRow(o) {
     const d = new Date(n.created_at);
     const dl = d.toLocaleDateString('cs-CZ',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'});
     const preview = text.length>80 ? text.substring(0,80)+'…' : text;
+    const badgeHtml = isItem ? `<span class="row-note-badge">pol.${n.item_index+1}</span>` : (isSupplier ? `<span class="row-note-badge">🛒</span>` : `<span class="row-note-badge"></span>`);
     return `<div class="row-note-line${isRed?' note-contrast':''}${isSupplier?' supplier-note':''}">
-      ${isRed ? '<span style="font-size:13px;flex-shrink:0">⚠️</span>' : ''}
-      ${isSupplier ? '<span style="font-size:11px;flex-shrink:0">🛒</span>' : ''}
-      ${isItem ? `<span style="font-size:10px;background:#e5e5e5;border-radius:3px;padding:1px 5px;flex-shrink:0;color:#525252">pol.${n.item_index+1}</span>` : ''}
       <span class="row-note-author">${escHtml(n.author||'')}</span>
       <span class="row-note-date">${dl}</span>
+      ${badgeHtml}
       <span class="row-note-text">${escHtml(preview)}</span>
     </div>`;
   }).join('') : '';
