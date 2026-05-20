@@ -95,35 +95,38 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 /* ── ORDERS AREA ─── */
 .orders-area{flex:1;padding:20px 24px;overflow-y:auto;background:#e3e3e3}
 .orders-section{margin-bottom:16px}
-.section-label{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:0 2px}
+.section-label{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:0 2px}
 .section-label-dot{display:none}
-.section-label-text{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;font-family:inherit}
+.section-label-text{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-family:inherit;background:#fff;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.11),0 0 0 .5px rgba(0,0,0,.07);padding:3px 9px}
 .section-label-text.is-new{color:var(--accent)}
 .section-label-text.is-open{color:var(--warn)}
 .section-label-text.is-closed{color:var(--ok)}
-.section-label-count{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;font-family:inherit;color:#fff}
+.section-label-count{font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;font-family:inherit;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.11),0 0 0 .5px rgba(0,0,0,.07)}
 .section-label-count.is-new{background:var(--accent)}
 .section-label-count.is-open{background:var(--warn);color:#713f12}
 .section-label-count.is-closed{background:var(--ok)}
 
 /* ── ORDER CARDS ─── */
-.order-card{background:var(--card);border:1px solid #ebebeb;border-radius:6px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:background .1s,border-color .1s;display:flex;gap:14px;align-items:flex-start;position:relative;min-height:88px}
+.order-card{background:var(--card);border:1px solid #ebebeb;border-radius:6px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:background .1s,border-color .1s;display:flex;flex-direction:column;gap:6px;position:relative}
 .order-card:hover{background:#fafafa;border-color:var(--border)}
 .order-card.selected{background:#fff5f3;border-color:var(--border)}
 .order-card.selected::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);border-radius:6px 0 0 6px}
-.ocard-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
-.ocard-customer{font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px;line-height:1.3}
+/* top řádek: jméno vlevo, cena vpravo — stejná výška */
+.ocard-top-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ocard-customer{font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px;line-height:1.3;flex:1;min-width:0}
 .ocard-customer .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
 .ocard-product{display:none}
+/* spodní řádek: thumbs vlevo, meta chipy vpravo */
+.ocard-bottom-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
 .ocard-thumbs{display:flex;gap:3px;flex-wrap:wrap}
 .ocard-thumb{width:51px;height:51px;object-fit:contain;border-radius:4px;border:1px solid #e5e5e5;background:#f5f5f4}
-.ocard-right{flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;gap:4px;min-width:120px;text-align:right;align-self:stretch}
+.ocard-meta-chips{display:flex;flex-direction:column;gap:3px;align-items:flex-end;flex-shrink:0}
 .ocard-chip{background:#fff;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.11),0 0 0 .5px rgba(0,0,0,.07);padding:3px 8px;white-space:nowrap;text-align:right;line-height:1.35}
 .ocard-price{font-size:14px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
 .ocard-ship-chip{font-size:11px;font-weight:600}
 .ocard-date-chip{font-size:11px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
 .ocard-ordernum-chip{font-size:11px;color:#bbb;font-weight:400}
-.ocard-notes{display:flex;flex-direction:column;gap:0;width:100%;border-top:1px solid var(--border-soft);margin-top:4px;padding-top:2px}
+.ocard-notes{display:flex;flex-direction:column;gap:0;width:100%;border-top:1px solid var(--border-soft);padding-top:2px}
 .unread-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;margin-left:2px;vertical-align:middle;flex-shrink:0}
 .empty-orders{text-align:center;padding:40px;color:var(--muted);font-size:13px;background:var(--card);border-radius:8px;border:1px solid var(--border-soft)}
 
@@ -1209,21 +1212,21 @@ function orderRow(o) {
 
   const selCls = o.id === currentOrderId ? ' selected' : '';
   return `<div class="order-card${selCls}" id="orow-${o.id}" onclick="openPanel('${o.id}')">
-    <!-- levá strana: badge + jméno + fotky + poznámky -->
-    <div class="ocard-body">
+    <!-- horní řádek: badge+jméno vlevo | cena vpravo -->
+    <div class="ocard-top-row">
       <div class="ocard-customer"><span class="badge ${badgeCls}">${badgeLbl}</span><span class="dot" style="background:${statusDotColor}"></span>${escHtml(o.customer_name||'—')}${unreadDot}</div>
-      ${thumbsHtml ? `<div class="ocard-thumbs">${thumbsHtml}</div>` : ''}
-      ${notesHtml ? `<div class="ocard-notes">${notesHtml}</div>` : ''}
-    </div>
-    <!-- pravá strana: individuální chipy -->
-    <div class="ocard-right">
       <div class="ocard-chip"><span class="ocard-price">${totalStr}</span></div>
-      <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
+    </div>
+    <!-- spodní řádek: fotky vlevo | meta chipy vpravo -->
+    <div class="ocard-bottom-row">
+      ${thumbsHtml ? `<div class="ocard-thumbs">${thumbsHtml}</div>` : '<div></div>'}
+      <div class="ocard-meta-chips">
         ${shipHtml ? `<div class="ocard-chip ocard-ship-chip">${shipHtml}</div>` : ''}
         <div class="ocard-chip"><span class="ocard-date-chip">${dateStr}</span></div>
         <div class="ocard-chip"><span class="ocard-ordernum-chip">#${escHtml(o.order_number||'')}</span></div>
       </div>
     </div>
+    ${notesHtml ? `<div class="ocard-notes">${notesHtml}</div>` : ''}
   </div>`;
 }
 
