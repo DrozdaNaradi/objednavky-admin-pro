@@ -47,6 +47,17 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .nav-item.active .nav-count{color:rgba(255,255,255,.75)}
 .nav-divider{height:1px;background:var(--border);margin:4px 4px}
 .sidebar-bottom{padding:6px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:1px}
+/* ── STATS BOX ─── */
+.stats-box{margin:8px 6px 4px;border-radius:8px;background:var(--card);border:1px solid var(--border);overflow:hidden}
+.stats-periods{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+.stats-period{font-size:10px;font-weight:600;color:var(--muted);text-align:center;padding:5px 2px;cursor:pointer;transition:.12s;border:none;background:none;font-family:inherit;letter-spacing:.01em}
+.stats-period:hover{color:var(--ink);background:var(--sidebar-hover)}
+.stats-period.active{color:var(--ink);background:var(--bg);font-weight:700}
+.stats-rows{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.stats-row{display:flex;flex-direction:column;gap:1px}
+.stats-label{font-size:10px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.stats-val{font-size:18px;font-weight:800;color:var(--ink);letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.stats-val-sub{font-size:11px;color:var(--muted);font-weight:500;margin-top:1px}
 
 /* ── MAIN HEADER ─── */
 .main-header{background:var(--card);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
@@ -454,6 +465,26 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <span class="nav-count" id="count-closed">0</span>
       </button>
     </nav>
+    <div class="stats-box">
+      <div class="stats-periods">
+        <button class="stats-period active" onclick="setStatsPeriod('week',this)">Tento týden</button>
+        <button class="stats-period" onclick="setStatsPeriod('lastweek',this)">Min. týden</button>
+        <button class="stats-period" onclick="setStatsPeriod('month',this)">Tento měsíc</button>
+        <button class="stats-period" onclick="setStatsPeriod('lastmonth',this)">Min. měsíc</button>
+      </div>
+      <div class="stats-rows">
+        <div class="stats-row">
+          <div class="stats-label">Objednávky</div>
+          <div class="stats-val" id="stat-count">—</div>
+          <div class="stats-val-sub" id="stat-count-sub"></div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-label">Celková hodnota</div>
+          <div class="stats-val" id="stat-total">—</div>
+          <div class="stats-val-sub" id="stat-total-sub"></div>
+        </div>
+      </div>
+    </div>
     <div class="sidebar-bottom">
       <button class="nav-item" id="sync-btn-side" onclick="syncFromEshop()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
@@ -963,6 +994,7 @@ async function loadOrders() {
   if (error) { toast('Chyba načítání: ' + error.message, 'error'); return; }
   orders = data || [];
   renderOrders();
+  renderStats();
 }
 
 // ─── REALTIME ────────────────────────────────────────────────────────────────
@@ -991,6 +1023,53 @@ function setupRealtime() {
 }
 
 // ─── FILTER ──────────────────────────────────────────────────────────────────
+// ─── STATS ───────────────────────────────────────────────────────────────────
+let currentStatsPeriod = 'week';
+function setStatsPeriod(period, btn) {
+  currentStatsPeriod = period;
+  document.querySelectorAll('.stats-period').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStats();
+}
+function getStatsPeriodRange(period) {
+  const now = new Date();
+  const dow = now.getDay() === 0 ? 7 : now.getDay(); // mon=1..sun=7
+  if (period === 'week') {
+    const start = new Date(now); start.setDate(now.getDate() - dow + 1); start.setHours(0,0,0,0);
+    const end = new Date(now); end.setHours(23,59,59,999);
+    return { start, end };
+  } else if (period === 'lastweek') {
+    const start = new Date(now); start.setDate(now.getDate() - dow - 6); start.setHours(0,0,0,0);
+    const end = new Date(now); end.setDate(now.getDate() - dow); end.setHours(23,59,59,999);
+    return { start, end };
+  } else if (period === 'month') {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now); end.setHours(23,59,59,999);
+    return { start, end };
+  } else { // lastmonth
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    return { start, end };
+  }
+}
+function renderStats() {
+  const { start, end } = getStatsPeriodRange(currentStatsPeriod);
+  const inRange = orders.filter(o => {
+    if (!o.order_date) return false;
+    const d = new Date(o.order_date);
+    return d >= start && d <= end;
+  });
+  const closed = inRange.filter(o => o.status === 'closed');
+  const total = inRange.reduce((s, o) => s + (parseFloat(o.total_amount) || 0), 0);
+  document.getElementById('stat-count').textContent = inRange.length;
+  document.getElementById('stat-count-sub').textContent = closed.length + ' uzavřených';
+  document.getElementById('stat-total').textContent = total > 0
+    ? Number(total).toLocaleString('cs-CZ', {maximumFractionDigits:0}) + ' Kč'
+    : '0 Kč';
+  document.getElementById('stat-total-sub').textContent = 'bez DPH: ' +
+    Number(total / 1.21).toLocaleString('cs-CZ', {maximumFractionDigits:0}) + ' Kč';
+}
+
 function setFilter(f) {
   currentFilter = f;
   ['active','new','open','closed'].forEach(k => {
