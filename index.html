@@ -117,10 +117,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .badge-closed{background:var(--ok-bg);color:var(--ok-ink)}
 
 /* ── ROW NOTES ─── */
-.row-note-line{display:flex;align-items:baseline;gap:6px;font-size:11px;background:var(--ok-bg);border-radius:5px;padding:6px 10px;border-left:2px solid var(--ok)}
-.row-note-author{font-weight:700;color:var(--ok-ink);white-space:nowrap;flex-shrink:0}
-.row-note-date{color:var(--ok);font-size:10px;white-space:nowrap;flex-shrink:0}
-.row-note-text{color:var(--ok-ink);font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.row-note-line{display:flex;align-items:baseline;gap:6px;font-size:12px;padding:5px 0;border-top:1px solid var(--border-soft)}
+.row-note-line:first-child{border-top:none;padding-top:0}
+.row-note-author{font-weight:700;color:var(--ok);white-space:nowrap;flex-shrink:0}
+.row-note-date{color:var(--muted);font-size:10px;white-space:nowrap;flex-shrink:0}
+.row-note-text{color:var(--ok);font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
 
 /* ── SIDE PANEL ─── */
 .panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
@@ -231,10 +232,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .note-entry.note-contrast .note-author{color:rgba(255,255,255,.85)}
 .note-entry.note-contrast .note-time{color:rgba(255,255,255,.65)}
 .note-entry.note-contrast .note-text{color:#fff;font-weight:700}
-.row-note-line.note-contrast{background:var(--accent);border-left:3px solid var(--accent2);border-radius:5px;padding:6px 10px}
-.row-note-line.note-contrast .row-note-author{color:rgba(255,255,255,.85);font-weight:800}
-.row-note-line.note-contrast .row-note-date{color:rgba(255,255,255,.65)}
-.row-note-line.note-contrast .row-note-text{color:#fff;font-weight:800;font-size:12px}
+.row-note-line.note-contrast{background:none;border-left:none;padding:5px 0;border-top:1px solid var(--border-soft)}
+.row-note-line.note-contrast:first-child{border-top:none;padding-top:0}
+.row-note-line.note-contrast .row-note-author{color:var(--accent);font-weight:800}
+.row-note-line.note-contrast .row-note-date{color:var(--muted)}
+.row-note-line.note-contrast .row-note-text{color:var(--accent);font-weight:800;font-size:12px}
 
 /* ── ACTIVITY ─── */
 .activity-list{display:flex;flex-direction:column}
