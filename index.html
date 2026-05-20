@@ -107,7 +107,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .section-label-count.is-closed{background:var(--ok)}
 
 /* ── ORDER CARDS ─── */
-.order-card{background:var(--card);border:1px solid #ebebeb;border-radius:6px;padding:12px 10px 12px 14px;margin-bottom:8px;cursor:pointer;transition:background .1s,border-color .1s;display:flex;gap:14px;align-items:flex-start;position:relative;min-height:88px}
+.order-card{background:var(--card);border:1px solid #ebebeb;border-radius:6px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:background .1s,border-color .1s;display:flex;gap:14px;align-items:flex-start;position:relative;min-height:88px}
 .order-card:hover{background:#fafafa;border-color:var(--border)}
 .order-card.selected{background:#fff5f3;border-color:var(--border)}
 .order-card.selected::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);border-radius:6px 0 0 6px}
@@ -117,11 +117,12 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .ocard-product{display:none}
 .ocard-thumbs{display:flex;gap:3px;flex-wrap:wrap}
 .ocard-thumb{width:51px;height:51px;object-fit:contain;border-radius:4px;border:1px solid #e5e5e5;background:#f5f5f4}
-.ocard-right{flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;min-width:130px;text-align:right;align-self:stretch;background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.07);padding:7px 10px;margin:-4px -4px -4px 0}
-.ocard-right-top{display:flex;align-items:center;gap:7px;white-space:nowrap}
-.ocard-price{font-size:15px;font-weight:800;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
-.ocard-right-bottom{font-size:12px;color:var(--muted);line-height:1.6;font-weight:600;text-align:right}
-.ocard-ordernum{font-size:11px;color:#bbb;font-weight:400}
+.ocard-right{flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;gap:4px;min-width:120px;text-align:right;align-self:stretch}
+.ocard-chip{background:#fff;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.11),0 0 0 .5px rgba(0,0,0,.07);padding:3px 8px;white-space:nowrap;text-align:right;line-height:1.35}
+.ocard-price{font-size:14px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.ocard-ship-chip{font-size:11px;font-weight:600}
+.ocard-date-chip{font-size:11px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+.ocard-ordernum-chip{font-size:11px;color:#bbb;font-weight:400}
 .ocard-notes{display:flex;flex-direction:column;gap:0;width:100%;border-top:1px solid var(--border-soft);margin-top:4px;padding-top:2px}
 .unread-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;margin-left:2px;vertical-align:middle;flex-shrink:0}
 .empty-orders{text-align:center;padding:40px;color:var(--muted);font-size:13px;background:var(--card);border-radius:8px;border:1px solid var(--border-soft)}
@@ -1214,12 +1215,13 @@ function orderRow(o) {
       ${thumbsHtml ? `<div class="ocard-thumbs">${thumbsHtml}</div>` : ''}
       ${notesHtml ? `<div class="ocard-notes">${notesHtml}</div>` : ''}
     </div>
-    <!-- pravá strana: cena nahoře, meta dole -->
+    <!-- pravá strana: individuální chipy -->
     <div class="ocard-right">
-      <span class="ocard-price">${totalStr}</span>
-      <div class="ocard-right-bottom">
-        ${shipHtml ? `${shipHtml}<br>` : ''}${dateStr}<br>
-        <span class="ocard-ordernum">#${escHtml(o.order_number||'')}</span>
+      <div class="ocard-chip"><span class="ocard-price">${totalStr}</span></div>
+      <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
+        ${shipHtml ? `<div class="ocard-chip ocard-ship-chip">${shipHtml}</div>` : ''}
+        <div class="ocard-chip"><span class="ocard-date-chip">${dateStr}</span></div>
+        <div class="ocard-chip"><span class="ocard-ordernum-chip">#${escHtml(o.order_number||'')}</span></div>
       </div>
     </div>
   </div>`;
