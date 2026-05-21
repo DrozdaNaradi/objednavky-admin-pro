@@ -1175,7 +1175,11 @@ function orderRow(o) {
   const totalStr = o.total_amount ? Number(o.total_amount).toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' Kč' : '—';
 
   const itemsWithImg = items.filter(it => it.img);
-  const thumbsHtml = itemsWithImg.slice(0,5).map(it=>`<img class="ocard-thumb" src="${it.img}" alt="" onerror="this.style.display='none'" loading="lazy" referrerpolicy="no-referrer">`).join('');
+  const thumbsHtml = itemsWithImg.slice(0,5).map(it => {
+    const lineColor = it.availability_text ? (it.availability ? '#16a34a' : '#dc2626') : '';
+    const line = lineColor ? `<div style="height:3px;border-radius:2px 2px 0 0;background:${lineColor}"></div>` : '';
+    return `<div style="display:inline-flex;flex-direction:column;gap:0">${line}<img class="ocard-thumb" src="${it.img}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" referrerpolicy="no-referrer"></div>`;
+  }).join('');
 
   const itemsPreview = items.length ? items.map(it=>escHtml(it.name||'')).join(', ') : '';
   const unreadDot = !readOrders.has(o.id) ? '<span class="unread-dot" title="Nepřečteno"></span>' : '';
@@ -1333,6 +1337,7 @@ function renderPanelOverview() {
         <div class="item-tbl-name" style="display:flex;align-items:baseline;gap:4px;flex-wrap:wrap">${escHtml(it.name||'Položka')}<button class="copy-btn" data-v="${escHtml(it.name||'')}" onclick="copyVal(this.dataset.v,this)">copy</button></div>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px">
           ${it.sku ? `<div class="item-tbl-sku" style="display:flex;align-items:baseline;gap:4px">${escHtml(it.sku)}<button class="copy-btn" data-v="${escHtml(it.sku)}" onclick="copyVal(this.dataset.v,this)" style="font-size:10px">copy</button></div>` : ''}
+          ${it.availability_text ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;${it.availability ? 'background:#dcfce7;color:#15803d' : 'background:#fef3c7;color:#b45309'}">${it.availability ? '✓' : '⏳'} ${escHtml(it.availability_text)}</span>` : ''}
           <button class="supplier-btn" id="supplier-btn-${idx}" onclick="toggleSupplierOrder(${idx})">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 9l1.5 9h15L21 9H3z"/><path d="M8 9V6a4 4 0 018 0v3"/></svg>
             Objednáno u dodavatele
@@ -2128,7 +2133,7 @@ async function syncFromEshop() {
         const sku = String(p.product_number||'');
         const imgFromMap = pid ? (imgMap[pid]||'') : '';
         const imgFromFallback = sku ? (skuImgFallback[sku]||'') : '';
-        return { name:p.product_name||'', sku, qty:parseInt(p.count||1), price_with_vat:parseFloat(p.price_per_unit_with_vat||0), price_without_vat:parseFloat(p.price_per_unit||0), total_with_vat:parseFloat(p.price_total_with_vat||0), img: imgFromMap || imgFromFallback };
+        return { name:p.product_name||'', sku, qty:parseInt(p.count||1), price_with_vat:parseFloat(p.price_per_unit_with_vat||0), price_without_vat:parseFloat(p.price_per_unit||0), total_with_vat:parseFloat(p.price_total_with_vat||0), img: imgFromMap || imgFromFallback, availability: p.availability ?? null, availability_text: String(p.availabilityText||'') };
       });
       // Store shipping + payment as special items so we can display correct prices
       const shipVat = parseFloat(o.delivery?.postovne||0);
