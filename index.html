@@ -1178,7 +1178,7 @@ function orderRow(o) {
   const thumbsHtml = itemsWithImg.slice(0,5).map(it => {
     const lineColor = it.availability_text ? (it.availability ? '#16a34a' : '#dc2626') : '';
     const line = lineColor ? `<div style="height:3px;border-radius:2px 2px 0 0;background:${lineColor}"></div>` : '';
-    return `<div style="display:inline-flex;flex-direction:column;gap:0">${line}<img class="ocard-thumb" src="${it.img}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" referrerpolicy="no-referrer"></div>`;
+    return `<div style="display:inline-flex;flex-direction:column;gap:4px">${line}<img class="ocard-thumb" src="${it.img}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" referrerpolicy="no-referrer"></div>`;
   }).join('');
 
   const itemsPreview = items.length ? items.map(it=>escHtml(it.name||'')).join(', ') : '';
