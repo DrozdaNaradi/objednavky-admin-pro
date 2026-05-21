@@ -127,6 +127,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .badge-new{background:var(--accent);color:#fff}
 .badge-open{background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;box-shadow:none}
 .badge-closed{background:var(--ok-bg);color:var(--ok-ink)}
+.badge-pay{background:#F1F5F9;color:#334155;border:1px solid #CBD5E1;box-shadow:none;font-weight:700;letter-spacing:.02em;text-transform:none;gap:4px}
 
 /* ── ROW NOTES ─── */
 .row-note-line{display:grid;grid-template-columns:78px 142px 48px 1fr;align-items:baseline;gap:0 6px;font-size:13px;padding:5px 0;border-top:1px solid var(--border-soft)}
@@ -1182,6 +1183,9 @@ function orderRow(o) {
 
   const badgeCls = o.status==='new'?'badge-new':o.status==='open'?'badge-open':'badge-closed';
   const badgeLbl = o.status==='new'?'Nová':o.status==='open'?'⚠ Otevřené':'Odesláno';
+  const payMethod = o.payment_method||'';
+  const payIcon = payMethod.toLowerCase().includes('kart') ? '<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="1" y="3" width="14" height="10" rx="2"/><path d="M1 6h14"/></svg>' : payMethod.toLowerCase().includes('dobírk') ? '<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>' : '<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="4" width="12" height="9" rx="1.5"/><path d="M5 4V3a3 3 0 016 0v1"/></svg>';
+  const payBadgeHtml = payMethod ? `<span class="badge badge-pay">${payIcon}${escHtml(payMethod)}</span>` : '';
   const statusDotColor = o.status==='new'?'#dc2626':o.status==='open'?'#ca8a04':'#16a34a';
 
   const shipShort = o.shipping_method ? o.shipping_method.split(' - ')[0].split('[')[0].trim() : '';
@@ -1209,7 +1213,7 @@ function orderRow(o) {
   return `<div class="order-card${selCls}" id="orow-${o.id}" onclick="openPanel('${o.id}')">
     <!-- horní řádek: badge+jméno vlevo | cena vpravo -->
     <div class="ocard-top-row">
-      <div class="ocard-customer"><span class="badge ${badgeCls}">${badgeLbl}</span><span class="ocard-name-chip">${escHtml(o.customer_name||'—')}${unreadDot}</span></div>
+      <div class="ocard-customer"><span class="badge ${badgeCls}">${badgeLbl}</span><span class="ocard-name-chip">${escHtml(o.customer_name||'—')}${unreadDot}</span>${payBadgeHtml}</div>
       <div class="ocard-chip"><span class="ocard-price">${totalStr}</span></div>
     </div>
     <!-- spodní řádek: fotky vlevo | meta chipy vpravo -->
