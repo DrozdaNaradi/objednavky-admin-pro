@@ -125,7 +125,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 /* ── BADGE ─── */
 .badge{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:5px;font-size:9px;font-weight:800;white-space:nowrap;letter-spacing:.08em;text-transform:uppercase;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.13),0 0 0 .5px rgba(0,0,0,.08);flex-shrink:0}
 .badge-new{background:var(--accent);color:#fff}
-.badge-open{background:#EAB308;color:#000}
+.badge-open{background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;box-shadow:none}
 .badge-closed{background:var(--ok-bg);color:var(--ok-ink)}
 
 /* ── ROW NOTES ─── */
@@ -1181,7 +1181,7 @@ function orderRow(o) {
   const unreadDot = !readOrders.has(o.id) ? '<span class="unread-dot" title="Nepřečteno"></span>' : '';
 
   const badgeCls = o.status==='new'?'badge-new':o.status==='open'?'badge-open':'badge-closed';
-  const badgeLbl = o.status==='new'?'NOVÁ':o.status==='open'?'OTEVŘENÉ':'ODESLÁNO';
+  const badgeLbl = o.status==='new'?'NOVÁ':o.status==='open'?'⚠ OTEVŘENÉ':'ODESLÁNO';
   const statusDotColor = o.status==='new'?'#dc2626':o.status==='open'?'#ca8a04':'#16a34a';
 
   const shipShort = o.shipping_method ? o.shipping_method.split(' - ')[0].split('[')[0].trim() : '';
