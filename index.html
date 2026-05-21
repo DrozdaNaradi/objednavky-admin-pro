@@ -1147,15 +1147,20 @@ function renderOrders() {
     return;
   }
 
-  area.innerHTML = sections.map(s => `
+  area.innerHTML = sections.map(s => {
+    const fixedNewSection = s.status === 'new' && sections.length > 1;
+    return `
     <div class="orders-section">
       <div class="section-label">
         <span class="section-label-text is-${s.status}">${s.label}</span>
         <span class="section-label-count is-${s.status}">${s.items.length}</span>
       </div>
-      ${s.items.length ? s.items.map(o => orderRow(o)).join('') : `<div class="empty-orders">Žádné objednávky</div>`}
+      <div${fixedNewSection ? ' style="min-height:360px"' : ''}>
+        ${s.items.length ? s.items.map(o => orderRow(o)).join('') : `<div class="empty-orders">Žádné objednávky</div>`}
+      </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function orderRow(o) {
