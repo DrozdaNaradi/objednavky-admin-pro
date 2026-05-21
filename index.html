@@ -1212,7 +1212,7 @@ function orderRow(o) {
     <!-- horní řádek: badge+jméno vlevo | cena vpravo -->
     <div class="ocard-top-row">
       <div class="ocard-customer"><span class="badge ${badgeCls}">${badgeLbl}</span><span class="ocard-name-chip">${escHtml(o.customer_name||'—')}${unreadDot}</span></div>
-      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${payBadgeHtml}<span class="ocard-price">${totalStr}</span></div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${payBadgeHtml}<div class="ocard-chip"><span class="ocard-price">${totalStr}</span></div></div>
     </div>
     <!-- spodní řádek: fotky vlevo | meta chipy vpravo -->
     <div class="ocard-bottom-row">
