@@ -93,14 +93,10 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .orders-area{flex:1;padding:20px 24px;overflow-y:auto;background:#e3e3e3}
 .orders-section{margin-bottom:16px}
 .section-label{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:0 2px}
-.section-label-text{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-family:inherit;background:#fff;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.11),0 0 0 .5px rgba(0,0,0,.07);padding:3px 9px}
-.section-label-text.is-new{color:var(--accent)}
-.section-label-text.is-open{color:var(--warn)}
-.section-label-text.is-closed{color:var(--ok)}
-.section-label-count{font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;font-family:inherit;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.11),0 0 0 .5px rgba(0,0,0,.07)}
-.section-label-count.is-new{background:var(--accent)}
-.section-label-count.is-open{background:var(--warn);color:#713f12}
-.section-label-count.is-closed{background:var(--ok)}
+.section-label-text{font-size:15px;font-weight:700;font-family:inherit;color:#111111;background:#fff;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.11),0 0 0 .5px rgba(0,0,0,.07);padding:4px 10px;line-height:1.2}
+.section-label-text.is-new,.section-label-text.is-open,.section-label-text.is-closed{color:#111111}
+.section-label-count{font-size:13px;font-weight:700;padding:4px 8px;border-radius:5px;font-family:inherit;color:#111111;background:#ffffff;box-shadow:0 1px 3px rgba(0,0,0,.11),0 0 0 .5px rgba(0,0,0,.07)}
+.section-label-count.is-new,.section-label-count.is-open,.section-label-count.is-closed{color:#111111;background:#ffffff}
 
 /* ── ORDER CARDS ─── */
 .order-card{background:#f7f7f7;border:1px solid #e8e8e8;border-radius:6px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:background .1s,border-color .1s;display:flex;flex-direction:column;gap:6px;position:relative}
@@ -1097,7 +1093,7 @@ function renderOrders() {
   } else if (currentFilter === 'new') {
     sections = [{ status:'new', label:'Nové objednávky', color:'#1a1a1a', items: newAll }];
   } else if (currentFilter === 'open') {
-    sections = [{ status:'open', label:'Otevřené', color:'#1a1a1a', items: openAll }];
+    sections = [{ status:'open', label:'Otevřené objednávky', color:'#1a1a1a', items: openAll }];
   } else if (currentFilter === 'closed') {
     sections = [{ status:'closed', label:'Uzavřené', color:'#1a1a1a', items: closedAll }];
   }
