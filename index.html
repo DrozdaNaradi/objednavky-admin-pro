@@ -1181,7 +1181,7 @@ function orderRow(o) {
   const unreadDot = !readOrders.has(o.id) ? '<span class="unread-dot" title="Nepřečteno"></span>' : '';
 
   const badgeCls = o.status==='new'?'badge-new':o.status==='open'?'badge-open':'badge-closed';
-  const badgeLbl = o.status==='new'?'NOVÁ':o.status==='open'?'⚠ OTEVŘENÉ':'ODESLÁNO';
+  const badgeLbl = o.status==='new'?'Nová':o.status==='open'?'⚠ Otevřené':'Odesláno';
   const statusDotColor = o.status==='new'?'#dc2626':o.status==='open'?'#ca8a04':'#16a34a';
 
   const shipShort = o.shipping_method ? o.shipping_method.split(' - ')[0].split('[')[0].trim() : '';
