@@ -130,7 +130,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .badge-pay{background:#F1F5F9;color:#334155;border:1px solid #CBD5E1;box-shadow:none;font-weight:700;letter-spacing:.02em;text-transform:none;gap:4px}
 
 /* ── ROW NOTES ─── */
-.row-note-line{display:grid;grid-template-columns:78px 142px 48px 1fr;align-items:baseline;gap:0 6px;font-size:13px;padding:5px 0;border-top:1px solid var(--border-soft)}
+.row-note-line{display:grid;grid-template-columns:78px 142px 1fr;align-items:baseline;gap:0 6px;font-size:13px;padding:5px 0;border-top:1px solid var(--border-soft)}
 .row-note-author{font-weight:700;color:var(--ok);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row-note-date{color:var(--muted);font-size:11.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .row-note-badge{font-size:10px;background:#e5e5e5;border-radius:3px;padding:1px 5px;color:#525252;white-space:nowrap;text-align:center;overflow:hidden}
@@ -1198,12 +1198,10 @@ function orderRow(o) {
     const d = new Date(n.created_at);
     const dl = d.toLocaleDateString('cs-CZ',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'});
     const preview = text.length>80 ? text.substring(0,80)+'…' : text;
-    const badgeHtml = isItem ? `<span class="row-note-badge">pol.${n.item_index+1}</span>` : (isSupplier ? `<span class="row-note-badge">🛒</span>` : `<span class="row-note-badge"></span>`);
     return `<div class="row-note-line${isRed?' note-contrast':''}${isSupplier?' supplier-note':''}">
       <span class="row-note-author">${escHtml(n.author||'')}</span>
       <span class="row-note-date">${dl}</span>
-      ${badgeHtml}
-      <span class="row-note-text">${escHtml(preview)}</span>
+      <span class="row-note-text">${isSupplier?'🛒 ':''}${escHtml(preview)}</span>
     </div>`;
   }).join('') : '';
 
