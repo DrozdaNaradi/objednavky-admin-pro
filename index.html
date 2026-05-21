@@ -1088,7 +1088,7 @@ function renderOrders() {
   if (currentFilter === 'active') {
     sections = [
       { status:'new', label:'Nové objednávky', color:'#1a1a1a', items: newAll },
-      { status:'open', label:'Otevřené', color:'#1a1a1a', items: openAll },
+      { status:'open', label:'Otevřené objednávky', color:'#1a1a1a', items: openAll },
     ];
   } else if (currentFilter === 'new') {
     sections = [{ status:'new', label:'Nové objednávky', color:'#1a1a1a', items: newAll }];
@@ -1119,7 +1119,7 @@ function renderOrders() {
     // při hledání prohledáme všechny statusy
     sections = [
       { status:'new',    label:'Nové',     color:'#1a1a1a', items: newAll.filter(matchOrder) },
-      { status:'open',   label:'Otevřené', color:'#1a1a1a', items: openAll.filter(matchOrder) },
+      { status:'open',   label:'Otevřené objednávky', color:'#1a1a1a', items: openAll.filter(matchOrder) },
       { status:'closed', label:'Uzavřené', color:'#1a1a1a', items: closedAll.filter(matchOrder) },
     ].filter(s => s.items.length > 0);
   }
