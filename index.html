@@ -1710,7 +1710,7 @@ async function sendShippingEmail() {
   const subject = `Vaše objednávka č. ${currentOrder.order_number} byla odeslána`;
   const body = `Dobrý den, ${currentOrder.customer_name||''},\n\nVaše objednávka č. ${currentOrder.order_number} byla dnes odeslána.\n\nDěkujeme za Váš nákup a těšíme se na další spolupráci.${EMAIL_SIGNATURE}`;
   try {
-    await emailjs.send(window._ejsService, 'template_mhhf0hh', { to_email: to, subject, message: body, order_number: currentOrder.order_number, customer_name: currentOrder.customer_name });
+    await emailjs.send(window._ejsService, 'template_g8u0fjt', { to_email: to, subject, message: body, order_number: currentOrder.order_number, customer_name: currentOrder.customer_name });
     await setStatus('closed');
     await logActivity('email_sent', { to, subject });
     toast('Email odeslán a objednávka označena jako Odesláno', 'success');
@@ -1728,7 +1728,7 @@ async function sendEmail() {
   const btn = document.getElementById('send-email-btn');
   btn.disabled = true; btn.textContent = 'Odesílám…';
   try {
-    await emailjs.send(window._ejsService, 'template_mhhf0hh', { to_email: allTo, subject, message:body, order_number:currentOrder?.order_number, customer_name:currentOrder?.customer_name });
+    await emailjs.send(window._ejsService, 'template_g8u0fjt', { to_email: allTo, subject, message:body, order_number:currentOrder?.order_number, customer_name:currentOrder?.customer_name });
     await logActivity('email_sent', { to: allTo, subject });
     toast('Email odeslán', 'success');
   } catch (e) { toast('Chyba při odesílání: ' + (e.text||e.message), 'error'); }
