@@ -913,18 +913,19 @@ const DEFAULT_CONFIG = {
 // ─── SYNC STATUS ─────────────────────────────────────────────────────────────
 const SYNC_STATUS_KEY = 'adminSyncStatus';
 
+function formatTime(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  const hms = d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const isToday = d.toDateString() === new Date().toDateString();
+  if (isToday) return `dnes ${hms}`;
+  const isYesterday = d.toDateString() === new Date(Date.now() - 86400000).toDateString();
+  if (isYesterday) return `včera ${hms}`;
+  return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }) + ` ${hms}`;
+}
 function timeAgo(ts) {
   if (!ts) return '—';
-  const diff = Math.floor((Date.now() - ts) / 1000);
-  if (diff < 60) return 'před chvílí';
-  if (diff < 3600) return `před ${Math.floor(diff / 60)} min`;
-  const d = new Date(ts);
-  const hm = d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-  const isToday = d.toDateString() === new Date().toDateString();
-  if (isToday) return `dnes ${hm}`;
-  const isYesterday = d.toDateString() === new Date(Date.now() - 86400000).toDateString();
-  if (isYesterday) return `včera ${hm}`;
-  return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }) + ` ${hm}`;
+  return formatTime(ts);
 }
 
 function renderSyncStatus() {
