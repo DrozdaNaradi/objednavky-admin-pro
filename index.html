@@ -938,6 +938,8 @@ async function initSupabase(url, key, ejsService, ejsKey) {
     checkAuthor();
     await loadOrders();
     setupRealtime();
+    // Auto-refresh každou hodinu na pozadí (tiché, bez UI)
+    setInterval(() => syncFromEshop(true), 60 * 60 * 1000);
   } catch (e) {
     showLoading(false);
     showSetupError(e.message || 'Neznámá chyba připojení.');
@@ -1937,7 +1939,8 @@ function importImagesFromXml(input) {
     const count = Object.keys(map).length;
     if (!count) { toast('Špatný soubor! Nahraj heureka_cz.xml (ne dostupnost_heureka_cz.xml)', 'error'); input.value=''; return; }
     try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify({ ts: Date.now(), map })); } catch(e) {}
-    toast(`✅ Načteno ${count} fotek z XML — klikni Opravit fotky`, 'success');
+    await saveImgMapToSupabase(map);
+    toast(`✅ Načteno ${count} fotek z XML — sdíleno pro všechny uživatele`, 'success');
     input.value = '';
   };
   reader.readAsText(file);
@@ -2038,17 +2041,35 @@ async function repairMissingPhotos() {
 }
 
 const IMG_CACHE_KEY = 'productImgCache';
-const IMG_CACHE_TTL = 30 * 24 * 60 * 60 * 1000;
+const IMG_CACHE_TTL = 60 * 60 * 1000; // 1 hodina lokálně, Supabase je sdílený zdroj pravdy
+
+async function saveImgMapToSupabase(map) {
+  try { await db.from('product_image_cache').upsert({ id: 'main', map, updated_at: new Date().toISOString() }); } catch(e) {}
+}
 
 async function fetchProductImages() {
-  let staleCache = null;
+  // 1. localStorage rychlý cache (1 hod.) — zabrání zbytečným dotazům
   try {
     const cached = JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || 'null');
-    if (cached) {
-      if ((Date.now() - cached.ts) < IMG_CACHE_TTL) return cached.map; // fresh cache
-      staleCache = cached.map; // expired but usable as fallback
+    if (cached && (Date.now() - cached.ts) < IMG_CACHE_TTL) return cached.map;
+  } catch(e) {}
+
+  // 2. Supabase sdílený cache — platný pro všechny uživatele
+  let sbMap = null;
+  try {
+    const { data } = await db.from('product_image_cache').select('map, updated_at').eq('id','main').maybeSingle();
+    if (data?.map && Object.keys(data.map).length > 0) {
+      const sbAge = Date.now() - new Date(data.updated_at).getTime();
+      if (sbAge < IMG_CACHE_TTL) {
+        // Supabase je čerstvý — uložit do localStorage a vrátit
+        try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify({ ts: Date.now(), map: data.map })); } catch(e) {}
+        return data.map;
+      }
+      sbMap = data.map; // starší než 1 hod. — použít jako fallback pokud XML selže
     }
   } catch(e) {}
+
+  // 3. Stáhnout čerstvý XML feed a uložit do Supabase + localStorage
   const FEED_URL = 'https://www.drozda-naradi.cz/fotky92438/xml/heureka_cz.xml';
   let xmlText;
   setSyncStatus('Načítám katalog fotek…');
@@ -2056,7 +2077,9 @@ async function fetchProductImages() {
   if (!xmlText) { try { const r = await fetchWithTimeout('https://corsproxy.io/?'+encodeURIComponent(FEED_URL), 20000); if (r.ok) { const raw = await r.text(); xmlText = raw.startsWith('{')?JSON.parse(raw).contents:raw; } } catch(e) {} }
   if (!xmlText) { try { const r = await fetchWithTimeout('https://api.allorigins.win/raw?url='+encodeURIComponent(FEED_URL), 20000); if (r.ok) xmlText = await r.text(); } catch(e) {} }
   if (!xmlText) {
-    if (staleCache) { return staleCache; }
+    // XML selhalo — vrátit co máme (stale Supabase nebo localStorage)
+    if (sbMap) return sbMap;
+    try { const c = JSON.parse(localStorage.getItem(IMG_CACHE_KEY)||'null'); if (c?.map) return c.map; } catch(e) {}
     return {};
   }
   const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
@@ -2066,7 +2089,9 @@ async function fetchProductImages() {
     const img = item.querySelector('IMGURL')?.textContent?.trim();
     if (id && img) map[id] = img;
   });
+  // Uložit sdíleně do Supabase + lokálně do localStorage
   try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify({ ts: Date.now(), map })); } catch(e) {}
+  await saveImgMapToSupabase(map);
   return map;
 }
 
@@ -2090,12 +2115,10 @@ async function fetchWithTimeout(url, ms) {
   catch(e) { clearTimeout(timer); throw e; }
 }
 
-async function syncFromEshop() {
+async function syncFromEshop(silent = false) {
   const btn = document.getElementById('sync-btn');
   const btnS = document.getElementById('sync-btn-side');
-  if (btn) btn.disabled = true;
-  if (btnS) btnS.disabled = true;
-  showLoading(true);
+  if (!silent) { if (btn) btn.disabled = true; if (btnS) btnS.disabled = true; showLoading(true); }
   try {
     setSyncStatus('Připojuji k eshopu…');
     let text;
@@ -2114,7 +2137,7 @@ async function syncFromEshop() {
     try { json = JSON.parse(text); } catch(e) { throw new Error('Nepodařilo se naparsovat odpověď eshopu'); }
     if (!json.success) throw new Error('Eshop API vrátil chybu: ' + (json.report||'neznámá'));
     const orderList = json.params?.orderList || [];
-    if (!orderList.length) { toast('Eshop nemá žádné objednávky', ''); showLoading(false); if (btn) btn.disabled=false; if (btnS) btnS.disabled=false; return; }
+    if (!orderList.length) { if (!silent) toast('Eshop nemá žádné objednávky', ''); if (!silent) { showLoading(false); if (btn) btn.disabled=false; if (btnS) btnS.disabled=false; } return; }
     const imgMap = await fetchProductImages();
     const hasImgMap = Object.keys(imgMap).length > 0;
     // Fallback: mapa SKU→img ze všech existujících objednávek v DB
@@ -2159,12 +2182,10 @@ async function syncFromEshop() {
       else { await db.from('orders').insert({ ...row, status:'new' }); imported++; }
       setSyncStatus(`Importuji… ${imported} nových, ${updated} aktualizováno`);
     }
-    toast('Sync hotov: ' + imported + ' nových, ' + updated + ' aktualizováno', 'success');
-    await loadOrders();
-  } catch(e) { toast('Chyba sync: ' + e.message, 'error'); }
-  showLoading(false);
-  if (btn) btn.disabled = false;
-  if (btnS) btnS.disabled = false;
+    if (silent) { if (imported || updated) await loadOrders(); }
+    else { toast('Sync hotov: ' + imported + ' nových, ' + updated + ' aktualizováno', 'success'); await loadOrders(); }
+  } catch(e) { if (!silent) toast('Chyba sync: ' + e.message, 'error'); }
+  if (!silent) { showLoading(false); if (btn) btn.disabled = false; if (btnS) btnS.disabled = false; }
 }
 
 // ─── TABS ────────────────────────────────────────────────────────────────────
