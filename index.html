@@ -46,6 +46,18 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .nav-divider{height:1px;background:var(--border);margin:4px 4px}
 .sidebar-bottom{padding:6px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:1px}
 /* ── STATS BOX ─── */
+.sync-status-box{margin:8px 6px 4px;border-radius:8px;background:var(--card);border:1px solid var(--border);padding:9px 12px;display:flex;flex-direction:column;gap:5px}
+.sync-status-head{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.sync-status-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.sync-status-dot{width:6px;height:6px;border-radius:50%;background:#d1d5db;flex-shrink:0}
+.sync-status-dot.ok{background:#16a34a}
+.sync-status-dot.warn{background:#f59e0b}
+.sync-status-time{font-size:12px;font-weight:600;color:var(--ink);line-height:1.2}
+.sync-status-badge{font-size:10px;font-weight:600;color:var(--muted);background:var(--border-soft);border-radius:3px;padding:1px 5px;letter-spacing:.02em;white-space:nowrap}
+.sync-status-badge.auto{color:#6d7de8;background:rgba(109,125,232,.1)}
+.sync-status-row{font-size:11px;color:var(--muted);line-height:1.4;display:flex;align-items:center;gap:4px}
+.sync-status-row b{color:var(--ink-2);font-weight:600}
+.sync-status-sep{height:1px;background:var(--border-soft);margin:2px 0}
 .stats-box{margin:8px 6px 4px;border-radius:8px;background:var(--card);border:1px solid var(--border);overflow:hidden}
 .stats-periods{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:4px;background:var(--card)}
 .stats-period{font-size:10px;font-weight:600;color:var(--muted);text-align:center;padding:5px 4px;cursor:pointer;border:none;background:transparent;font-family:inherit;letter-spacing:.01em;border-radius:5px;transition:background .12s,color .12s,box-shadow .12s;line-height:1.3}
@@ -456,6 +468,18 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <span class="nav-count" id="count-closed">0</span>
       </button>
     </nav>
+    <div class="sync-status-box" id="sync-status-box">
+      <div class="sync-status-head">
+        <span class="sync-status-label">Stav synchronizace</span>
+        <span class="sync-status-dot" id="ss-dot"></span>
+      </div>
+      <div class="sync-status-time" id="ss-time">Ještě neproběhl</div>
+      <div id="ss-badge-row" style="display:none;display:flex;gap:4px;flex-wrap:wrap"></div>
+      <div class="sync-status-sep" id="ss-sep" style="display:none"></div>
+      <div class="sync-status-row" id="ss-orders" style="display:none"></div>
+      <div class="sync-status-row" id="ss-photos" style="display:none"></div>
+    </div>
+
     <div class="stats-box">
       <div class="stats-periods">
         <button class="stats-period active" onclick="setStatsPeriod('week',this)">Tento týden</button>
@@ -886,8 +910,89 @@ const DEFAULT_CONFIG = {
   emailjsKey: 'YgjWJK3tmpFBrZK7u',
 };
 
+// ─── SYNC STATUS ─────────────────────────────────────────────────────────────
+const SYNC_STATUS_KEY = 'adminSyncStatus';
+
+function timeAgo(ts) {
+  if (!ts) return '—';
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 60) return 'před chvílí';
+  if (diff < 3600) return `před ${Math.floor(diff / 60)} min`;
+  const d = new Date(ts);
+  const hm = d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+  const isToday = d.toDateString() === new Date().toDateString();
+  if (isToday) return `dnes ${hm}`;
+  const isYesterday = d.toDateString() === new Date(Date.now() - 86400000).toDateString();
+  if (isYesterday) return `včera ${hm}`;
+  return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }) + ` ${hm}`;
+}
+
+function renderSyncStatus() {
+  let info = {};
+  try { info = JSON.parse(localStorage.getItem(SYNC_STATUS_KEY) || '{}'); } catch(e) {}
+
+  const dot      = document.getElementById('ss-dot');
+  const time     = document.getElementById('ss-time');
+  const badgeRow = document.getElementById('ss-badge-row');
+  const sep      = document.getElementById('ss-sep');
+  const orders   = document.getElementById('ss-orders');
+  const photos   = document.getElementById('ss-photos');
+  if (!dot) return;
+
+  if (!info.ts) {
+    dot.className = 'sync-status-dot';
+    time.textContent = 'Ještě neproběhl';
+    badgeRow.style.display = 'none';
+    sep.style.display = 'none';
+    orders.style.display = 'none';
+    photos.style.display = 'none';
+    return;
+  }
+
+  dot.className = 'sync-status-dot ok';
+  time.textContent = timeAgo(info.ts);
+
+  // Badge: auto / ručně
+  badgeRow.style.display = 'flex';
+  badgeRow.innerHTML = info.auto
+    ? '<span class="sync-status-badge auto">automaticky</span>'
+    : '<span class="sync-status-badge">ručně</span>';
+
+  sep.style.display = 'block';
+
+  // Objednávky
+  if (info.imported != null || info.updated != null) {
+    orders.style.display = 'flex';
+    const parts = [];
+    if (info.imported > 0) parts.push(`<b>${info.imported}</b> nových`);
+    if (info.updated  > 0) parts.push(`<b>${info.updated}</b> aktual.`);
+    if (!parts.length) parts.push('žádné změny objednávek');
+    orders.innerHTML = '📦 ' + parts.join(' · ');
+  } else {
+    orders.style.display = 'none';
+  }
+
+  // Fotky
+  if (info.photosTs) {
+    photos.style.display = 'flex';
+    const photoCount = info.photosCount ? `${info.photosCount.toLocaleString('cs-CZ')} položek · ` : '';
+    photos.innerHTML = `🖼 ${photoCount}${timeAgo(info.photosTs)}`;
+  } else {
+    photos.style.display = 'none';
+  }
+}
+
+function saveSyncStatus(patch) {
+  let info = {};
+  try { info = JSON.parse(localStorage.getItem(SYNC_STATUS_KEY) || '{}'); } catch(e) {}
+  Object.assign(info, patch);
+  try { localStorage.setItem(SYNC_STATUS_KEY, JSON.stringify(info)); } catch(e) {}
+  renderSyncStatus();
+}
+
 // ─── INIT ────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
+  renderSyncStatus();
   if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
     const saved = getConfig();
     const cfg = { ...DEFAULT_CONFIG, ...saved, emailjsService: saved.emailjsService || DEFAULT_CONFIG.emailjsService, emailjsKey: saved.emailjsKey || DEFAULT_CONFIG.emailjsKey };
@@ -2045,6 +2150,7 @@ const IMG_CACHE_TTL = 60 * 60 * 1000; // 1 hodina lokálně, Supabase je sdílen
 
 async function saveImgMapToSupabase(map) {
   try { await db.from('product_image_cache').upsert({ id: 'main', map, updated_at: new Date().toISOString() }); } catch(e) {}
+  saveSyncStatus({ photosTs: Date.now(), photosCount: Object.keys(map).length });
 }
 
 async function fetchProductImages() {
@@ -2182,6 +2288,7 @@ async function syncFromEshop(silent = false) {
       else { await db.from('orders').insert({ ...row, status:'new' }); imported++; }
       setSyncStatus(`Importuji… ${imported} nových, ${updated} aktualizováno`);
     }
+    saveSyncStatus({ ts: Date.now(), imported, updated, auto: silent });
     if (silent) { if (imported || updated) await loadOrders(); }
     else { toast('Sync hotov: ' + imported + ' nových, ' + updated + ' aktualizováno', 'success'); await loadOrders(); }
   } catch(e) { if (!silent) toast('Chyba sync: ' + e.message, 'error'); }
