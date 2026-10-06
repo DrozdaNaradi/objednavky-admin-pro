@@ -186,8 +186,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 /* ── STATUS BUTTONS ─── */
 .status-row{display:flex;gap:6px;margin-top:10px}
-.quick-mail{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
-.quick-mail-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:2px}
+.quick-mail{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap;margin-top:8px}
+.qm-item{display:flex;flex-direction:column;gap:2px}
+.qm-sent{font-size:10.5px;line-height:1.3;color:var(--ok-ink);font-weight:600;padding-left:2px;white-space:nowrap}
+.qm-sent.fail{color:#b91c1c}
+.quick-mail-label{line-height:30px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:2px}
 .qm-btn{height:30px;padding:0 11px;border-radius:6px;border:1px solid var(--border);background:var(--card);font-family:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;white-space:nowrap}
 .qm-btn:hover{background:var(--card-alt)}
 .qm-btn.qm-ship{background:var(--ink);border-color:var(--ink);color:#fff}
@@ -698,10 +701,10 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       </div>
       <div class="quick-mail">
         <span class="quick-mail-label">Email zákazníkovi:</span>
-        <button class="qm-btn qm-ship" onclick="openShipEmail('ship_inv')" title="Odesláno + číslo zásilky a odkaz na sledování PPL + přiložená faktura. Po odeslání se objednávka označí jako Odesláno.">📦 Odesláno + PPL + faktura</button>
-        <button class="qm-btn qm-ship" onclick="openShipEmail('ship')" title="Odesláno + číslo zásilky a odkaz na sledování PPL. Po odeslání se objednávka označí jako Odesláno.">📦 Odesláno + PPL</button>
-        <button class="qm-btn" onclick="openShipEmail('supplier')" title="Část zboží není skladem a je objednaná u dodavatele. Objednávka zůstane otevřená.">🕓 Objednáno u dodavatele</button>
-        <button class="qm-btn" onclick="openShipEmail('general')" title="Prázdný email zákazníkovi">✉ Obecný</button>
+        <div class="qm-item"><button class="qm-btn qm-ship" onclick="openShipEmail('ship_inv')" title="Odesláno + číslo zásilky a odkaz na sledování PPL + přiložená faktura. Po odeslání se objednávka označí jako Odesláno.">📦 Odesláno + PPL + faktura</button><div class="qm-sent" id="qm-sent-ship_inv"></div></div>
+        <div class="qm-item"><button class="qm-btn qm-ship" onclick="openShipEmail('ship')" title="Odesláno + číslo zásilky a odkaz na sledování PPL. Po odeslání se objednávka označí jako Odesláno.">📦 Odesláno + PPL</button><div class="qm-sent" id="qm-sent-ship"></div></div>
+        <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('supplier')" title="Část zboží není skladem a je objednaná u dodavatele. Objednávka zůstane otevřená.">🕓 Objednáno u dodavatele</button><div class="qm-sent" id="qm-sent-supplier"></div></div>
+        <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('general')" title="Prázdný email zákazníkovi">✉ Obecný</button><div class="qm-sent" id="qm-sent-general"></div></div>
       </div>
     </div>
     <div class="panel-header-right">
@@ -2181,23 +2184,48 @@ function emailDetailHtml(a) {
     ${d.body ? `<div class="mail-sent-body">${escHtml(d.body).replace(/<br>/g, '\n')}</div>` : '<div class="mail-sent-meta ppl-hint">Text se u starších emailů neukládal.</div>'}
   </details>`;
 }
+// Pod rychlými tlačítky: kdo a kdy tenhle typ emailu naposledy poslal (pracuje víc lidí)
+function emailTplOf(a) {
+  const d = a.details || {};
+  if (d.template) return d.template;
+  if (d.kind === 'shipping') return d.attachment ? 'ship_inv' : 'ship';
+  if (d.kind === 'supplier') return 'supplier';
+  // starší emaily z tlačítka ODESLÁNO + EMAIL (bez typu)
+  if (!d.kind && /byla odeslána/i.test(d.subject || '')) return 'ship';
+  return 'general';
+}
+function renderQuickMailSent(acts) {
+  ['ship_inv', 'ship', 'supplier', 'general'].forEach(k => {
+    const el = document.getElementById('qm-sent-' + k);
+    if (!el) return;
+    const last = acts.find(a => (a.action === 'email_sent' || a.action === 'email_failed') && emailTplOf(a) === k);
+    if (!last) { el.textContent = ''; el.className = 'qm-sent'; return; }
+    const d = new Date(last.details?.sentAt || last.created_at);
+    const when = d.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+    const ok = last.action === 'email_sent';
+    el.className = 'qm-sent' + (ok ? '' : ' fail');
+    el.textContent = (ok ? '✓ odesláno' : '✕ neodešlo') + ' · ' + (last.author || '?') + ' · ' + when;
+    el.title = (last.details?.subject || '') + (last.details?.to ? ' → ' + last.details.to : '');
+  });
+}
 function renderEmailHistory(acts) {
+  renderQuickMailSent(acts);
   const el = document.getElementById('email-history');
   if (!el) return;
   const mails = acts.filter(a => a.action === 'email_sent' || a.action === 'email_failed');
   el.innerHTML = mails.length ? mails.map(a => activityItem(a)).join('') : '<div class="empty-notes">Zatím žádné emaily.</div>';
 }
-async function sendLoggedEmail({ to, subject, body, kind, attachment }) {
+async function sendLoggedEmail({ to, subject, body, kind, template, attachment }) {
   const sentAt = new Date().toISOString();
   try {
     const params = { to_email: to, subject, message: body, message_html: emailHtml(body), order_number: currentOrder?.order_number, customer_name: currentOrder?.customer_name };
     // příloha: v EmailJS šabloně Variable Attachment s parametrem „faktura", název souboru {{faktura_nazev}}
     if (attachment) { params.faktura = attachment.dataUrl; params.faktura_nazev = attachment.name; }
     const res = await emailjs.send(window._ejsService, 'template_2v1bgzs', params);
-    await logActivity('email_sent', { to, subject, body, kind, sentAt, status: res?.status, response: res?.text || '', attachment: attachment ? { name: attachment.name, size: attachment.size } : undefined });
+    await logActivity('email_sent', { to, subject, body, kind, template, sentAt, status: res?.status, response: res?.text || '', attachment: attachment ? { name: attachment.name, size: attachment.size } : undefined });
     return res;
   } catch (e) {
-    await logActivity('email_failed', { to, subject, body, kind, sentAt, error: e?.text || e?.message || String(e), status: e?.status, attachment: attachment ? { name: attachment.name, size: attachment.size } : undefined });
+    await logActivity('email_failed', { to, subject, body, kind, template, sentAt, error: e?.text || e?.message || String(e), status: e?.status, attachment: attachment ? { name: attachment.name, size: attachment.size } : undefined });
     await loadActivityLog();
     throw e;
   }
@@ -2389,7 +2417,7 @@ async function sendEmail() {
   btn.disabled = true; btn.lastChild.textContent = ' Odesílám…';
   try {
     const att = emailTemplate === 'ship_inv' ? emailAttachment : null;
-    const res = await sendLoggedEmail({ to: allTo, subject, body, kind: isShip ? 'shipping' : emailTemplate === 'supplier' ? 'supplier' : 'manual', attachment: att });
+    const res = await sendLoggedEmail({ to: allTo, subject, body, kind: isShip ? 'shipping' : emailTemplate === 'supplier' ? 'supplier' : 'manual', template: emailTemplate, attachment: att });
     if (isShip && currentOrder?.status !== 'closed') await setStatus('closed');
     if (emailTemplate === 'supplier' && currentOrder?.status === 'new') await setStatus('open');
     if (att) { emailAttachment = null; renderEmailAttachment(); }
