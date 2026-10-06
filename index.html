@@ -470,7 +470,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
 .ppl-todo{display:flex;align-items:center;gap:10px;padding:4px 0}
 .ppl-todo + .ppl-todo{border-top:1px solid rgba(0,0,0,.06)}
 .ppl-todo span{flex:1}
-.ppl-layout{display:grid;grid-template-columns:1fr 260px;gap:18px;align-items:start}
+.ppl-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px;align-items:start}
 .ppl-step{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px}
 .ppl-num{width:22px;height:22px;border-radius:50%;background:#003087;color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 .ppl-step-sub{font-size:12px;font-weight:500;color:var(--muted)}
@@ -495,7 +495,12 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
 .ppl-row-name{font-size:13.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ppl-row-name span{font-weight:500;color:var(--muted);font-size:12px}
 .ppl-row-desc{font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ppl-state{font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.ppl-state{font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:4px;flex-shrink:1;max-width:45%;line-height:1.35}
+.ppl-wh-list{border:1px solid var(--border);border-radius:6px;background:#fff;max-height:220px;overflow:auto;margin-top:-4px}
+.ppl-wh-list button{display:block;width:100%;text-align:left;border:none;border-bottom:1px solid var(--border-soft);background:#fff;padding:6px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+.ppl-wh-list button:hover{background:#e8eefb}
+.ppl-wh-list small{color:var(--muted)}
+.ppl-adrok{font-size:12px;font-weight:600}
 .ppl-state.ok{background:var(--ok-bg);color:var(--ok-ink)}
 .ppl-state.warn{background:#fee2e2;color:#991b1b}
 .ppl-state.done{background:#e8eefb;color:#003087}
@@ -3193,6 +3198,7 @@ async function openPplModal(ids) {
   renderPpl();
   document.getElementById('ppl-modal').classList.add('active');
   pplCheckEnv();
+  pplDrafts.forEach((d, i) => { if (d.open) pplOverit(i); });
 }
 function openPplBatch() {
   const cand = orders
@@ -3321,6 +3327,8 @@ function pplRowHtml(d, i) {
         ${inp('street', 'Ulice a číslo domu')}
         ${inp('city', 'Město', 'ppl-s2')}
         ${inp('zip', 'PSČ', '', 'inputmode="numeric"')}
+        <div class="ppl-s6" id="ppl-wh-${i}"></div>
+        <div class="ppl-s6 ppl-adrok" id="ppl-adrok-${i}">${pplAdrOkHtml(d)}</div>
         ${inp('phone', 'Telefon')}
         ${inp('email', 'Email')}
       </div>
@@ -3331,7 +3339,10 @@ function pplRowHtml(d, i) {
           ${inp('ref', 'Reference (číslo objednávky)', 'ppl-s3')}
         </div>
       </details>
-      <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn btn-sm" onclick="pplToggleOpen(${i})">Hotovo, zavřít</button></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        ${d.mimo ? `<button class="btn" onclick="pplHotovoDalsi(${i})">+ Hotovo, přidat další</button>` : `<button class="btn" onclick="pplToggleOpen(${i})">Hotovo, zavřít</button>`}
+        <button class="btn btn-ppl" onclick="pplHotovoTisk(${i})">Hotovo – tisknout</button>
+      </div>
     </div>` : ''}
   </div>`;
 }
@@ -3354,13 +3365,97 @@ function pplSet(i, k, val, rerender) {
   if (k === 'cod' && val && !pplDrafts[i].f.codPrice) pplDrafts[i].f.codPrice = Math.round(orderTotal(orders.find(o => o.id === pplDrafts[i].orderId) || {}));
   if (rerender) { renderPpl(); return; }
   pplRefreshRow(i);
+  if (k === 'street') pplWhisper(i);
+  if (['street', 'city', 'zip'].includes(k)) { pplDrafts[i].adrStav = null; pplOveritPozdeji(i); }
+}
+
+// ─── NAŠEPTÁVAČ A OVĚŘENÍ ADRES (PPL addressWhisper) ────────────────────────
+const pplWhCache = {};
+const pplWhTimers = {};
+async function pplWhDotaz(q) {
+  const key = JSON.stringify(q);
+  if (!pplWhCache[key]) pplWhCache[key] = pplCall('whisper', q).then(d => d.items || []).catch(() => { delete pplWhCache[key]; return []; });
+  return pplWhCache[key];
+}
+function pplWhisper(i) {
+  clearTimeout(pplWhTimers['w' + i]);
+  pplWhTimers['w' + i] = setTimeout(async () => {
+    const d = pplDrafts[i], el = document.getElementById('ppl-wh-' + i);
+    if (!d || !el) return;
+    const street = d.f.street.trim();
+    if (street.length < 3 || !pplPin()) { el.innerHTML = ''; return; }
+    const items = await pplWhDotaz({ street, city: d.f.city.trim() || undefined });
+    if (d.f.street.trim() !== street) return;   // mezitím psal dál
+    d.whItems = items;
+    el.innerHTML = items.length ? `<div class="ppl-wh-list">${items.slice(0, 8).map((a, j) =>
+      `<button onclick="pplWhVyber(${i},${j})"><b>${escHtml(pplWhUlice(a, street))}</b> <small>${escHtml(a.zipCode || '')} ${escHtml(a.city || '')}${a.place && a.place !== a.city ? ' – ' + escHtml(a.place) : ''}${a.valid ? ' · ✓ přesná adresa' : ''}</small></button>`).join('')}</div>` : '';
+  }, 350);
+}
+// když PPL vrátí jen ulici bez čísla, ponechá se číslo domu, které už je napsané
+function pplWhUlice(a, napsano) {
+  if (a.houseNumber || /\d/.test(a.fullStreet || '')) return a.fullStreet || a.street || '';
+  const cislo = (String(napsano).match(/\s(\d[\w/]*)\s*$/) || [])[1];
+  return (a.fullStreet || a.street || '') + (cislo ? ' ' + cislo : '');
+}
+function pplWhVyber(i, j) {
+  const d = pplDrafts[i], a = d?.whItems?.[j];
+  if (!a) return;
+  d.f.street = pplWhUlice(a, d.f.street);
+  d.f.city = a.city || d.f.city;
+  d.f.zip = String(a.zipCode || d.f.zip).replace(/\s/g, '');
+  d.whItems = null;
+  d.adrStav = null;
+  renderPpl();
+  pplOverit(i);
+}
+function pplOveritPozdeji(i) {
+  clearTimeout(pplWhTimers['o' + i]);
+  pplWhTimers['o' + i] = setTimeout(() => pplOverit(i), 900);
+}
+// ověření: ulice s číslem + PSČ/město → PPL řekne, jestli taková adresa existuje (jen upozornění, tisk neblokuje)
+async function pplOverit(i) {
+  const d = pplDrafts[i];
+  if (!d || d.done || d.f.base === 'SMAR' || !pplPin()) return;
+  const f = d.f, street = f.street.trim(), zip = String(f.zip).replace(/\s/g, '');
+  if (!/\d/.test(street) || (!/^\d{5}$/.test(zip) && !f.city.trim())) { d.adrStav = null; pplAdrOkRender(i); return; }
+  const items = await pplWhDotaz({ street, zip: /^\d{5}$/.test(zip) ? zip : undefined, city: /^\d{5}$/.test(zip) ? undefined : f.city.trim() });
+  if (pplDrafts[i] !== d || d.f.street.trim() !== street) return;
+  const ok = items.find(a => a.valid && (!/^\d{5}$/.test(zip) || String(a.zipCode).replace(/\s/g, '') === zip));
+  d.adrStav = ok ? 'ok' : 'warn';
+  d.adrNavrh = !ok && items[0] ? items[0] : null;
+  pplAdrOkRender(i);
+}
+function pplAdrOkHtml(d) {
+  if (d.f?.base === 'SMAR') return '';
+  if (d.adrStav === 'ok') return '<span style="color:#15803d">✓ Adresa ověřena u PPL</span>';
+  if (d.adrStav === 'warn') return `<span style="color:#b45309">⚠ PPL tuto adresu nezná – zkontroluj ulici, číslo domu a PSČ.</span>${d.adrNavrh ? ` <span class="ppl-hint">PPL navrhuje: ${escHtml(pplWhUlice(d.adrNavrh, d.f.street))}, ${escHtml(d.adrNavrh.zipCode || '')} ${escHtml(d.adrNavrh.city || '')}</span>` : ''}`;
+  return '';
+}
+function pplAdrOkRender(i) {
+  const el = document.getElementById('ppl-adrok-' + i);
+  if (el) el.innerHTML = pplAdrOkHtml(pplDrafts[i]);
 }
 function pplStep(i, delta) {
   const f = pplDrafts[i].f;
   f.count = Math.min(20, Math.max(1, (parseInt(f.count) || 1) + delta));
   renderPpl();
 }
-function pplToggleOpen(i) { if (pplDrafts[i].done) return; pplDrafts[i].open = !pplDrafts[i].open; renderPpl(); }
+// tlačítka dole u zásilky
+function pplHotovoDalsi(i) {
+  pplDrafts.forEach(d => { d.open = false; });
+  pplDrafts.push(pplDraftPrazdny());   // nová prázdná zásilka – vyplní se výběrem z adresáře, nebo ručně
+  renderPpl();
+  const q = document.getElementById('ppl-adr-q');
+  if (q) { q.scrollIntoView({ block: 'center' }); q.focus(); }   // další příjemce: vybrat z adresáře (přidá novou zásilku)
+  toast('Najdi dalšího příjemce v adresáři, nebo přidej ručně');
+}
+function pplHotovoTisk(i) {
+  pplDrafts[i].open = false;
+  renderPpl();
+  if (pplSetupIssues().length) { toast('Nejdřív dokonči nastavení – je nahoře žlutě', 'error'); document.getElementById('ppl-setup').scrollIntoView({ block: 'center' }); return; }
+  submitPpl();   // když něco chybí, tisk nezačne a pod tlačítkem Tisk je napsané proč
+}
+function pplToggleOpen(i) { if (pplDrafts[i].done) return; pplDrafts[i].open = !pplDrafts[i].open; renderPpl(); if (pplDrafts[i].open && !pplDrafts[i].adrStav) pplOverit(i); }
 function pplToggleOn(i, on) { pplDrafts[i].on = on; renderPpl(); }
 
 async function submitPpl() {
@@ -3589,6 +3684,7 @@ function pplVybratKontakt(id) {
   document.getElementById('ppl-adr-q').value = '';
   document.getElementById('ppl-adr-hits').innerHTML = '';
   renderPpl();
+  pplOverit(pplDrafts.indexOf(nove));
 }
 
 // nahrání nového exportu adresáře z klient.ppl.cz (CSV ve Windows-1250, oddělovač ;)

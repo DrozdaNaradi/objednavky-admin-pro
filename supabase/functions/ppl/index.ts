@@ -15,6 +15,7 @@
 //   cancel   { shipmentNumber }  → storno balíku (jen dokud nebyl předán PPL)
 //   codelist { name }            → číselník (product, service, country…)
 //   track    { numbers: [] }     → stav zásilek u PPL (sledování), max 200 čísel
+//   whisper  { street, city, zip } → našeptávač a ověření adresy (PPL addressWhisper)
 
 const ENV = (Deno.env.get("PPL_ENV") || "test").toLowerCase() === "prod" ? "prod" : "test";
 const BASE = ENV === "prod"
@@ -125,6 +126,17 @@ Deno.serve(async (req) => {
         if (Array.isArray(d)) items.push(...d);
       }
       return json({ items, env: ENV });
+    }
+
+    if (action === "whisper") {
+      const q = new URLSearchParams();
+      if (p.street) q.set("Street", String(p.street).slice(0, 100));
+      if (p.city) q.set("City", String(p.city).slice(0, 50));
+      if (p.zip) q.set("ZipCode", String(p.zip).replace(/\s/g, "").slice(0, 10));
+      const r = await ppl(`/addressWhisper?${q}`);
+      const d = await readBody(r);
+      if (!r.ok) return json({ error: `Našeptávač adres nefunguje (HTTP ${r.status})`, detail: d }, 400);
+      return json({ items: Array.isArray(d) ? d.slice(0, 10) : [] });
     }
 
     if (action === "codelist") {
