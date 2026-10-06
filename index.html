@@ -386,6 +386,23 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
   .modal-grid{grid-template-columns:1fr}
 }
 
+/* ── NASTAVENÍ ─── */
+.set-modal{width:900px;padding:0;overflow:hidden;display:flex;flex-direction:column}
+.set-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.set-layout{display:grid;grid-template-columns:200px 1fr;min-height:0;flex:1;overflow:hidden}
+.set-nav{border-right:1px solid var(--border);background:var(--card-alt);padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+.set-nav button{text-align:left;border:none;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--ink-2);padding:9px 10px;border-radius:6px;cursor:pointer}
+.set-nav button:hover{background:var(--sidebar-hover)}
+.set-nav button.on{background:var(--ink);color:#fff}
+.set-body{padding:18px 22px;overflow-y:auto;max-height:calc(100vh - 160px)}
+.set-sec{display:none}.set-sec.on{display:block}
+.set-title{font-size:15px;font-weight:800;margin-bottom:4px}
+.set-actions{display:flex;justify-content:flex-end;margin-top:14px}
+.set-preview{border:1px solid var(--border-soft);border-radius:8px;padding:4px 16px 16px;background:#fff}
+.set-tool{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border-soft)}
+.set-tool>div{flex:1}
+@media (max-width:700px){.set-layout{grid-template-columns:1fr}.set-nav{flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border)}.set-nav button{white-space:nowrap}}
+
 /* ── PPL ŠTÍTKY ─── */
 .ppl-blue{color:#003087}
 .btn-ppl{background:#003087;color:#fff;border-color:#003087}.btn-ppl:hover{background:#00246a;border-color:#00246a}
@@ -591,12 +608,12 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
         Sync z eshopu
       </button>
-      <button class="nav-item" onclick="document.getElementById('img-xml-input').click()">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        Fotky
+      <button class="nav-item" onclick="openSettings()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Nastavení
       </button>
       <div class="nav-divider"></div>
-      <button class="nav-item" onclick="changeAuthor()">
+      <button class="nav-item" onclick="openSettings('profile')">
         <div id="sidebar-user-dot" style="width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">?</div>
         <span id="sidebar-user-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">...</span>
       </button>
@@ -614,8 +631,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         </div>
       </div>
       <div class="main-header-right">
-        <button class="btn btn-sm" id="debug-btn" onclick="showDebug()" data-tip="Diagnostika aplikace&#10;Zobrazí stav dat, cache fotek&#10;a případné chyby" style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;font-size:11px">⚠ Debug</button>
-        <div class="user-badge" onclick="changeAuthor()" data-tip="Přepnout autora poznámek&#10;Tvoje jméno se zobrazuje&#10;u každé poznámky">
+        <div class="user-badge" onclick="openSettings('profile')" data-tip="Tvoje jméno a podpis&#10;(Nastavení → Můj profil)">
           <div class="user-dot" id="user-initial">?</div>
           <span id="user-name-display">Neznámý</span>
         </div>
@@ -623,15 +639,11 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
           Sync z eshopu
         </button>
-        <button class="btn btn-gray btn-sm" onclick="document.getElementById('img-xml-input').click()" data-tip="Nahraj soubor heureka_cz.xml&#10;z administrace eshopu.&#10;Aktualizuje databázi fotek produktů.">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          Fotky
-        </button>
-        <button class="btn btn-gray btn-sm" id="repair-btn" onclick="repairMissingPhotos()" data-tip="Doplní chybějící fotky u objednávek&#10;kde se fotky nenačetly při syncu.&#10;Nejdřív nahraj XML přes Fotky.">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-          Opravit fotky
-        </button>
         <input type="file" id="img-xml-input" accept=".xml" style="display:none" onchange="importImagesFromXml(this)">
+        <button class="btn btn-gray btn-sm" onclick="openSettings()" data-tip="Podpis, PPL, emaily,&#10;fotky a údržba">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Nastavení
+        </button>
         <button class="btn btn-ppl btn-sm" onclick="openPplBatch()" data-tip="Vytiskne PPL štítky na A4 (4 na stranu)&#10;pro všechny čekající PPL objednávky.&#10;Před odesláním jde vše upravit.">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
           PPL štítky
@@ -777,14 +789,8 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
           <textarea class="form-textarea" id="email-body" placeholder="Dobrý den,&#10;&#10;Vaši objednávku zpracováváme…"></textarea>
         </div>
         <details class="mail-sent" style="margin-top:0">
-          <summary>Podpis, který se připojí pod email (upravit)</summary>
-          <div class="ppl-grid" style="padding:4px 12px 10px">
-            <div class="form-group ppl-s3"><div class="form-label">Jméno</div><input class="form-input" id="sig-name"></div>
-            <div class="form-group ppl-s3"><div class="form-label">Funkce</div><input class="form-input" id="sig-role" placeholder="např. Prodejna"></div>
-            <div class="form-group ppl-s3"><div class="form-label">Telefon</div><input class="form-input" id="sig-phone" placeholder="nepovinné"></div>
-            <div class="form-group ppl-s3"><div class="form-label">Email</div><input class="form-input" id="sig-email"></div>
-            <div class="ppl-s6" style="display:flex;align-items:center;gap:10px"><button class="btn btn-sm" onclick="saveEmailSig()">Uložit podpis</button><span class="ppl-hint">Uloží se jen v tomto prohlížeči — každý si nastaví svůj.</span></div>
-          </div>
+          <summary>Podpis, který se připojí pod email</summary>
+          <div class="ppl-hint" style="padding:0 12px 8px">Jméno, funkci a telefon změníš v <button class="ppl-link" onclick="openSettings('profile')">Nastavení → Můj profil a podpis</button>.</div>
           <div id="email-signature-preview" style="padding:0 12px 12px;background:#fff"></div>
         </details>
         <button class="btn btn-red" onclick="sendEmail()" id="send-email-btn">
@@ -837,11 +843,38 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
   </div>
 </div>
 
-<div class="modal-overlay" id="ppl-settings-modal">
-  <div class="modal" style="width:600px">
-    <div class="modal-title">Nastavení PPL <span class="ppl-hint" style="font-weight:500">— stačí vyplnit jednou</span></div>
-    <div class="ppl-info">Odesílatel a účet pro dobírky se ukládají do databáze — platí pro všechny, kdo appku používají. PIN se ukládá jen v tomhle prohlížeči.</div>
-    <div class="ppl-grid">
+<!-- NASTAVENÍ -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal set-modal">
+    <div class="set-head">
+      <div class="modal-title" style="margin:0">Nastavení</div>
+      <button class="close-btn" onclick="closeSettings()" aria-label="Zavřít"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="set-layout">
+      <nav class="set-nav" id="set-nav">
+        <button data-sec="profile" onclick="settingsTab('profile')">Můj profil a podpis</button>
+        <button data-sec="ppl" onclick="settingsTab('ppl')">PPL štítky</button>
+        <button data-sec="email" onclick="settingsTab('email')">Odesílání emailů</button>
+        <button data-sec="tools" onclick="settingsTab('tools')">Fotky a údržba</button>
+      </nav>
+      <div class="set-body">
+        <section class="set-sec" id="set-profile">
+          <div class="set-title">Můj profil a podpis</div>
+          <div class="ppl-hint" style="margin-bottom:10px">Platí jen v tomto prohlížeči — každý si nastaví svůj. Jméno se zobrazuje u poznámek a v podpisu emailu.</div>
+          <div class="ppl-grid">
+            <div class="form-group ppl-s3"><div class="form-label">Jméno a příjmení</div><input class="form-input" id="sig-name" placeholder="např. Robert Klat"></div>
+            <div class="form-group ppl-s3"><div class="form-label">Funkce</div><input class="form-input" id="sig-role" placeholder="např. Prodejna"></div>
+            <div class="form-group ppl-s3"><div class="form-label">Telefon</div><input class="form-input" id="sig-phone" placeholder="nepovinné"></div>
+            <div class="form-group ppl-s3"><div class="form-label">Email</div><input class="form-input" id="sig-email"></div>
+          </div>
+          <div class="set-actions"><button class="btn btn-red" onclick="saveEmailSig()">Uložit profil a podpis</button></div>
+          <div class="form-label" style="margin:16px 0 6px">Náhled podpisu v emailu</div>
+          <div id="set-sig-preview" class="set-preview"></div>
+        </section>
+        <section class="set-sec" id="set-ppl">
+          <div class="set-title">PPL štítky</div>
+          <div class="ppl-hint" style="margin-bottom:10px">Odesílatel a účet pro dobírky platí pro všechny, kdo appku používají. PIN se ukládá jen v tomto prohlížeči.</div>
+          <div class="ppl-grid">
       <div class="ppl-sec">Odesílatel (bude na štítku)</div>
       <div class="form-group ppl-s3"><div class="form-label">Firma / jméno</div><input class="form-input" id="pset-name"></div>
       <div class="form-group ppl-s3"><div class="form-label">Kontaktní osoba</div><input class="form-input" id="pset-contact"></div>
@@ -864,9 +897,34 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       <div class="form-group ppl-s3" style="justify-content:flex-end"><button class="btn" onclick="testPpl()">Otestovat spojení s PPL</button></div>
       <div class="ppl-s6" id="pset-msg"></div>
     </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="document.getElementById('ppl-settings-modal').classList.remove('active')">Zrušit</button>
-      <button class="btn btn-red" onclick="savePplSettings()">Uložit nastavení</button>
+          <div class="set-actions"><button class="btn btn-red" onclick="savePplSettings()">Uložit nastavení PPL</button></div>
+        </section>
+        <section class="set-sec" id="set-email">
+          <div class="set-title">Odesílání emailů</div>
+          <div class="ppl-hint" style="margin-bottom:10px">Emaily zákazníkům odesílá služba EmailJS. Údaje najdeš na emailjs.com → Account / Email Services.</div>
+          <div class="ppl-grid">
+            <div class="form-group ppl-s3"><div class="form-label">Service ID</div><input class="form-input" id="set-ejs-service" placeholder="service_xxxxxxx"></div>
+            <div class="form-group ppl-s3"><div class="form-label">Public Key</div><input class="form-input" id="set-ejs-key"></div>
+          </div>
+          <div class="ppl-info" style="margin-top:12px">Šablona: <b>template_2v1bgzs</b>. Aby se zobrazil HTML podpis s logy, musí být v obsahu šablony <code>{{{message_html}}}</code> (tři složené závorky). <code>{{message}}</code> je stejný email jako čistý text.</div>
+          <div class="set-actions"><button class="btn btn-red" onclick="saveEmailConfig()">Uložit</button></div>
+        </section>
+        <section class="set-sec" id="set-tools">
+          <div class="set-title">Fotky a údržba</div>
+          <div class="set-tool">
+            <div><b>Nahrát fotky produktů</b><div class="ppl-hint">Soubor heureka_cz.xml z administrace e-shopu. Aktualizuje databázi fotek.</div></div>
+            <button class="btn" onclick="document.getElementById('img-xml-input').click()">Vybrat XML…</button>
+          </div>
+          <div class="set-tool">
+            <div><b>Opravit chybějící fotky</b><div class="ppl-hint">Doplní fotky u objednávek, kde se při syncu nenačetly. Nejdřív nahraj XML.</div></div>
+            <button class="btn" id="repair-btn" onclick="repairMissingPhotos()">Opravit fotky</button>
+          </div>
+          <div class="set-tool">
+            <div><b>Diagnostika</b><div class="ppl-hint">Stav dat, cache fotek a případné chyby — pro řešení problémů.</div></div>
+            <button class="btn" onclick="closeSettings();showDebug()">Zobrazit</button>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 </div>
@@ -1251,12 +1309,7 @@ function saveAuthor() {
   toast('Vítej, ' + author + '!', 'success');
 }
 
-function changeAuthor() {
-  document.getElementById('author-input').value = author;
-  document.getElementById('author-modal').classList.add('active');
-  setTimeout(() => document.getElementById('author-input').focus(), 100);
-}
-
+function changeAuthor() { openSettings('profile'); }
 function updateAuthorUI() {
   const ini = author.charAt(0).toUpperCase();
   document.getElementById('user-name-display').textContent = author;
@@ -2008,7 +2061,7 @@ function activityItem(a) {
 function emailSig() {
   let v = {};
   try { v = JSON.parse(localStorage.getItem('email_sig') || '{}'); } catch (e) {}
-  return { name: v.name || author || 'Prodejna Drozda Nářadí', role: v.role || '', phone: v.phone || '', email: v.email || 'prodejna@drozda-naradi.cz' };
+  return { name: author || 'Prodejna Drozda Nářadí', role: v.role || '', phone: v.phone || '', email: v.email || 'prodejna@drozda-naradi.cz' };
 }
 function emailSignatureText() {
   const g = emailSig();
@@ -2052,16 +2105,19 @@ function emailHtml(body) {
 }
 function saveEmailSig() {
   const g = id => document.getElementById(id).value.trim();
-  try { localStorage.setItem('email_sig', JSON.stringify({ name: g('sig-name'), role: g('sig-role'), phone: g('sig-phone'), email: g('sig-email') })); } catch (e) {}
-  applyEmailTemplate(emailTemplate);
+  if (!g('sig-name')) { toast('Vyplň jméno', 'error'); return; }
+  author = g('sig-name');
+  localStorage.setItem('admin_author', author);
+  updateAuthorUI();
+  try { localStorage.setItem('email_sig', JSON.stringify({ role: g('sig-role'), phone: g('sig-phone'), email: g('sig-email') })); } catch (e) {}
+  if (currentOrder) applyEmailTemplate(emailTemplate);
   renderEmailSignaturePreview();
-  toast('Podpis uložen', 'success');
+  toast('Profil a podpis uloženy', 'success');
 }
 function renderEmailSignaturePreview() {
   const g = emailSig();
   [['sig-name', g.name], ['sig-role', g.role], ['sig-phone', g.phone], ['sig-email', g.email]].forEach(([id, v]) => { const el = document.getElementById(id); if (el) el.value = v; });
-  const el = document.getElementById('email-signature-preview');
-  if (el) el.innerHTML = emailSignatureHtml();
+  ['email-signature-preview', 'set-sig-preview'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = emailSignatureHtml(); });
 }
 
 function prefillEmailForm() {
@@ -3165,14 +3221,40 @@ async function pplCancelCurrent() {
   } catch (e) { toast('Storno se nepovedlo: ' + e.message, 'error'); }
 }
 
-async function openPplSettings() {
+// ─── NASTAVENÍ ──────────────────────────────────────────────────────────────
+function openSettings(sec) {
+  document.getElementById('settings-modal').classList.add('active');
+  settingsTab(sec || window._settingsSec || 'profile');
+}
+function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
+function settingsTab(sec) {
+  window._settingsSec = sec;
+  document.querySelectorAll('#set-nav button').forEach(b => b.classList.toggle('on', b.dataset.sec === sec));
+  document.querySelectorAll('.set-sec').forEach(el => el.classList.toggle('on', el.id === 'set-' + sec));
+  if (sec === 'profile') renderEmailSignaturePreview();
+  if (sec === 'ppl') fillPplSettings();
+  if (sec === 'email') {
+    const c = { ...DEFAULT_CONFIG, ...getConfig() };
+    document.getElementById('set-ejs-service').value = c.emailjsService || '';
+    document.getElementById('set-ejs-key').value = c.emailjsKey || '';
+  }
+}
+function saveEmailConfig() {
+  const service = document.getElementById('set-ejs-service').value.trim();
+  const key = document.getElementById('set-ejs-key').value.trim();
+  saveConfigData({ ...getConfig(), emailjsService: service, emailjsKey: key });
+  if (service && key) { emailjs.init(key); window._ejsService = service; }
+  toast('Nastavení emailů uloženo', 'success');
+}
+
+function openPplSettings() { openSettings('ppl'); }
+async function fillPplSettings() {
   const s = await loadPplSettings(true);
   const map = { name: 'name', contact: 'contact', street: 'street', city: 'city', zip: 'zip', phone: 'phone', email: 'email', accpre: 'accPre', acc: 'acc', bank: 'bank', courier: 'courier', 'courier-b2b': 'courierB2b' };
   Object.entries(map).forEach(([id, k]) => { document.getElementById('pset-' + id).value = s[k] || ''; });
   document.getElementById('pset-pin').value = pplPin();
   document.getElementById('pset-msg').innerHTML = window._pplSettingsErr
     ? `<div class="ppl-info warn">Databáze zatím nemá tabulku pro nastavení (${escHtml(window._pplSettingsErr)}). Spusť v Supabase <b>supabase-ppl.sql</b>, jinak se nastavení neuloží.</div>` : '';
-  document.getElementById('ppl-settings-modal').classList.add('active');
 }
 async function savePplSettings() {
   const g = id => document.getElementById('pset-' + id).value.trim();
@@ -3182,7 +3264,6 @@ async function savePplSettings() {
   if (error) { document.getElementById('pset-msg').innerHTML = `<div class="ppl-info err">Nastavení se neuložilo: ${escHtml(error.message)}<br>Spusť v Supabase <b>supabase-ppl.sql</b>.</div>`; return; }
   pplSettings = { ...PPL_DEFAULTS, ...v };
   window._pplSettingsErr = '';
-  document.getElementById('ppl-settings-modal').classList.remove('active');
   toast('Nastavení PPL uloženo', 'success');
   if (document.getElementById('ppl-modal').classList.contains('active')) { renderPpl(); pplCheckEnv(); }
 }

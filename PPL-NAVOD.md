@@ -24,7 +24,7 @@ Supabase → **Edge Functions → Secrets** → přidej:
 | `PPL_APP_PIN` | libovolné heslo, např. 6 číslic |
 
 ## 4. V appce
-**PPL štítky → Nastavení** (odkaz vpravo nahoře v okně)
+**Nastavení** (ozubené kolečko v horní liště) → **PPL štítky**
 - odesílatel je předvyplněný stejně jako v klient.ppl.cz (Drozda nářadí - Milwaukee, Masarykova 1483, Rudná, 724731912, info@drozda-naradi.cz)
 - vyplň **účet pro dobírky** (bez něj nejde poslat dobírku)
 - zadej **PIN** (stejný jako `PPL_APP_PIN`) → **Otestovat spojení s PPL**
