@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Návrh – Objednávky Admin Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#dc2626;--ink:#111;--ink2:#404040;--muted:#737373;--line:#e5e5e5;--line2:#d4d4d4;--bg:#f5f5f4;--card:#fff;--sel:#fde8e8;--ppl:#003087;--ok:#16a34a;--warn:#ca8a04}
+body{font-family:Inter,-apple-system,sans-serif;font-size:13px;color:var(--ink);background:var(--bg);height:100vh;overflow:hidden}
+.banner{background:#111;color:#fff;font-size:12px;padding:6px 14px;display:flex;gap:10px;align-items:center}
+.banner b{color:#fbbf24}
+.app{display:grid;grid-template-columns:220px 380px minmax(0,1fr);height:calc(100vh - 30px)}
+/* sidebar */
+.side{background:#efeeec;border-right:1px solid var(--line2);display:flex;flex-direction:column;padding:12px 8px;gap:2px;overflow:auto}
+.brand{display:flex;gap:8px;align-items:center;padding:4px 8px 14px}
+.brand .lg{width:28px;height:28px;border-radius:7px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center}
+.brand b{font-size:13px;display:block}.brand small{color:var(--muted);font-size:11px}
+.sec{font-size:11px;font-weight:600;color:var(--muted);padding:12px 10px 4px}
+.nav{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;cursor:pointer;color:var(--ink2);font-weight:500;border:none;background:none;font:inherit;font-weight:500;width:100%;text-align:left}
+.nav:hover{background:rgba(0,0,0,.05)}
+.nav.on{background:rgba(0,0,0,.09);color:var(--ink)}
+.nav i{font-size:17px;width:18px;text-align:center}
+.nav .n{margin-left:auto;font-size:12px;color:var(--muted);font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.side-foot{margin-top:auto;border-top:1px solid var(--line2);padding-top:8px}
+.sync{font-size:11.5px;color:var(--muted);padding:6px 10px;display:flex;gap:6px;align-items:center}
+/* list */
+.list{background:var(--card);border-right:1px solid var(--line2);display:flex;flex-direction:column;min-height:0}
+.lhead{padding:12px 14px 8px;border-bottom:1px solid var(--line)}
+.lhead h2{font-size:17px;font-weight:700;display:flex;align-items:baseline;gap:8px}
+.lhead h2 span{font-size:12px;color:var(--muted);font-weight:500}
+.search{margin-top:8px;display:flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:7px;padding:0 9px;height:32px;background:#fafafa}
+.search input{border:none;outline:none;background:none;font:inherit;flex:1}
+.lrows{overflow:auto;flex:1}
+.row{padding:10px 14px 10px 26px;border-bottom:1px solid var(--line);cursor:pointer;position:relative}
+.row:hover{background:#fafafa}
+.row.on{background:var(--sel)}
+.row .dot{position:absolute;left:11px;top:15px}
+.r1{display:flex;align-items:baseline;gap:8px}.r1 b{font-size:13.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.r1 .price{font-weight:600}
+.r2{color:var(--muted);font-size:12px;margin-top:2px;display:flex;gap:6px}.r2 .d{margin-left:auto}
+.r3{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:600;padding:2px 7px;border-radius:5px;background:#f1f1f1;color:var(--ink2);display:inline-flex;align-items:center;gap:4px}
+.chip.ppl{background:#e8eefb;color:var(--ppl)}.chip.warn{background:#fef3c7;color:#854d0e}.chip.ok{background:#dcfce7;color:#166534}.chip.red{background:#fee2e2;color:#991b1b}
+/* detail */
+.det{display:flex;flex-direction:column;min-height:0}
+.tool{background:var(--card);border-bottom:1px solid var(--line2);padding:8px 16px;display:flex;align-items:flex-end;gap:4px;flex-wrap:wrap}
+.tb{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 9px;border-radius:7px;border:none;background:none;font:inherit;font-size:11px;color:var(--ink2);cursor:pointer;position:relative}
+.tb i{font-size:20px}
+.tb:hover{background:rgba(0,0,0,.05)}
+.tb.ppl{color:var(--ppl)}
+.sep{width:1px;align-self:stretch;background:var(--line);margin:4px 6px}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;padding:2px;background:#fafafa;gap:2px}
+.seg button{border:none;background:none;font:inherit;font-size:12px;font-weight:600;color:var(--ink2);padding:6px 11px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.seg button.on[data-s=new]{background:var(--accent);color:#fff}.seg button.on[data-s=open]{background:#eab308;color:#1c1400}.seg button.on[data-s=closed]{background:var(--ok);color:#fff}
+.seg button.on .dot{background:currentColor!important}
+.tlabel{font-size:10.5px;color:var(--muted);text-align:center;margin-top:3px}
+.dbody{overflow:auto;flex:1;padding:16px 18px 30px}
+.dh{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.dh h1{font-size:21px;font-weight:700;letter-spacing:-.01em}
+.dh .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+.dh .price{margin-left:auto;text-align:right}.dh .price b{font-size:21px}
+.next{display:flex;align-items:center;gap:10px;background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;border-radius:9px;padding:10px 12px;margin-bottom:14px}
+.next i{font-size:20px}.next .btn{margin-left:auto}
+.btn{height:30px;padding:0 12px;border-radius:7px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:var(--ink)}
+.btn.ppl{background:var(--ppl);border-color:var(--ppl);color:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.ct{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.ct .q{font-size:14px;color:#a3a3a3;cursor:help;position:relative}
+.kv{display:grid;grid-template-columns:70px 1fr;gap:3px 8px;font-size:12.5px}.kv span{color:var(--muted)}
+.cp{opacity:.35;font-size:13px;cursor:pointer;margin-left:4px}.cp:hover{opacity:1}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}th{font-size:11px;color:var(--muted);font-weight:600}
+td.num,th.num{text-align:right;white-space:nowrap}
+.thumb{width:34px;height:34px;border-radius:6px;background:#f1f1f1;display:flex;align-items:center;justify-content:center;color:#a3a3a3}
+.notes{display:flex;flex-direction:column;gap:8px}
+.note{display:flex;gap:9px}.note .av{width:26px;height:26px;border-radius:50%;background:#e5e5e5;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.note .bub{background:#f5f5f4;border-radius:9px;padding:7px 10px;font-size:12.5px;flex:1}.note .bub small{color:var(--muted);display:block;font-size:11px;margin-bottom:2px}
+.nin{display:flex;gap:8px;margin-top:10px}.nin input{flex:1;height:34px;border:1px solid var(--line2);border-radius:8px;padding:0 10px;font:inherit}
+/* tooltip */
+[data-tip]{position:relative}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1f1f1f;color:#fff;font-size:11.5px;font-weight:500;line-height:1.4;padding:7px 10px;border-radius:7px;white-space:pre-line;width:max-content;max-width:240px;text-align:left;z-index:50;pointer-events:none}
+.menu{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--line2);border-radius:10px;padding:6px;width:300px;z-index:40;box-shadow:0 10px 30px rgba(0,0,0,.12);display:none;text-align:left}
+.menu.open{display:block}
+.menu button{display:flex;gap:10px;width:100%;border:none;background:none;font:inherit;padding:8px;border-radius:7px;cursor:pointer;text-align:left;align-items:flex-start}
+.menu button:hover{background:#f5f5f4}.menu i{font-size:18px;margin-top:1px}
+.menu b{font-size:12.5px;display:block}.menu small{font-size:11.5px;color:var(--muted);line-height:1.35;display:block}
+.menu .sent{color:var(--ok);font-size:11px;font-weight:600}
+.legend{position:fixed;right:14px;bottom:14px;background:#111;color:#fff;border-radius:10px;padding:10px 12px;font-size:12px;max-width:300px;line-height:1.5}
+.legend b{color:#fbbf24}
+</style>
+</head>
+<body>
+<div class="banner"><b>NÁVRH</b> Klikací náhled nového rozložení ve stylu Apple Mail – data jsou vymyšlená, nic se neukládá. Najeď myší na tlačítka a ikony <i class="ti ti-help-circle"></i> pro nápovědu.</div>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="lg"><i class="ti ti-clipboard-list"></i></div><div><b>Objednávky</b><small>Drozda Nářadí</small></div></div>
+    <div class="sec">Objednávky</div>
+    <button class="nav" data-f="new" data-tip="Právě přišly z e-shopu,&#10;ještě je nikdo neotevřel"><span class="dot" style="background:var(--accent)"></span>Nové<span class="n">2</span></button>
+    <button class="nav on" data-f="open" data-tip="Rozpracované – čeká se na zboží,&#10;platbu nebo odeslání"><span class="dot" style="background:#eab308"></span>Otevřené<span class="n">4</span></button>
+    <button class="nav" data-f="closed" data-tip="Odeslané zákazníkovi"><span class="dot" style="background:var(--ok)"></span>Odesláno<span class="n">272</span></button>
+    <div class="sec">PPL</div>
+    <button class="nav" data-tip="Všechny zásilky a jejich stav&#10;přímo od PPL"><i class="ti ti-truck-delivery"></i>Zásilky<span class="n">1</span></button>
+    <button class="nav" data-tip="Vytiskne štítky pro všechny&#10;čekající PPL objednávky najednou"><i class="ti ti-printer"></i>Tisk štítků</button>
+    <button class="nav" data-tip="Zásilka bez objednávky z e-shopu&#10;– příjemce z adresáře PPL"><i class="ti ti-package-export"></i>Zásilka mimo e‑shop</button>
+    <div class="sec">Přehled</div>
+    <div class="nav" style="cursor:default" data-tip="Objednávky tento týden&#10;(bez DPH 18 741 Kč)"><i class="ti ti-chart-bar"></i>Tento týden<span class="n">22 677 Kč</span></div>
+    <div class="side-foot">
+      <div class="sync" data-tip="Objednávky se z e-shopu stahují samy každou hodinu.&#10;Klikni pro stažení hned."><span class="dot" style="background:var(--ok)"></span>Synchronizováno 17:36 <i class="ti ti-refresh" style="margin-left:auto;cursor:pointer;font-size:15px"></i></div>
+      <button class="nav" data-tip="Podpis, PPL, emaily, fotky"><i class="ti ti-settings"></i>Nastavení</button>
+      <button class="nav" data-tip="Tvoje jméno u poznámek a v podpisu"><span class="dot" style="width:22px;height:22px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center">R</span>Robert Klat</button>
+    </div>
+  </aside>
+
+  <section class="list">
+    <div class="lhead">
+      <h2 id="ltitle">Otevřené <span id="lcount">4 objednávky</span></h2>
+      <div class="search"><i class="ti ti-search" style="color:var(--muted)"></i><input placeholder="Hledat jméno, číslo, produkt…"><i class="ti ti-adjustments-horizontal" data-tip="Řazení: od nejnovějších" style="color:var(--muted);cursor:pointer"></i></div>
+    </div>
+    <div class="lrows" id="lrows"></div>
+  </section>
+
+  <section class="det">
+    <div class="tool">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="seg" id="seg">
+          <button data-s="new" data-tip="Nová – ještě nevyřízená"><span class="dot" style="background:var(--accent)"></span>Nová</button>
+          <button data-s="open" data-tip="Rozpracovaná – čeká na zboží,&#10;platbu nebo odeslání"><span class="dot" style="background:#eab308"></span>Otevřená</button>
+          <button data-s="closed" data-tip="Odesláno zákazníkovi"><span class="dot" style="background:var(--ok)"></span>Odesláno</button>
+        </div>
+        <div class="tlabel">Stav</div>
+      </div>
+      <div class="sep"></div>
+      <div style="position:relative">
+        <button class="tb" id="mailbtn" data-tip="Poslat zákazníkovi předvyplněný email&#10;(odesláno, objednáno u dodavatele…)"><i class="ti ti-mail"></i>Email ▾</button>
+        <div class="menu" id="menu">
+          <button><i class="ti ti-truck" style="color:var(--ppl)"></i><div><b>Odesláno + sledování PPL</b><small>Číslo zásilky, odkaz na sledování, poděkování. Označí jako Odesláno.</small></div></button>
+          <button><i class="ti ti-file-invoice" style="color:var(--ppl)"></i><div><b>Odesláno + PPL + faktura</b><small>Totéž + odkaz na stažení faktury (PDF).</small></div></button>
+          <button><i class="ti ti-clock"></i><div><b>Objednáno u dodavatele</b><small>Co není skladem a že se ozveme po naskladnění. Zůstane otevřená.</small><span class="sent">✓ odesláno · Eva · 06. 10. 10:24</span></div></button>
+          <button><i class="ti ti-mail"></i><div><b>Obecný email</b><small>Prázdný email s podpisem.</small></div></button>
+        </div>
+      </div>
+      <button class="tb ppl" data-tip="Vytvořit PPL zásilku a vytisknout štítek&#10;(A4, 4 štítky na arch)"><i class="ti ti-package"></i>Štítek PPL</button>
+      <button class="tb" data-tip="Vytisknout objednávku na papír&#10;(do krabice / pro sklad)"><i class="ti ti-printer"></i>Tisk</button>
+      <button class="tb" data-tip="Přidat poznámku – uvidí ji všichni"><i class="ti ti-message-plus"></i>Poznámka</button>
+      <button class="tb" data-tip="Kdo co s objednávkou dělal&#10;(stavy, emaily, štítky)"><i class="ti ti-history"></i>Historie</button>
+      <div style="margin-left:auto;display:flex;gap:4px">
+        <button class="tb" data-tip="Předchozí objednávka (↑)"><i class="ti ti-chevron-up"></i>Předchozí</button>
+        <button class="tb" data-tip="Další objednávka (↓)"><i class="ti ti-chevron-down"></i>Další</button>
+      </div>
+    </div>
+    <div class="dbody" id="dbody"></div>
+  </section>
+</div>
+<div class="legend"><b>Co se mění</b><br>• vlevo složky, uprostřed seznam, vpravo detail – vše na jedné obrazovce<br>• všechny akce v jedné liště nahoře (ikona + popisek + nápověda)<br>• emaily schované v jednom menu „Email ▾“<br>• žlutý pruh „Další krok“ radí, co s objednávkou udělat<br>• poznámky jako konverzace přímo v detailu</div>
+
+<script>
+const O = [
+  {id:1, s:'open', name:'Jan Novák', no:'15181512', price:'8 420,45 Kč', ship:'PPL Kurýrem', pay:'Dobírka', date:'04. 10.', chips:[['warn','ti-clock','1 objednáno u dodavatele'],['','ti-message','2 poznámky']], next:['ti-mail','Zboží je objednané u dodavatele – dej zákazníkovi vědět.','Poslat email „Objednáno u dodavatele“'], adr:['Jan Novák','Lipová 12','370 01 České Budějovice','jan.novak@example.cz','777 123 456'], items:[['Milwaukee M18 FPD3-0X Příklepová vrtačka','1','5 990,00 Kč','ok','Skladem'],['Milwaukee Packout organizér','1','2 331,45 Kč','red','Objednáno u dodavatele']], notes:[['E','Eva','06. 10. 10:24','Psala jsem zákazníkovi, organizér dorazí ve čtvrtek.'],['O','Oto','05. 10. 10:18','Objednáno obj. 217.']]},
+  {id:2, s:'open', name:'Petr Svoboda', no:'27387000', price:'27 387,00 Kč', ship:'Nabídka HDN News', pay:'Převodem', date:'02. 10.', chips:[['ok','ti-cash','zaplaceno']], next:['ti-package','Zaplaceno a vše skladem – můžeš vytisknout štítek PPL.','Vytvořit štítek PPL'], adr:['Petr Svoboda','Hlavní 4','252 19 Rudná','petr@example.cz','602 000 111'], items:[['Milwaukee M18 FUEL sada 5 nářadí','1','27 387,00 Kč','ok','Skladem']], notes:[]},
+  {id:3, s:'open', name:'Stavby Malý s.r.o.', no:'15281510', price:'4 768,00 Kč', ship:'PPL ParcelShop', pay:'QR platba', date:'01. 10.', chips:[['ppl','ti-truck','71017939257'],['','ti-message','1 poznámka']], next:['ti-mail','Štítek je vytištěný – pošli zákazníkovi email se sledováním.','Poslat „Odesláno + PPL“'], adr:['Stavby Malý s.r.o.','Nádražní 88','251 01 Říčany','info@example.cz','724 555 222'], items:[['Milwaukee 38ks PACKOUT sada závitníků','1','4 768,00 Kč','ok','Skladem']], notes:[['R','Radek','01. 10. 09:57','Zákazník chce fakturu na firmu.']]},
+  {id:4, s:'open', name:'Marie Dvořáková', no:'14081520', price:'5 582,00 Kč', ship:'PPL Kurýrem', pay:'Dobírka', date:'30. 9.', chips:[['ppl','ti-truck','81094000386']], next:['ti-check','Zásilka je předaná PPL. Až dorazí, objednávku uzavři.','Označit Odesláno'], adr:['Marie Dvořáková','Polní 1','267 51 Zdice','marie@example.cz','731 222 333'], items:[['Milwaukee M12 BPD-0 Vrtačka','2','5 582,00 Kč','ok','Skladem']], notes:[]},
+  {id:5, s:'new', name:'Tomáš Černý', no:'21241517', price:'522,70 Kč', ship:'PPL ParcelShop', pay:'QR platba', date:'Dnes', chips:[], next:['ti-eye','Nová objednávka – zkontroluj, jestli je vše skladem a zaplaceno.','Označit Otevřená'], adr:['Tomáš Černý','U Stadionu 1','257 51 Bystřice','tomas@example.cz','797 000 337'], items:[['ToughBuilt Držák na kladivo','2','423,70 Kč','ok','Skladem']], notes:[]},
+  {id:6, s:'new', name:'Lucie Králová', no:'09251518', price:'6 038,00 Kč', ship:'PPL Kurýrem', pay:'QR platba', date:'Dnes', chips:[['red','ti-alert-triangle','neuhrazeno']], next:['ti-cash','Čeká se na platbu QR kódem.','Napsat zákazníkovi'], adr:['Lucie Králová','Na Výhledě 1004','360 17 Karlovy Vary','lucie@example.cz','774 000 778'], items:[['Milwaukee M18 HOAL Světlo','1','6 038,00 Kč','ok','Skladem']], notes:[]},
+];
+const COL = {new:'var(--accent)', open:'#eab308', closed:'var(--ok)'};
+let F = 'open', SEL = 1;
+function list(){
+  const rows = O.filter(o => F==='closed' ? false : o.s===F);
+  document.getElementById('ltitle').firstChild.textContent = {new:'Nové ',open:'Otevřené ',closed:'Odesláno '}[F];
+  document.getElementById('lcount').textContent = rows.length + (rows.length===1?' objednávka':rows.length<5?' objednávky':' objednávek');
+  document.getElementById('lrows').innerHTML = rows.length ? rows.map(o=>`<div class="row ${o.id===SEL?'on':''}" onclick="SEL=${o.id};list();det()">
+    <span class="dot" style="background:${COL[o.s]}"></span>
+    <div class="r1"><b>${o.name}</b><span class="price">${o.price}</span></div>
+    <div class="r2"><span>#${o.no}</span>·<span>${o.ship}</span>·<span>${o.pay}</span><span class="d">${o.date}</span></div>
+    ${o.chips.length?`<div class="r3">${o.chips.map(c=>`<span class="chip ${c[0]}"><i class="ti ${c[1]}"></i>${c[2]}</span>`).join('')}</div>`:''}
+  </div>`).join('') : '<div style="padding:30px;color:var(--muted);text-align:center">V náhledu tu nic není.</div>';
+}
+function det(){
+  const o = O.find(x=>x.id===SEL); if(!o) return;
+  document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on', b.dataset.s===o.s));
+  document.getElementById('dbody').innerHTML = `
+  <div class="dh"><div><h1>${o.name}</h1><div class="sub">Objednávka #${o.no} <i class="ti ti-copy cp" data-tip="Zkopírovat číslo"></i> · ${o.date} · ${o.ship} · ${o.pay}</div></div>
+    <div class="price"><b>${o.price}</b><div class="sub">včetně dopravy</div></div></div>
+  <div class="next"><i class="ti ${o.next[0]}"></i><div><b>Další krok</b><br>${o.next[1]}</div><button class="btn">${o.next[2]}</button></div>
+  <div class="grid2">
+    <div class="card"><div class="ct">ZÁKAZNÍK A DORUČENÍ <i class="ti ti-help-circle q" data-tip="Dodací adresa z e-shopu.&#10;Ikonou vedle údaje ho zkopíruješ."></i></div>
+      <div class="kv"><span>Jméno</span><div>${o.adr[0]}<i class="ti ti-copy cp"></i></div><span>Adresa</span><div>${o.adr[1]}, ${o.adr[2]}<i class="ti ti-copy cp"></i></div><span>Email</span><div style="color:var(--accent)">${o.adr[3]}<i class="ti ti-copy cp"></i></div><span>Telefon</span><div>${o.adr[4]}<i class="ti ti-copy cp"></i></div></div></div>
+    <div class="card"><div class="ct">DOPRAVA A PLATBA <i class="ti ti-help-circle q" data-tip="Jak si zákazník vybral v e-shopu"></i></div>
+      <div class="kv"><span>Doprava</span><div style="color:var(--ppl);font-weight:600">${o.ship}</div><span>Platba</span><div>${o.pay}</div><span>Zásilka</span><div>${o.chips.find(c=>c[0]==='ppl') ? `<a href="#" style="color:var(--ppl)">${o.chips.find(c=>c[0]==='ppl')[2]}</a> · čeká na převzetí` : '<span style="color:var(--muted)">zatím bez štítku</span>'}</div></div></div>
+  </div>
+  <div class="card" style="margin-bottom:12px"><div class="ct">POLOŽKY <i class="ti ti-help-circle q" data-tip="Zelená = skladem, červená = není skladem.&#10;Klikni na štítek u položky pro „Objednáno u dodavatele“."></i></div>
+    <table><tr><th></th><th>Produkt</th><th class="num">Ks</th><th class="num">Cena s DPH</th></tr>
+    ${o.items.map(i=>`<tr><td style="width:44px"><div class="thumb"><i class="ti ti-tool"></i></div></td><td><b style="font-weight:600">${i[0]}</b><div style="margin-top:3px"><span class="chip ${i[3]}">${i[4]}</span></div></td><td class="num">${i[1]}</td><td class="num"><b>${i[2]}</b></td></tr>`).join('')}
+    </table></div>
+  <div class="card"><div class="ct">POZNÁMKY A HISTORIE <i class="ti ti-help-circle q" data-tip="Poznámky vidí všichni kolegové.&#10;Důležité označ červeně."></i></div>
+    <div class="notes">${o.notes.length?o.notes.map(n=>`<div class="note"><div class="av">${n[0]}</div><div class="bub"><small>${n[1]} · ${n[2]}</small>${n[3]}</div></div>`).join(''):'<div style="color:var(--muted)">Zatím bez poznámek.</div>'}</div>
+    <div class="nin"><input placeholder="Napiš poznámku…"><button class="btn">Uložit</button></div></div>`;
+}
+document.querySelectorAll('.nav[data-f]').forEach(b=>b.onclick=()=>{F=b.dataset.f;document.querySelectorAll('.nav[data-f]').forEach(x=>x.classList.toggle('on',x===b));const r=O.filter(o=>o.s===F);if(r[0])SEL=r[0].id;list();det();});
+document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>{const o=O.find(x=>x.id===SEL);o.s=b.dataset.s;list();det();});
+document.getElementById('mailbtn').onclick=e=>{e.stopPropagation();document.getElementById('menu').classList.toggle('open');};
+document.addEventListener('click',()=>document.getElementById('menu').classList.remove('open'));
+list();det();
+</script>
+</body>
+</html>
