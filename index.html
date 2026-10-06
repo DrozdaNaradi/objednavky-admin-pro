@@ -20,7 +20,7 @@
   --ok:#16a34a;--ok-bg:#f0fdf4;--ok-ink:#14532d;--ok-border:#86efac;
   --sidebar-bg:#fafafa;--sidebar-hover:rgba(0,0,0,.04);
   --radius:8px;--radius-sm:6px;--radius-lg:10px;--radius-pill:20px;
-  --panel-w:960px;--sidebar-w:220px;
+  --panel-w:min(1040px,100vw);--sidebar-w:220px;
 }
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
 .hidden{display:none!important}
@@ -153,11 +153,42 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .panel-overlay.active{opacity:1;pointer-events:all}
 .panel{position:fixed;top:0;right:0;bottom:0;width:var(--panel-w);background:var(--card);z-index:301;transform:translateX(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-4px 0 32px rgba(0,0,0,.1);border-left:1px solid var(--border)}
 .panel.active{transform:translateX(0)}
-.panel-header{padding:16px 20px 12px;border-bottom:1px solid var(--border-soft);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;background:#fff}
-.panel-header-left{flex:1}
-.panel-order-num{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-bottom:2px;color:var(--ink);font-family:inherit}
-.panel-customer{font-size:13px;color:var(--ink-3);font-weight:500}
-.panel-header-right{display:flex;align-items:flex-start;gap:6px;margin-left:12px;flex-shrink:0}
+/* ── HLAVIČKA DETAILU ─── */
+.panel-header{padding:14px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:#fff;display:flex;flex-direction:column;gap:12px}
+.ph-top{display:flex;align-items:flex-start;gap:12px}
+.ph-title{flex:1;min-width:0}
+.ph-kicker{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.ph-num-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.panel-order-num{font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--ink);line-height:1.2}
+.ph-dot{color:var(--border)}
+.panel-customer{font-size:15px;font-weight:600;color:var(--ink-2)}
+.ph-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.ph-actions .btn{height:32px}
+.ph-bar{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.ph-group{display:flex;flex-direction:column;gap:5px}
+.ph-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.ph-divider{width:1px;align-self:stretch;background:var(--border);margin:2px 0}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px;background:var(--card-alt)}
+.status-btn{height:32px;padding:0 11px;border:none;border-radius:6px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;transition:background .1s}
+.status-btn:hover:not(.active){background:#fff}
+.status-btn .dot{width:8px;height:8px;border-radius:50%}
+.status-btn.s-new .dot{background:var(--accent)}
+.status-btn.s-open .dot{background:#EAB308}
+.status-btn.s-closed .dot{background:var(--ok)}
+.status-btn.active{color:#fff;font-weight:700}
+.status-btn.active .dot{background:#fff}
+.status-btn.s-new.active{background:var(--accent)}
+.status-btn.s-open.active{background:#EAB308;color:#1c1400}
+.status-btn.s-open.active .dot{background:#1c1400}
+.status-btn.s-closed.active{background:var(--ok)}
+.ph-mails{display:flex;gap:6px;flex-wrap:wrap}
+.qm-item{display:flex;flex-direction:column;gap:3px}
+.qm-btn{height:38px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:#fff;font-family:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.qm-btn svg{flex-shrink:0;color:var(--ink-3)}
+.qm-btn:hover{background:var(--card-alt);border-color:#a3a3a3}
+.qm-sent{font-size:10.5px;line-height:1.3;min-height:14px;color:var(--ok-ink);font-weight:600;padding-left:2px;white-space:nowrap}
+.qm-sent.fail{color:#b91c1c}
+@media (max-width:780px){.ph-divider{display:none}.ph-top{flex-wrap:wrap}}
 .close-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-3);transition:.12s}
 .close-btn:hover{background:var(--card-alt);color:var(--ink)}
 /* ── PANEL NOTES BAR ─── */
@@ -185,32 +216,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .panel-body{flex:1;overflow-y:auto;padding:16px 20px;background:#fafafa}
 
 /* ── STATUS BUTTONS ─── */
-.status-row{display:flex;gap:6px;margin-top:10px}
-.quick-mail{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap;margin-top:8px}
-.qm-item{display:flex;flex-direction:column;gap:2px}
-.qm-sent{font-size:10.5px;line-height:1.3;color:var(--ok-ink);font-weight:600;padding-left:2px;white-space:nowrap}
-.qm-sent.fail{color:#b91c1c}
-.quick-mail-label{line-height:30px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:2px}
-.qm-btn{height:30px;padding:0 11px;border-radius:6px;border:1px solid var(--border);background:var(--card);font-family:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;white-space:nowrap}
-.qm-btn:hover{background:var(--card-alt)}
-.qm-btn.qm-ship{background:var(--ink);border-color:var(--ink);color:#fff}
-.qm-btn.qm-ship:hover{background:#262626}
-.status-btn{padding:9px 28px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);transition:all .1s;font-family:inherit;background:var(--card);color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:6px}
-.status-btn .dot{width:6px;height:6px;border-radius:50%;background:var(--border)}
-.status-btn.s-new:not(.active){color:var(--accent);border-color:var(--accent)}
-.status-btn.s-new:not(.active) .dot{background:var(--accent)}
-.status-btn.s-new.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.status-btn.s-new.active .dot{background:#fff}
-.status-btn.s-open:not(.active){color:#b45309;border-color:#fde68a}
-.status-btn.s-open:not(.active) .dot{background:#EAB308}
-.status-btn.s-open.active{background:#EAB308;color:#000;border-color:#EAB308}
-.status-btn.s-open.active .dot{background:#000}
-.status-btn.s-closed:not(.active){color:var(--ok);border-color:var(--ok-border)}
-.status-btn.s-closed:not(.active) .dot{background:var(--ok)}
-.status-btn.s-closed.active{background:var(--ok);color:#fff;border-color:var(--ok)}
-.status-btn.s-closed.active .dot{background:#fff}
-.status-btn:hover:not(.active){opacity:.85}
-.status-btn.s-ship-email{background:#0a0a0a;color:#fff;border-color:#0a0a0a;margin-left:auto}.status-btn.s-ship-email:hover{background:#333;border-color:#333;opacity:1}
 
 /* ── TAB CONTENT ─── */
 .tab-content{display:none}.tab-content.active{display:block}
@@ -685,37 +690,43 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
 <div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
 <div class="panel" id="order-panel">
   <div class="panel-header">
-    <div class="panel-header-left">
-      <div style="display:flex;align-items:baseline;gap:8px">
-        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
-          <div style="font-size:13px;font-weight:500;color:var(--muted);line-height:1.3">Přijatá eshop objednávka číslo</div>
-          <div class="panel-order-num" id="p-order-num">—</div>
+    <div class="ph-top">
+      <div class="ph-title">
+        <div class="ph-kicker">Objednávka z e-shopu</div>
+        <div class="ph-num-row">
+          <span class="panel-order-num" id="p-order-num">—</span>
           <button class="copy-btn" id="p-copy-num" onclick="copyVal(this.dataset.v,this)" style="font-size:11px;padding:2px 8px">copy</button>
+          <span class="ph-dot">·</span>
+          <span class="panel-customer" id="p-customer">—</span>
         </div>
       </div>
-      <div class="panel-customer" id="p-customer">—</div>
-      <div class="status-row">
-        <button class="status-btn s-new" id="s-new" onclick="setStatus('new')"><span class="dot"></span>NOVÁ</button>
-        <button class="status-btn s-open" id="s-open" onclick="setStatus('open')"><span class="dot"></span>OTEVŘ.</button>
-        <button class="status-btn s-closed" id="s-closed" onclick="setStatus('closed')"><span class="dot"></span>ODESLÁNO</button>
-      </div>
-      <div class="quick-mail">
-        <span class="quick-mail-label">Email zákazníkovi:</span>
-        <div class="qm-item"><button class="qm-btn qm-ship" onclick="openShipEmail('ship_inv')" title="Odesláno + číslo zásilky a odkaz na sledování PPL + přiložená faktura. Po odeslání se objednávka označí jako Odesláno.">📦 Odesláno + PPL + faktura</button><div class="qm-sent" id="qm-sent-ship_inv"></div></div>
-        <div class="qm-item"><button class="qm-btn qm-ship" onclick="openShipEmail('ship')" title="Odesláno + číslo zásilky a odkaz na sledování PPL. Po odeslání se objednávka označí jako Odesláno.">📦 Odesláno + PPL</button><div class="qm-sent" id="qm-sent-ship"></div></div>
-        <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('supplier')" title="Část zboží není skladem a je objednaná u dodavatele. Objednávka zůstane otevřená.">🕓 Objednáno u dodavatele</button><div class="qm-sent" id="qm-sent-supplier"></div></div>
-        <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('general')" title="Prázdný email zákazníkovi">✉ Obecný</button><div class="qm-sent" id="qm-sent-general"></div></div>
+      <div class="ph-actions">
+        <button class="btn btn-ppl btn-sm" onclick="openPplModal([currentOrderId])"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Štítek PPL</button>
+        <button class="btn btn-gray btn-sm" onclick="printOrder()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Tisk objednávky</button>
+        <button class="close-btn" onclick="closePanel()" aria-label="Zavřít">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
       </div>
     </div>
-    <div class="panel-header-right">
-      <button class="btn btn-ppl btn-sm" onclick="openPplModal([currentOrderId])">Tisk štítku PPL</button>
-      <button class="btn btn-gray btn-sm" onclick="printOrder()">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        Tisknout
-      </button>
-      <button class="close-btn" onclick="closePanel()">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
+    <div class="ph-bar">
+      <div class="ph-group">
+        <div class="ph-label">Stav objednávky</div>
+        <div class="seg">
+          <button class="status-btn s-new" id="s-new" onclick="setStatus('new')"><span class="dot"></span>Nová</button>
+          <button class="status-btn s-open" id="s-open" onclick="setStatus('open')"><span class="dot"></span>Otevřená</button>
+          <button class="status-btn s-closed" id="s-closed" onclick="setStatus('closed')"><span class="dot"></span>Odesláno</button>
+        </div>
+      </div>
+      <div class="ph-divider"></div>
+      <div class="ph-group">
+        <div class="ph-label">Poslat zákazníkovi email</div>
+        <div class="ph-mails">
+          <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('ship_inv')" title="Odesláno + číslo zásilky a odkaz na sledování PPL + přiložená faktura. Po odeslání se objednávka označí jako Odesláno."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Odesláno + PPL + faktura</button><div class="qm-sent" id="qm-sent-ship_inv"></div></div>
+          <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('ship')" title="Odesláno + číslo zásilky a odkaz na sledování PPL. Po odeslání se objednávka označí jako Odesláno."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Odesláno + PPL</button><div class="qm-sent" id="qm-sent-ship"></div></div>
+          <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('supplier')" title="Část zboží není skladem a je objednaná u dodavatele. Objednávka zůstane otevřená."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Objednáno u dodavatele</button><div class="qm-sent" id="qm-sent-supplier"></div></div>
+          <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('general')" title="Prázdný email zákazníkovi"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Obecný email</button><div class="qm-sent" id="qm-sent-general"></div></div>
+        </div>
+      </div>
     </div>
   </div>
   <!-- QUICK NOTES BAR -->
