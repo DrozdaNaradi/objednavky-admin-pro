@@ -29,12 +29,12 @@ Supabase → **Edge Functions → Secrets** → přidej:
 - vyplň **účet pro dobírky** (bez něj nejde poslat dobírku)
 - zadej **PIN** (stejný jako `PPL_APP_PIN`) → **Otestovat spojení s PPL**
 
-## Jak se tiskne
-- **PPL štítky** v horní liště = všechny nové/otevřené PPL objednávky bez štítku, odškrtni co nechceš.
-- **PPL štítek** v detailu objednávky = jen ta jedna.
-- Každá zásilka jde rozkliknout a upravit (produkt, výdejní místo, dobírka, počet balíků, adresa…).
-- Vyber pozici na archu A4 (1–4), kde začít — appka si pamatuje, kde jsi skončil.
-- **Odeslat do PPL a tisknout** → otevře se PDF se štítky → tisk na A4.
+## Jak se tiskne (3 kroky v jednom okně)
+- Otevři **PPL štítky** v horní liště (všechny čekající PPL objednávky) nebo **Tisk štítku PPL** v detailu objednávky.
+- Pokud něco chybí v nastavení (PIN, účet pro dobírky…), je to žlutě nahoře i s tlačítkem, kde to doplnit.
+- **1 Zkontroluj zásilky** – zaškrtnuté se vytisknou; zelené „✓ Připraveno", červené „⚠ Doplnit: …". Kliknutím na řádek se otevře úprava: jak doručit, dobírka ano/ne, počet balíků (− / +), příjemce, další možnosti.
+- **2 Kam na arch A4?** – obrázek archu: šedé = už použité místo, modré = sem přijde štítek (se jménem). Klikni na první volné místo.
+- **3 Tisk** – tlačítko řekne, kolik štítků vznikne; když nejde stisknout, pod ním je napsané proč. Po potvrzení se otevře PDF → tisk. Kdyby se okno neotevřelo, je tam „Otevřít štítky znovu".
 - V detailu objednávky pak je číslo balíku (odkaz na sledování), „Znovu stáhnout štítek" a „Stornovat".
 
 ## Automatické předvyplnění
