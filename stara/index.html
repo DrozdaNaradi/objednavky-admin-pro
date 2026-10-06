@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Objednávky Admin Pro — Drozda Nářadí</title>
+<title>PŮVODNÍ VZHLED – Objednávky Admin Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,39 +36,18 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .logo-mark svg{width:16px;height:16px}
 .logo-text{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);line-height:1.3}
 .logo-sub{font-size:10px;color:var(--muted);font-weight:400;letter-spacing:.02em}
-.sidebar-nav{flex:1;padding:8px 6px;display:flex;flex-direction:column;gap:1px;overflow:visible}
+.sidebar-nav{flex:1;padding:8px 6px;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
 .nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink-2);transition:.12s;user-select:none;border:none;background:none;width:100%;text-align:left;font-family:inherit}
 .nav-item:hover{background:var(--sidebar-hover);color:var(--ink)}
 .nav-item.active{background:var(--ink);color:#fff;font-weight:600}
-.nav-item{min-height:34px}
 .nav-dot-sm{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.nav-sec{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:12px 10px 4px}
-.nav-sec:first-child{padding-top:4px}
-.ni{width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
-.nav-item.active .ni{box-shadow:0 0 0 1.5px rgba(255,255,255,.35)}
-.ppl-hbox{display:flex;align-items:center;gap:6px}
-.ppl-hlogo{height:26px;width:auto;margin-right:6px;display:block}
-.btn.ppl-hbtn{height:32px;padding:0 12px;gap:7px;font-weight:600;font-size:12.5px;border-radius:7px}
-.ppl-ht{text-align:left}
-.ppl-hbtn.ppl-blue{background:#0047bb;border-color:#0047bb;color:#fff}
-.ppl-hbtn.ppl-blue:hover{background:#003a99;border-color:#003a99}
-.ppl-hbtn.ppl-blue .ppl-hn{background:#fff;border-color:#fff;color:#0047bb}
-.ppl-hbtn svg{flex-shrink:0}
-.ppl-hn{background:var(--card-alt);border:1px solid var(--border);color:var(--ink-2);font-size:11px;font-weight:700;border-radius:9px;padding:0 6px;line-height:16px;min-width:18px;text-align:center}
-.ss-refresh{margin-left:auto;width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--ink-2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
-.ss-refresh:hover{background:var(--card-alt);color:var(--ink)}
-[data-tip-r]{position:relative}
-[data-tip-r]::after{content:attr(data-tip-r);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#1a1a1a;color:#fff;font-size:11.5px;font-weight:500;line-height:1.45;padding:7px 10px;border-radius:6px;white-space:pre;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;text-align:left}
-[data-tip-r]:hover::after{opacity:1}
-.sidebar{overflow:visible}
 .nav-count{margin-left:auto;font-size:11px;font-weight:700;color:var(--ink-3);font-family:inherit}
 .nav-item.active .nav-count{color:rgba(255,255,255,.75)}
 .nav-divider{height:1px;background:var(--border);margin:4px 4px}
 .sidebar-bottom{padding:6px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:1px}
 /* ── STATS BOX ─── */
 .sync-status-box{margin:8px 6px 4px;border-radius:8px;background:var(--card);border:1px solid var(--border);padding:9px 12px;display:flex;flex-direction:column;gap:5px}
-.sync-status-head{display:flex;align-items:center;gap:9px}
-#ss-badge-row,#ss-sep,#ss-orders,#ss-photos{display:none!important}
+.sync-status-head{display:flex;align-items:center;justify-content:space-between;gap:4px}
 .sync-status-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .sync-status-dot{width:6px;height:6px;border-radius:50%;background:#d1d5db;flex-shrink:0}
 .sync-status-dot.ok{background:#16a34a}
@@ -207,8 +186,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .qm-btn{height:38px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:#fff;font-family:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .qm-btn svg{flex-shrink:0;color:var(--ink-3)}
 .qm-btn:hover{background:var(--card-alt);border-color:#a3a3a3}
-.qm-btn.qm-green{background:#f0fdf4;border-color:#bbf7d0;color:#14532d}.qm-btn.qm-green svg{color:#16a34a}.qm-btn.qm-green:hover{background:#dcfce7;border-color:#86efac}
-.qm-btn.qm-amber{background:#fffbeb;border-color:#fde68a;color:#78350f}.qm-btn.qm-amber svg{color:#d97706}.qm-btn.qm-amber:hover{background:#fef3c7;border-color:#fcd34d}
 .qm-sent{font-size:10.5px;line-height:1.3;min-height:14px;color:var(--ok-ink);font-weight:600;padding-left:2px;white-space:nowrap}
 .qm-sent.fail{color:#b91c1c}
 @media (max-width:780px){.ph-divider{display:none}.ph-top{flex-wrap:wrap}}
@@ -558,6 +535,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
 </style>
 </head>
 <body>
+<div style="background:#e5e7eb;color:#374151;border-bottom:1px solid #d1d5db;font:600 12px Inter,sans-serif;padding:6px 14px;text-align:center;position:relative;z-index:500">Záloha PŮVODNÍHO vzhledu (verze 16) – pracuje se skutečnými objednávkami. Aktuální appka je na <a href="../" style="color:#374151">hlavní adrese</a>.</div>
 
 <!-- SETUP SCREEN -->
 <div id="setup-screen" class="setup-screen">
@@ -628,31 +606,39 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       </div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-sec">Objednávky</div>
-      <button class="nav-item active" id="nav-active" onclick="setFilter('active')" data-tip-r="Nové a otevřené dohromady –&#10;vše, co je potřeba vyřídit">
-        <span class="ni" style="background:#404040"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>K vyřízení
+      <button class="nav-item active" id="nav-active" onclick="setFilter('active')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Aktivní
       </button>
-      <button class="nav-item" id="nav-new" onclick="setFilter('new')" data-tip-r="Právě přišly z e-shopu,&#10;ještě je nikdo neotevřel">
-        <span class="ni" style="background:#dc2626"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></span>Nové
+      <button class="nav-item" id="nav-new" onclick="setFilter('new')">
+        <span class="nav-dot-sm" style="background:#dc2626"></span>
+        Nové
         <span class="nav-count" id="count-new">0</span>
       </button>
-      <button class="nav-item" id="nav-open" onclick="setFilter('open')" data-tip-r="Rozpracované – čeká se na zboží,&#10;platbu nebo odeslání">
-        <span class="ni" style="background:#d97706"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>Otevřené
+      <button class="nav-item" id="nav-open" onclick="setFilter('open')">
+        <span class="nav-dot-sm" style="background:#ca8a04"></span>
+        Otevřené
         <span class="nav-count" id="count-open">0</span>
       </button>
-      <button class="nav-item" id="nav-closed" onclick="setFilter('closed')" data-tip-r="Odeslané zákazníkům">
-        <span class="ni" style="background:#16a34a"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Uzavřené
+      <button class="nav-item" id="nav-closed" onclick="setFilter('closed')">
+        <span class="nav-dot-sm" style="background:#16a34a"></span>
+        Uzavřené
         <span class="nav-count" id="count-closed">0</span>
       </button>
-
+      <div class="nav-divider"></div>
+      <button class="nav-item" onclick="openZasilky()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        Zásilky PPL
+        <span class="nav-count" id="count-zas">0</span>
+      </button>
     </nav>
     <div class="sync-status-box" id="sync-status-box">
       <div class="sync-status-head">
+        <span class="sync-status-label">Stav synchronizace</span>
         <span class="sync-status-dot" id="ss-dot"></span>
-        <div style="flex:1;min-width:0"><div class="sync-status-label">E-shop</div><div class="sync-status-time" id="ss-time">Ještě neproběhl</div></div>
-        <button class="ss-refresh" id="sync-btn-side" onclick="syncFromEshop()" data-tip-r="Stáhnout nové objednávky z e-shopu hned.&#10;Jinak se stahují samy každou hodinu."><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></button>
       </div>
-      <div id="ss-badge-row" style="display:none"></div>
+      <div class="sync-status-time" id="ss-time">Ještě neproběhl</div>
+      <div id="ss-badge-row" style="display:none;display:flex;gap:4px;flex-wrap:wrap"></div>
       <div class="sync-status-sep" id="ss-sep" style="display:none"></div>
       <div class="sync-status-row" id="ss-orders" style="display:none"></div>
       <div class="sync-status-row" id="ss-photos" style="display:none"></div>
@@ -679,8 +665,13 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       </div>
     </div>
     <div class="sidebar-bottom">
-      <button class="nav-item" onclick="openSettings()" data-tip-r="Podpis, PPL (odesílatel, PIN, adresář),&#10;emaily, fotky a údržba">
-        <span class="ni" style="background:#6b7280"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Nastavení
+      <button class="nav-item" id="sync-btn-side" onclick="syncFromEshop()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Sync z eshopu
+      </button>
+      <button class="nav-item" onclick="openSettings()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Nastavení
       </button>
       <div class="nav-divider"></div>
       <button class="nav-item" onclick="openSettings('profile')">
@@ -701,13 +692,28 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         </div>
       </div>
       <div class="main-header-right">
-        <input type="file" id="img-xml-input" accept=".xml" style="display:none" onchange="importImagesFromXml(this)">
-        <div class="ppl-hbox" aria-label="PPL zásilky">
-          <img class="ppl-hlogo" src="img/ppl-logo.png" alt="PPL" title="PPL zásilky">
-          <button class="btn btn-sm ppl-hbtn ppl-blue" onclick="openPplBatch()" data-tip="Štítky pro objednávky z e-shopu:&#10;všechny nové a otevřené PPL objednávky&#10;bez štítku – tisk na A4, 4 na arch"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><rect x="2.5" y="9" width="19" height="8.5" rx="2"/><path d="M6 14.5h12V21H6z" fill="none"/><path d="M9 17.5h6" /></svg><span class="ppl-ht">Štítky k objednávkám</span><span class="ppl-hn" id="count-ppl-ready">0</span></button>
-          <button class="btn btn-sm ppl-hbtn ppl-blue" onclick="openPplMimo()" data-tip="Poslat balík bez objednávky z e-shopu&#10;(firma z adresáře PPL nebo ručně)"><svg width="17" height="17" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 12.5V8a1.8 1.8 0 00-.9-1.56l-6.2-3.6a1.8 1.8 0 00-1.8 0l-6.2 3.6A1.8 1.8 0 004 8v8a1.8 1.8 0 00.9 1.56l6.2 3.6a1.8 1.8 0 001.8 0" stroke="currentColor" stroke-width="1.9"/><path d="M4.3 7.2L12 11.7l7.7-4.5M12 11.7v9.9" stroke="currentColor" stroke-width="1.9"/><path d="M15 17.5h7M19 14.5l3 3-3 3" stroke="currentColor" stroke-width="2.4"/></svg><span class="ppl-ht">Zásilka bez objednávky</span></button>
-          <button class="btn btn-gray btn-sm ppl-hbtn" onclick="openZasilky()" data-tip="Všechny zásilky a jejich stav přímo od PPL&#10;(čeká, na cestě, doručeno) + storno"><svg width="17" height="17" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 6.5h11.5v10H2z" fill="#dcfce7" stroke="#16a34a" stroke-width="1.9"/><path d="M13.5 9.5h4l3.5 3.5v3.5h-7.5z" stroke="#16a34a" stroke-width="1.9"/><circle cx="6" cy="18" r="2" fill="#fff" stroke="#15803d" stroke-width="1.9"/><circle cx="17" cy="18" r="2" fill="#fff" stroke="#15803d" stroke-width="1.9"/></svg><span class="ppl-ht">Přehled zásilek</span><span class="ppl-hn" id="count-zas">0</span></button>
+        <div class="user-badge" onclick="openSettings('profile')" data-tip="Tvoje jméno a podpis&#10;(Nastavení → Můj profil)">
+          <div class="user-dot" id="user-initial">?</div>
+          <span id="user-name-display">Neznámý</span>
         </div>
+        <button class="btn btn-gray btn-sm" id="sync-btn" onclick="syncFromEshop()" data-tip="Stáhne nové objednávky z eshopu&#10;a doplní fotky produktů.&#10;Spusť po každé nové objednávce.">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          Sync z eshopu
+        </button>
+        <input type="file" id="img-xml-input" accept=".xml" style="display:none" onchange="importImagesFromXml(this)">
+        <button class="btn btn-gray btn-sm" onclick="openSettings()" data-tip="Podpis, PPL, emaily,&#10;fotky a údržba">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Nastavení
+        </button>
+        <button class="btn btn-sm" onclick="openPplMimo()" style="color:#003087;border-color:#c7d4ee" data-tip="PPL zásilka bez objednávky z e-shopu&#10;příjemce najdeš v adresáři PPL">+ PPL mimo e‑shop</button>
+        <button class="btn btn-ppl btn-sm" onclick="openPplBatch()" data-tip="Vytiskne PPL štítky na A4 (4 na stranu)&#10;pro všechny čekající PPL objednávky.&#10;Před odesláním jde vše upravit.">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          PPL štítky
+        </button>
+        <button class="btn btn-red btn-sm" onclick="openNewOrderModal()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Nová objednávka
+        </button>
       </div>
     </header>
 
@@ -760,9 +766,9 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       <div class="ph-group">
         <div class="ph-label">Poslat zákazníkovi email</div>
         <div class="ph-mails">
-          <div class="qm-item"><button class="qm-btn qm-green" onclick="openShipEmail('ship_inv')" title="Odesláno + číslo zásilky a odkaz na sledování PPL + přiložená faktura. Po odeslání se objednávka označí jako Odesláno."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Odesláno + PPL + faktura</button><div class="qm-sent" id="qm-sent-ship_inv"></div></div>
-          <div class="qm-item"><button class="qm-btn qm-green" onclick="openShipEmail('ship')" title="Odesláno + číslo zásilky a odkaz na sledování PPL. Po odeslání se objednávka označí jako Odesláno."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Odesláno + PPL</button><div class="qm-sent" id="qm-sent-ship"></div></div>
-          <div class="qm-item"><button class="qm-btn qm-amber" onclick="openShipEmail('supplier')" title="Část zboží není skladem a je objednaná u dodavatele. Objednávka zůstane otevřená."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Objednáno u dodavatele</button><div class="qm-sent" id="qm-sent-supplier"></div></div>
+          <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('ship_inv')" title="Odesláno + číslo zásilky a odkaz na sledování PPL + přiložená faktura. Po odeslání se objednávka označí jako Odesláno."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Odesláno + PPL + faktura</button><div class="qm-sent" id="qm-sent-ship_inv"></div></div>
+          <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('ship')" title="Odesláno + číslo zásilky a odkaz na sledování PPL. Po odeslání se objednávka označí jako Odesláno."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Odesláno + PPL</button><div class="qm-sent" id="qm-sent-ship"></div></div>
+          <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('supplier')" title="Část zboží není skladem a je objednaná u dodavatele. Objednávka zůstane otevřená."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Objednáno u dodavatele</button><div class="qm-sent" id="qm-sent-supplier"></div></div>
           <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('general')" title="Prázdný email zákazníkovi"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Obecný email</button><div class="qm-sent" id="qm-sent-general"></div></div>
         </div>
       </div>
@@ -1416,8 +1422,8 @@ function saveAuthor() {
 function changeAuthor() { openSettings('profile'); }
 function updateAuthorUI() {
   const ini = author.charAt(0).toUpperCase();
-  const und = document.getElementById('user-name-display'); if (und) und.textContent = author;
-  const uin = document.getElementById('user-initial'); if (uin) uin.textContent = ini;
+  document.getElementById('user-name-display').textContent = author;
+  document.getElementById('user-initial').textContent = ini;
   document.getElementById('sidebar-user-dot').textContent = ini;
   document.getElementById('sidebar-user-name').textContent = author;
 }
@@ -1541,7 +1547,6 @@ function renderOrders() {
   document.getElementById('count-open').textContent = openAll.length;
   document.getElementById('count-closed').textContent = closedAll.length;
   const zc = document.getElementById('count-zas'); if (zc) zc.textContent = zasRadky().filter(r => !r.z.cancelledAt).length;
-  const pr = document.getElementById('count-ppl-ready'); if (pr) pr.textContent = orders.filter(o => (o.status === 'new' || o.status === 'open') && /ppl/i.test(o.shipping_method || '') && !o.ppl?.shipments?.length).length;
 
   let sections = [];
   if (currentFilter === 'active') {
