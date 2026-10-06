@@ -2338,6 +2338,8 @@ function applyEmailTemplate(kind) {
   const o = currentOrder;
   if (!o) return;
   emailTemplate = kind;
+  const sb = document.getElementById('send-email-btn');
+  sb.disabled = false; sb.style.opacity = '';
   const hasPpl = !!o.ppl?.shipments?.length;
   const isShip = kind === 'ship' || kind === 'ship_inv';
   document.getElementById('email-templates').innerHTML = Object.entries(EMAIL_TPL).map(([k, label]) =>
@@ -2356,7 +2358,16 @@ function applyEmailTemplate(kind) {
       if (o !== currentOrder || emailTemplate !== 'supplier') return;
       document.getElementById('email-template-hint').innerHTML = split.missing.length
         ? `Vypsané jsou položky, které nejsou skladem nebo jsou označené „Objednáno u dodavatele" (${split.missing.length}). Text můžeš upravit. Objednávka zůstane rozpracovaná (Otevřená).`
-        : '<span style="color:#991b1b">U této objednávky není žádná položka mimo sklad ani označená „Objednáno u dodavatele". Označ ji v Přehledu u položky.</span>';
+        : '<span style="color:#991b1b"><b>Tento email teď nejde poslat:</b> všechny položky jsou skladem a žádná není označená „Objednáno u dodavatele". Pokud něco objednáváš, klikni v Přehledu u položky na „Objednáno u dodavatele".</span>';
+      const sendBtn = document.getElementById('send-email-btn');
+      if (!split.missing.length) {
+        // není co hlásit → email nejde odeslat (dřív odešel s prázdným seznamem)
+        document.getElementById('email-subject').value = '';
+        document.getElementById('email-body').value = '';
+        sendBtn.disabled = true; sendBtn.style.opacity = .45;
+        return;
+      }
+      sendBtn.disabled = false; sendBtn.style.opacity = '';
       const m = supplierEmail(o, split);
       document.getElementById('email-subject').value = m.subject;
       document.getElementById('email-body').value = m.body;
@@ -2417,6 +2428,10 @@ async function sendEmail() {
   const body = document.getElementById('email-body').value.trim();
   if (!to || !subject || !body) { toast('Vyplň všechna pole', 'error'); return; }
   const isShip = emailTemplate === 'ship' || emailTemplate === 'ship_inv';
+  if (emailTemplate === 'supplier' && !(await supplierSplit(currentOrder)).missing.length) {
+    toast('V objednávce není nic mimo sklad ani označené „Objednáno u dodavatele" — email nejde poslat', 'error');
+    return;
+  }
   if (emailTemplate === 'ship_inv' && !emailAttachment) {
     toast('Přilož fakturu, nebo zvol „Odesláno + PPL" bez faktury', 'error');
     document.getElementById('email-attach').scrollIntoView({ block: 'center' });
