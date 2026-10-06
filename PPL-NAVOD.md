@@ -24,7 +24,7 @@ Supabase → **Edge Functions → Secrets** → přidej:
 | `PPL_APP_PIN` | libovolné heslo, např. 6 číslic |
 
 ## 4. V appce
-**PPL štítky → ⚙ Nastavení PPL**
+**PPL štítky → Nastavení** (odkaz vpravo nahoře v okně)
 - zkontroluj odesílatele (předvyplněno z podpisu e-mailu: Masarykova 1483, Rudná), doplň telefon
 - vyplň **účet pro dobírky** (bez něj nejde poslat dobírku)
 - zadej **PIN** (stejný jako `PPL_APP_PIN`) → **Otestovat spojení s PPL**
