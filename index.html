@@ -776,6 +776,17 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
           <div class="form-label">Zpráva</div>
           <textarea class="form-textarea" id="email-body" placeholder="Dobrý den,&#10;&#10;Vaši objednávku zpracováváme…"></textarea>
         </div>
+        <details class="mail-sent" style="margin-top:0">
+          <summary>Podpis, který se připojí pod email (upravit)</summary>
+          <div class="ppl-grid" style="padding:4px 12px 10px">
+            <div class="form-group ppl-s3"><div class="form-label">Jméno</div><input class="form-input" id="sig-name"></div>
+            <div class="form-group ppl-s3"><div class="form-label">Funkce</div><input class="form-input" id="sig-role" placeholder="např. Prodejna"></div>
+            <div class="form-group ppl-s3"><div class="form-label">Telefon</div><input class="form-input" id="sig-phone" placeholder="nepovinné"></div>
+            <div class="form-group ppl-s3"><div class="form-label">Email</div><input class="form-input" id="sig-email"></div>
+            <div class="ppl-s6" style="display:flex;align-items:center;gap:10px"><button class="btn btn-sm" onclick="saveEmailSig()">Uložit podpis</button><span class="ppl-hint">Uloží se jen v tomto prohlížeči — každý si nastaví svůj.</span></div>
+          </div>
+          <div id="email-signature-preview" style="padding:0 12px 12px;background:#fff"></div>
+        </details>
         <button class="btn btn-red" onclick="sendEmail()" id="send-email-btn">
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           Odeslat zákazníkovi
@@ -1993,13 +2004,72 @@ function activityItem(a) {
 }
 
 // ─── EMAIL ───────────────────────────────────────────────────────────────────
-const EMAIL_SIGNATURE = `\n\n--\nProdejna Drozda Nářadí\nprodejna@drozda-naradi.cz\nwww.drozda-naradi.cz\n\nDrozda Nářadí - Heavy Duty Center\nMasarykova 1483, 252 19 Rudná u Prahy\nRaditona s.r.o. Zvonková 242, Chýně 253 03 - DIČ CZ08960917`;
+// Podpis: jméno/funkce/telefon/email si každý nastaví sám (uloženo v tomto prohlížeči), zbytek je firemní
+function emailSig() {
+  let v = {};
+  try { v = JSON.parse(localStorage.getItem('email_sig') || '{}'); } catch (e) {}
+  return { name: v.name || author || 'Prodejna Drozda Nářadí', role: v.role || '', phone: v.phone || '', email: v.email || 'prodejna@drozda-naradi.cz' };
+}
+function emailSignatureText() {
+  const g = emailSig();
+  return `\n\n--\n${g.name}${g.role ? '\n' + g.role : ''}\n\n${g.phone ? g.phone + '\n' : ''}${g.email}\nwww.drozda-naradi.cz\n\nDrozda Nářadí - Heavy Duty Center\nMasarykova 1483\n252 19 Rudná u Prahy\nRaditona s.r.o. Zvonková 242, Chýně 253 03 - DIČ CZ08960917`;
+}
+
+// HTML verze emailu: text zprávy + firemní podpis s logem.
+// V EmailJS šabloně musí být {{{message_html}}} (tři závorky = HTML), {{message}} zůstává jako čistý text.
+const EMAIL_IMG = 'https://drozdanaradi.github.io/objednavky-admin-pro/email/';
+function emailSignatureHtml() {
+  const g = emailSig();
+  const e = x => String(x || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const tel = g.phone ? `<a href="tel:${e(g.phone.replace(/\s/g, ''))}" style="color:#000000;text-decoration:none">${e(g.phone)}</a><br>` : '';
+  return `
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;font-family:Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#000000">
+  <tr><td>
+    <strong>${e(g.name)}</strong><br>
+    ${g.role ? e(g.role) + '<br>' : ''}<br>
+    ${tel}<a href="mailto:${e(g.email)}" style="color:#1a56db">${e(g.email)}</a><br>
+    <a href="https://www.drozda-naradi.cz" style="color:#d0021b;font-weight:bold;text-decoration:none">www.drozda-naradi.cz</a><br><br>
+    <strong style="color:#d0021b">Drozda Nářadí - Heavy Duty Center</strong><br>
+    <strong>Masarykova 1483</strong><br>
+    <strong>252 19 Rudná u Prahy</strong><br>
+    <span style="font-size:12px;color:#333333">Raditona s.r.o. Zvonková 242, Chýně 253 03 - DIČ CZ08960917</span>
+  </td></tr>
+  <tr><td style="padding-top:14px">
+    <img src="${EMAIL_IMG}znacky.png" width="404" alt="Milwaukee, fischer, Rhodius, Flex, Ryobi, Ehwa, Sola, illbruck" style="display:block;border:0;width:404px;max-width:100%;height:auto">
+  </td></tr>
+  <tr><td style="padding-top:8px">
+    <img src="${EMAIL_IMG}milwaukee-authorised.png" width="198" alt="Milwaukee Authorised Distributor" style="display:inline-block;border:0;width:198px;height:auto">
+    <img src="${EMAIL_IMG}milwaukee-100-years.png" width="198" alt="Milwaukee 100 years" style="display:inline-block;border:0;width:198px;height:auto;margin-left:4px">
+  </td></tr>
+</table>`;
+}
+function emailHtml(body) {
+  // textový podpis nahradíme HTML podpisem, odkazy uděláme klikací
+  const text = String(body || '').split('\n\n--\n')[0];
+  const esc = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const linked = esc.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#dc2626">$1</a>');
+  return `<div style="font-family:Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#111111">${linked.replace(/\n/g, '<br>')}</div>${emailSignatureHtml()}`;
+}
+function saveEmailSig() {
+  const g = id => document.getElementById(id).value.trim();
+  try { localStorage.setItem('email_sig', JSON.stringify({ name: g('sig-name'), role: g('sig-role'), phone: g('sig-phone'), email: g('sig-email') })); } catch (e) {}
+  applyEmailTemplate(emailTemplate);
+  renderEmailSignaturePreview();
+  toast('Podpis uložen', 'success');
+}
+function renderEmailSignaturePreview() {
+  const g = emailSig();
+  [['sig-name', g.name], ['sig-role', g.role], ['sig-phone', g.phone], ['sig-email', g.email]].forEach(([id, v]) => { const el = document.getElementById(id); if (el) el.value = v; });
+  const el = document.getElementById('email-signature-preview');
+  if (el) el.innerHTML = emailSignatureHtml();
+}
 
 function prefillEmailForm() {
   if (!currentOrder) return;
   document.getElementById('email-to').value = currentOrder.customer_email || '';
   document.getElementById('email-extra').value = '';
   applyEmailTemplate('general');
+  renderEmailSignaturePreview();
   const noConfig = !window._ejsService;
   document.getElementById('email-no-config').classList.toggle('hidden', !noConfig);
   document.getElementById('send-email-btn').classList.toggle('hidden', noConfig);
@@ -2033,7 +2103,7 @@ function renderEmailHistory(acts) {
 async function sendLoggedEmail({ to, subject, body, kind }) {
   const sentAt = new Date().toISOString();
   try {
-    const res = await emailjs.send(window._ejsService, 'template_2v1bgzs', { to_email: to, subject, message: body, order_number: currentOrder?.order_number, customer_name: currentOrder?.customer_name });
+    const res = await emailjs.send(window._ejsService, 'template_2v1bgzs', { to_email: to, subject, message: body, message_html: emailHtml(body), order_number: currentOrder?.order_number, customer_name: currentOrder?.customer_name });
     await logActivity('email_sent', { to, subject, body, kind, sentAt, status: res?.status, response: res?.text || '' });
     return res;
   } catch (e) {
@@ -2049,7 +2119,7 @@ function shippingEmail(o) {
   const nums = o.ppl?.shipments || [];
   const name = o.customer_name || '';
   const subject = `Vaše objednávka č. ${o.order_number} byla odeslána`;
-  if (!nums.length) return { subject, body: `Dobrý den, ${name},\n\nVaše objednávka č. ${o.order_number} byla dnes odeslána.\n\nDěkujeme za Váš nákup a těšíme se na další spolupráci.${EMAIL_SIGNATURE}` };
+  if (!nums.length) return { subject, body: `Dobrý den, ${name},\n\nVaše objednávka č. ${o.order_number} byla dnes odeslána.\n\nDěkujeme za Váš nákup a těšíme se na další spolupráci.${emailSignatureText()}` };
   const req = o.ppl.request || {};
   const isPs = /^SMA/.test(o.ppl.productType || '') || !!req.specificDelivery?.parcelShopCode;
   const cod = req.cashOnDelivery?.codPrice;
@@ -2068,7 +2138,7 @@ function shippingEmail(o) {
   ];
   if (cod) lines.push('', `Při převzetí prosím připravte k úhradě ${Number(cod).toLocaleString('cs-CZ')} Kč (dobírka).`);
   lines.push('', 'Děkujeme za Váš nákup a těšíme se na další spolupráci.');
-  return { subject, body: lines.join('\n') + EMAIL_SIGNATURE };
+  return { subject, body: lines.join('\n') + emailSignatureText() };
 }
 let emailTemplate = 'general';
 function applyEmailTemplate(kind) {
@@ -2089,7 +2159,7 @@ function applyEmailTemplate(kind) {
     document.getElementById('email-body').value = m.body;
   } else {
     document.getElementById('email-subject').value = `Vaše objednávka č. ${o.order_number}`;
-    document.getElementById('email-body').value = `Dobrý den, ${o.customer_name||''},\n\nVaši objednávku č. ${o.order_number} zpracováváme.\n\nV případě dotazů nás neváhejte kontaktovat.${EMAIL_SIGNATURE}`;
+    document.getElementById('email-body').value = `Dobrý den, ${o.customer_name||''},\n\nVaši objednávku č. ${o.order_number} zpracováváme.\n\nV případě dotazů nás neváhejte kontaktovat.${emailSignatureText()}`;
   }
 }
 function openTrackingEmail() {
