@@ -105,7 +105,7 @@ def main():
                     'total_with_vat':    flt(p.get('price_total_with_vat')),
                     'img':               '',
                     'availability':      p.get('availability'),
-                    'availability_text': str(p.get('availabilityText') or ''),
+                    'availability_text': ' '.join(str(p.get('availabilityText') or '').replace('&nbsp;', ' ').split()),
                 })
 
             ship_vat    = flt(o.get('delivery', {}).get('postovne'))
@@ -128,7 +128,8 @@ def main():
                                           'IČO:' + ico if ico else '',
                                           'DIČ:' + dic if dic else ''] if x]
 
-            total = (flt(o.get('total', {}).get('price_with_vat')) + ship_vat + pay_vat) or None
+            # total.price_with_vat z eshopu už obsahuje dopravu i platbu
+            total = flt(o.get('total', {}).get('price_with_vat')) or None
 
             row = {
                 'order_number':     num,

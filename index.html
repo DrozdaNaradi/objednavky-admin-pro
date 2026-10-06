@@ -1152,6 +1152,16 @@ function getStatsPeriodRange(period) {
     return { start, end };
   }
 }
+// Celková cena s DPH spočítaná z položek + doprava + platba (stejně jako v detailu).
+// total_amount v DB byl dřív uložený špatně (doprava a platba připočtené dvakrát).
+function orderTotal(o) {
+  const its = Array.isArray(o.items) ? o.items : [];
+  if (!its.some(it => !it.type)) return parseFloat(o.total_amount) || 0;
+  return its.reduce((s, it) => s + (it.type
+    ? parseFloat(it.price_with_vat||0)
+    : (parseFloat(it.total_with_vat||0) || parseFloat(it.price_with_vat||0) * (it.qty||1))), 0);
+}
+
 function renderStats() {
   const { start, end } = getStatsPeriodRange(currentStatsPeriod);
   const inRange = orders.filter(o => {
@@ -1160,7 +1170,7 @@ function renderStats() {
     return d >= start && d <= end;
   });
   const closed = inRange.filter(o => o.status === 'closed');
-  const total = inRange.reduce((s, o) => s + (parseFloat(o.total_amount) || 0), 0);
+  const total = inRange.reduce((s, o) => s + orderTotal(o), 0);
   document.getElementById('stat-count').textContent = inRange.length;
   document.getElementById('stat-count-sub').textContent = closed.length + ' uzavřených';
   document.getElementById('stat-total').textContent = total > 0
@@ -1237,8 +1247,8 @@ function renderOrders() {
   const sortFn = (a, b) => {
     if (sort === 'newest') return new Date(b.order_date||b.created_at) - new Date(a.order_date||a.created_at);
     if (sort === 'oldest') return new Date(a.order_date||a.created_at) - new Date(b.order_date||b.created_at);
-    if (sort === 'price-desc') return (b.total_amount||0) - (a.total_amount||0);
-    if (sort === 'price-asc') return (a.total_amount||0) - (b.total_amount||0);
+    if (sort === 'price-desc') return orderTotal(b) - orderTotal(a);
+    if (sort === 'price-asc') return orderTotal(a) - orderTotal(b);
     return 0;
   };
   sections = sections.map(s => ({ ...s, items: [...s.items].sort(sortFn) }));
@@ -1278,7 +1288,7 @@ function orderRow(o) {
   const recentNotes = [...orderNotes, ...itemNotes].slice().sort((a,b) => new Date(b.created_at)-new Date(a.created_at)).slice(0,2);
 
   const dateStr = o.order_date ? new Date(o.order_date).toLocaleDateString('cs-CZ',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
-  const totalStr = o.total_amount ? Number(o.total_amount).toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' Kč' : '—';
+  const totalStr = orderTotal(o) ? orderTotal(o).toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' Kč' : '—';
 
   const itemsWithImg = items.filter(it => it.img);
   const thumbsHtml = itemsWithImg.slice(0,5).map(it => {
@@ -1389,7 +1399,7 @@ function renderPanelOverview() {
   updateStatusButtons(o.status);
 
   const items = productItemsList;
-  const totalStr = o.total_amount ? Number(o.total_amount).toLocaleString('cs-CZ') + ' Kč' : '—';
+  const totalStr = orderTotal(o) ? orderTotal(o).toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' Kč' : '—';
 
   // Parse address parts — podporuje čárky i newlines jako oddělovač
   const addrParts = (o.delivery_address || '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
@@ -1436,15 +1446,21 @@ function renderPanelOverview() {
     const imgHtml = it.img
       ? `<img src="${it.img}" alt="" onerror="this.style.display='none'" loading="lazy" referrerpolicy="no-referrer">`
       : `<div class="no-img"></div>`;
-    const priceNoVat = it.price_without_vat ? Number(it.price_without_vat).toLocaleString('cs-CZ') + ' Kč' : '—';
-    const priceVat = it.price_with_vat ? Number(it.price_with_vat).toLocaleString('cs-CZ') + ' Kč' : '—';
+    // Sloupce = cena za všechny kusy (jako v e-shopu), cena za kus je drobně pod ní
+    const fmtKc = v => Number(v).toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' Kč';
+    const q = it.qty || 1;
+    const lineNoVat = it.price_without_vat ? Math.round(parseFloat(it.price_without_vat) * q * 100) / 100 : 0;
+    const lineVat = parseFloat(it.total_with_vat||0) || (it.price_with_vat ? parseFloat(it.price_with_vat) * q : 0);
+    const perKs = (v) => q > 1 && v ? `<div style="font-size:10px;font-weight:500;color:var(--muted);margin-top:2px">${fmtKc(v)} / ks</div>` : '';
+    const priceNoVat = lineNoVat ? fmtKc(lineNoVat) + perKs(it.price_without_vat) : '—';
+    const priceVat = lineVat ? fmtKc(lineVat) + perKs(it.price_with_vat) : '—';
     return `<tr id="item-row-${idx}">
       <td class="item-img-cell">${imgHtml}</td>
       <td>
         <div class="item-tbl-name" style="display:flex;align-items:baseline;gap:4px;flex-wrap:wrap">${escHtml(it.name||'Položka')}<button class="copy-btn" data-v="${escHtml(it.name||'')}" onclick="copyVal(this.dataset.v,this)">copy</button></div>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px">
           ${it.sku ? `<div class="item-tbl-sku" style="display:flex;align-items:baseline;gap:4px">${escHtml(it.sku)}<button class="copy-btn" data-v="${escHtml(it.sku)}" onclick="copyVal(this.dataset.v,this)" style="font-size:10px">copy</button></div>` : ''}
-          ${it.availability_text ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;${it.availability ? 'background:#dcfce7;color:#15803d' : 'background:#fef3c7;color:#b45309'}">${it.availability ? '✓' : '⏳'} ${escHtml(it.availability_text)}</span>` : ''}
+          ${it.availability_text ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;${it.availability ? 'background:#dcfce7;color:#15803d' : 'background:#fef3c7;color:#b45309'}">${it.availability ? '✓' : '⏳'} ${escHtml(String(it.availability_text).replace(/&nbsp;/g,' '))}</span>` : ''}
           <button class="supplier-btn" id="supplier-btn-${idx}" onclick="toggleSupplierOrder(${idx})">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 9l1.5 9h15L21 9H3z"/><path d="M8 9V6a4 4 0 018 0v3"/></svg>
             Objednáno u dodavatele
@@ -1853,7 +1869,7 @@ async function printOrder() {
   const notes = notesData || [];
   const items = Array.isArray(o.items) ? o.items : [];
   const dateStr = o.order_date ? new Date(o.order_date).toLocaleString('cs-CZ') : '—';
-  const totalStr = o.total_amount ? Number(o.total_amount).toLocaleString('cs-CZ') + ' Kč' : '—';
+  const totalStr = orderTotal(o) ? orderTotal(o).toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' Kč' : '—';
   const sLabel = statusLabel(o.status);
 
   const html = `<!DOCTYPE html><html lang="cs"><head><meta charset="UTF-8">
@@ -2262,7 +2278,7 @@ async function syncFromEshop(silent = false) {
         const sku = String(p.product_number||'');
         const imgFromMap = pid ? (imgMap[pid]||'') : '';
         const imgFromFallback = sku ? (skuImgFallback[sku]||'') : '';
-        return { name:p.product_name||'', sku, qty:parseInt(p.count||1), price_with_vat:parseFloat(p.price_per_unit_with_vat||0), price_without_vat:parseFloat(p.price_per_unit||0), total_with_vat:parseFloat(p.price_total_with_vat||0), img: imgFromMap || imgFromFallback, availability: p.availability ?? null, availability_text: String(p.availabilityText||'') };
+        return { name:p.product_name||'', sku, qty:parseInt(p.count||1), price_with_vat:parseFloat(p.price_per_unit_with_vat||0), price_without_vat:parseFloat(p.price_per_unit||0), total_with_vat:parseFloat(p.price_total_with_vat||0), img: imgFromMap || imgFromFallback, availability: p.availability ?? null, availability_text: String(p.availabilityText||'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim() };
       });
       // Store shipping + payment as special items so we can display correct prices
       const shipVat = parseFloat(o.delivery?.postovne||0);
@@ -2277,7 +2293,7 @@ async function syncFromEshop(silent = false) {
       const dic = c.dic || b.dic || o.customer?.dic || o.dic || c.vat || b.vat || '';
       const companyName = c.company || b.company || '';
       const companyParts = [companyName, ico?'IČO:'+ico:'', dic?'DIČ:'+dic:''].filter(Boolean);
-      const row = { order_number:num, customer_name:c.name||b.name||'', customer_email:c.email||b.email||'', customer_phone:c.phone||b.phone||'', company:companyParts.join('|'), delivery_address:[c.street,city,c.zip].filter(Boolean).join(', '), shipping_method:o.delivery?.nazev_postovne||'', payment_method:o.payment?.nazev_platba||'', total_amount:(parseFloat(o.total?.price_with_vat||0)+parseFloat(o.delivery?.postovne||0)+parseFloat(o.payment?.castka_platba||0))||null, order_date:o.created?.date?new Date(o.created.date).toISOString():new Date().toISOString(), items };
+      const row = { order_number:num, customer_name:c.name||b.name||'', customer_email:c.email||b.email||'', customer_phone:c.phone||b.phone||'', company:companyParts.join('|'), delivery_address:[c.street,city,c.zip].filter(Boolean).join(', '), shipping_method:o.delivery?.nazev_postovne||'', payment_method:o.payment?.nazev_platba||'', total_amount:parseFloat(o.total?.price_with_vat||0)||null, order_date:o.created?.date?new Date(o.created.date).toISOString():new Date().toISOString(), items };
       const { data: ex } = await db.from('orders').select('id, items').eq('order_number', num).maybeSingle();
       if (ex) {
         // Pokud nemáme imgMap, zachováme existující fotky z DB
