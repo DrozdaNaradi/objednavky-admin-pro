@@ -403,6 +403,27 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
 .supplier-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--warn-border);background:var(--warn-bg);color:var(--warn-ink);border-radius:8px;padding:10px 14px;margin-top:14px;font-size:12.5px;line-height:1.5}
 .supplier-bar>div{flex:1;min-width:220px}
 
+/* ── ZÁSILKY PPL ─── */
+.zas-modal{width:1100px;padding:0;overflow:hidden;display:flex;flex-direction:column}
+.zas-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 20px 4px}
+.zas-n{font-size:11px;color:var(--muted);font-weight:600}
+.zas-info{font-size:12px;color:var(--muted);padding:2px 20px 8px}
+.zas-head,.zas-main{display:grid;grid-template-columns:130px 140px 1fr 110px 230px;gap:12px;align-items:center}
+.zas-head{padding:8px 20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--card-alt)}
+.zas-list{overflow-y:auto;max-height:calc(100vh - 260px)}
+.zas-row{border-bottom:1px solid var(--border-soft)}
+.zas-row.open{background:var(--card-alt)}
+.zas-main{padding:10px 20px;cursor:pointer;font-size:12.5px}
+.zas-main:hover{background:var(--card-alt)}
+.zas-b{font-weight:600;color:var(--ink)}
+.zas-s{font-size:11.5px;color:var(--muted);line-height:1.35;margin-top:2px}
+.zas-st{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px}
+.zas-det{padding:4px 20px 14px 162px;font-size:12.5px;line-height:1.5}
+.zas-det-g{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.zas-ev div{padding:3px 0;border-bottom:1px dashed var(--border-soft)}
+.zas-ev span{display:inline-block;width:130px;color:var(--muted)}
+@media (max-width:800px){.zas-head{display:none}.zas-main{grid-template-columns:1fr 1fr}.zas-det{padding-left:20px}.zas-det-g{grid-template-columns:1fr}}
+
 /* ── NASTAVENÍ ─── */
 .set-modal{width:900px;padding:0;overflow:hidden;display:flex;flex-direction:column}
 .set-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
@@ -586,6 +607,12 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <span class="nav-dot-sm" style="background:#16a34a"></span>
         Uzavřené
         <span class="nav-count" id="count-closed">0</span>
+      </button>
+      <div class="nav-divider"></div>
+      <button class="nav-item" onclick="openZasilky()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        Zásilky PPL
+        <span class="nav-count" id="count-zas">0</span>
       </button>
     </nav>
     <div class="sync-status-box" id="sync-status-box">
@@ -874,6 +901,26 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
     <div class="modal-footer" style="margin-top:14px">
       <button class="btn" onclick="closePplModal()">Zavřít</button>
     </div>
+  </div>
+</div>
+
+<!-- ZÁSILKY PPL -->
+<div class="modal-overlay" id="zas-modal">
+  <div class="modal zas-modal">
+    <div class="set-head">
+      <div class="modal-title" style="margin:0">Zásilky <span class="ppl-blue">PPL</span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-sm" onclick="zasObnovit()">↻ Obnovit stav od PPL</button>
+        <button class="close-btn" onclick="closeZasilky()" aria-label="Zavřít"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+    </div>
+    <div class="zas-tools">
+      <div class="ppl-choice" id="zas-filtry"></div>
+      <input class="form-input" style="max-width:260px;margin-left:auto" placeholder="Hledat číslo, objednávku, zákazníka…" oninput="zasQ=this.value;renderZasilky()">
+    </div>
+    <div class="zas-info" id="zas-info"></div>
+    <div class="zas-head"><div class="zas-c1">Vytvořeno</div><div class="zas-c2">Číslo zásilky</div><div class="zas-c3">Objednávka · doručení</div><div class="zas-c4">Dobírka</div><div class="zas-c5">Stav u PPL</div></div>
+    <div class="zas-list" id="zas-rows"></div>
   </div>
 </div>
 
@@ -1471,6 +1518,7 @@ function renderOrders() {
   document.getElementById('count-new').textContent = newAll.length;
   document.getElementById('count-open').textContent = openAll.length;
   document.getElementById('count-closed').textContent = closedAll.length;
+  const zc = document.getElementById('count-zas'); if (zc) zc.textContent = zasRadky().filter(r => !r.z.cancelledAt).length;
 
   let sections = [];
   if (currentFilter === 'active') {
@@ -3425,6 +3473,123 @@ async function pplCancelCurrent() {
     toast('Zásilka stornována', 'success');
     renderPanelOverview(); renderOrders();
   } catch (e) { toast('Storno se nepovedlo: ' + e.message, 'error'); }
+}
+
+// ─── ZÁSILKY PPL (přehled všech zásilek + stav přímo od PPL) ───────────────
+let zasStav = {};          // číslo zásilky → odpověď PPL (sledování)
+let zasFiltr = 'vse';
+let zasQ = '';
+let zasOtevrena = null;
+let zasNacteno = null;
+
+function zasRadky() {
+  const rows = [];
+  orders.forEach(o => {
+    const p = o.ppl;
+    if (!p) return;
+    const zaznamy = [...(p.shipments?.length ? [{ ...p, history: undefined }] : []), ...(p.history || [])];
+    zaznamy.forEach(z => {
+      if (!z.shipments?.length) return;
+      rows.push({ o, z, cislo: z.shipments[0] });
+    });
+  });
+  return rows.sort((a, b) => new Date(b.z.createdAt || 0) - new Date(a.z.createdAt || 0));
+}
+// stav zásilky do skupiny pro filtr a barvu
+function zasKategorie(r) {
+  if (r.z.cancelledAt) return 'storno';
+  const s = zasStav[r.cislo];
+  if (!s) return 'nezname';
+  const st = String(s.shipmentState || '');
+  const ev = s.trackAndTrace?.lastEventCode || '';
+  if (/Canceled/i.test(st)) return 'storno';
+  if (/BackToSender|Rejected|NotDelivered/i.test(st + ' ' + ev)) return 'problem';
+  if (/DeliveredToPickupPoint/i.test(st + ' ' + ev)) return 'vydejni';
+  if (/(^|[ ,])Delivered([ ,]|$)/.test(st)) return 'doruceno';
+  if (/DataShipment/i.test(st) && !/PickedUpFromSender/i.test(st)) return 'ceka';
+  return 'cesta';
+}
+const ZAS_KAT = {
+  ceka: ['Čeká na převzetí', '#fef3c7', '#92400e'],
+  cesta: ['Na cestě', '#e8eefb', '#003087'],
+  vydejni: ['Na výdejním místě', '#e0f2fe', '#075985'],
+  doruceno: ['Doručeno', '#dcfce7', '#166534'],
+  problem: ['Problém', '#fee2e2', '#991b1b'],
+  storno: ['Stornováno', '#f5f5f5', '#737373'],
+  nezname: ['Stav nenačten', '#f5f5f5', '#737373'],
+};
+
+async function openZasilky() {
+  document.getElementById('zas-modal').classList.add('active');
+  renderZasilky();
+  if (!zasNacteno || Date.now() - zasNacteno > 5 * 60 * 1000) await zasObnovit();
+}
+function closeZasilky() { document.getElementById('zas-modal').classList.remove('active'); }
+
+async function zasObnovit() {
+  const info = document.getElementById('zas-info');
+  const nums = [...new Set(zasRadky().filter(r => !r.z.cancelledAt).map(r => r.z.shipments).flat())].slice(0, 200);
+  if (!nums.length) { info.textContent = 'Zatím žádné zásilky.'; return; }
+  if (!pplPin()) { info.innerHTML = 'Pro načtení stavu od PPL zadej PIN v <button class="ppl-link" onclick="openSettings(\'ppl\')">Nastavení → PPL štítky</button>.'; return; }
+  info.textContent = `Načítám stav ${nums.length} ${nums.length === 1 ? 'zásilky' : 'zásilek'} od PPL…`;
+  try {
+    const d = await pplCall('track', { numbers: nums });
+    (d.items || []).forEach(s => { zasStav[s.shipmentNumber] = s; });
+    zasNacteno = Date.now();
+    info.textContent = 'Stav od PPL načten ' + new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + '.';
+  } catch (e) {
+    info.innerHTML = '<span style="color:#b91c1c">Stav od PPL se nepodařilo načíst: ' + escHtml(e.message) + '</span>';
+  }
+  renderZasilky();
+}
+
+function zasDoruceni(r) {
+  const req = r.z.request || {};
+  const ps = req.specificDelivery?.parcelShopCode;
+  const rc = zasStav[r.cislo]?.recipient || req.recipient || {};
+  const kam = [rc.name2 || (ps ? rc.name : ''), rc.city].filter(Boolean).join(', ') || rc.city || '';
+  return { typ: ps ? 'Výdejní místo' : (/^BUS/.test(r.z.productType || '') ? 'Kurýr – firma' : 'Kurýr'), kam, ps };
+}
+
+function renderZasilky() {
+  const vse = zasRadky();
+  const q = zasQ.trim().toLowerCase();
+  const pocty = {};
+  vse.forEach(r => { const k = zasKategorie(r); pocty[k] = (pocty[k] || 0) + 1; });
+  const filtry = [['vse', 'Vše', vse.length], ...['ceka', 'cesta', 'vydejni', 'doruceno', 'problem', 'storno'].filter(k => pocty[k]).map(k => [k, ZAS_KAT[k][0], pocty[k]])];
+  document.getElementById('zas-filtry').innerHTML = filtry.map(([k, l, n]) =>
+    `<label class="${zasFiltr === k ? 'on' : ''}"><input type="radio" name="zas-f" ${zasFiltr === k ? 'checked' : ''} onchange="zasFiltr='${k}';renderZasilky()">${l} <span class="zas-n">${n}</span></label>`).join('');
+  const rows = vse.filter(r => (zasFiltr === 'vse' || zasKategorie(r) === zasFiltr) && (!q ||
+    [r.cislo, ...(r.z.shipments || []), r.o.order_number, r.o.customer_name, r.o.customer_email, zasDoruceni(r).kam].join(' ').toLowerCase().includes(q)));
+  const tb = document.getElementById('zas-rows');
+  if (!rows.length) { tb.innerHTML = `<div class="empty-notes" style="padding:30px">${vse.length ? 'Nic neodpovídá filtru.' : 'Zatím žádná PPL zásilka – vytvoř ji přes „PPL štítky“ nebo „Štítek PPL“ v detailu objednávky.'}</div>`; return; }
+  tb.innerHTML = rows.map(r => {
+    const k = zasKategorie(r), [kl, bg, fg] = ZAS_KAT[k];
+    const s = zasStav[r.cislo], tt = s?.trackAndTrace || {};
+    const dor = zasDoruceni(r);
+    const cod = r.z.request?.cashOnDelivery?.codPrice;
+    const open = zasOtevrena === r.cislo;
+    const udalosti = (tt.events || []).slice().sort((a, b) => new Date(b.eventDate || b.date || 0) - new Date(a.eventDate || a.date || 0));
+    return `<div class="zas-row${open ? ' open' : ''}">
+      <div class="zas-main" onclick="zasOtevrena=${open ? 'null' : `'${r.cislo}'`};renderZasilky()">
+        <div class="zas-c1"><div class="zas-b">${formatTime(r.z.createdAt)}</div><div class="zas-s">${escHtml(r.z.by || '')}${r.z.env === 'test' ? ' · test' : ''}</div></div>
+        <div class="zas-c2"><a class="ppl-box-num" style="font-size:13px" href="${pplTrackUrl(r.cislo)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${escHtml(r.cislo)}</a>
+          ${r.z.shipments.length > 1 ? `<div class="zas-s">+ ${r.z.shipments.length - 1} ${r.z.shipments.length === 2 ? 'další balík' : 'další balíky'}</div>` : ''}</div>
+        <div class="zas-c3"><div class="zas-b"><button class="ppl-link" onclick="event.stopPropagation();closeZasilky();openPanel('${r.o.id}')">#${escHtml(r.o.order_number)}</button> ${escHtml(r.o.customer_name || '')}</div><div class="zas-s">${escHtml(dor.typ)}${dor.kam ? ' · ' + escHtml(dor.kam) : ''}</div></div>
+        <div class="zas-c4">${cod ? `<b>${Number(cod).toLocaleString('cs-CZ')} Kč</b><div class="zas-s">dobírka</div>` : '<span class="zas-s">bez dobírky</span>'}</div>
+        <div class="zas-c5"><span class="zas-st" style="background:${bg};color:${fg}">${kl}</span>
+          <div class="zas-s">${r.z.cancelledAt ? 'stornoval(a) ' + escHtml(r.z.cancelledBy || '') + ' ' + formatTime(r.z.cancelledAt) : tt.lastEventName ? escHtml(tt.lastEventName) + ' · ' + formatTime(tt.lastEventDate) : ''}</div></div>
+      </div>
+      ${open ? `<div class="zas-det">
+        <div class="zas-det-g">
+          <div><div class="delivery-label">Příjemce</div>${escHtml([dor.ps ? (s?.recipient?.name2 || '') : '', r.z.request?.recipient?.name, r.z.request?.recipient?.street, [r.z.request?.recipient?.zipCode, r.z.request?.recipient?.city].filter(Boolean).join(' ')].filter(Boolean).join(', '))}<div class="zas-s">${escHtml([r.z.request?.recipient?.phone, r.z.request?.recipient?.email].filter(Boolean).join(' · '))}</div></div>
+          <div><div class="delivery-label">Zásilka</div>${escHtml(r.z.productType || '')}${dor.ps ? ' · výdejní místo ' + escHtml(dor.ps) : ''}${r.z.shipments.length > 1 ? '<br>Balíky: ' + r.z.shipments.map(escHtml).join(', ') : ''}${cod ? `<br>Dobírka ${Number(cod).toLocaleString('cs-CZ')} Kč, VS ${escHtml(r.z.request.cashOnDelivery.codVarSym || '')}` : ''}</div>
+        </div>
+        <div class="delivery-label" style="margin-top:10px">Historie od PPL</div>
+        ${udalosti.length ? `<div class="zas-ev">${udalosti.map(e => `<div><span>${formatTime(e.eventDate || e.date)}</span>${escHtml(e.name || e.eventName || e.code || '')}${e.city ? ' · ' + escHtml(e.city) : ''}</div>`).join('')}</div>` : '<div class="zas-s">Zatím žádné události.</div>'}
+      </div>` : ''}
+    </div>`;
+  }).join('');
 }
 
 // ─── NASTAVENÍ ──────────────────────────────────────────────────────────────

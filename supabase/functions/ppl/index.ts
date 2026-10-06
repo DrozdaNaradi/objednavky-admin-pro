@@ -14,6 +14,7 @@
 //   label    { batchId, position } → PDF A4 (4 štítky na stranu) jako base64
 //   cancel   { shipmentNumber }  → storno balíku (jen dokud nebyl předán PPL)
 //   codelist { name }            → číselník (product, service, country…)
+//   track    { numbers: [] }     → stav zásilek u PPL (sledování), max 200 čísel
 
 const ENV = (Deno.env.get("PPL_ENV") || "test").toLowerCase() === "prod" ? "prod" : "test";
 const BASE = ENV === "prod"
@@ -111,6 +112,19 @@ Deno.serve(async (req) => {
       const r = await ppl(`/shipment/${n}/cancel`, { method: "POST" });
       if (!r.ok) return json({ error: `Storno se nepovedlo (HTTP ${r.status})`, detail: await readBody(r) }, 400);
       return json({ ok: true });
+    }
+
+    if (action === "track") {
+      const nums = (Array.isArray(p.numbers) ? p.numbers : []).map(String).filter((n) => /^\d{5,20}$/.test(n)).slice(0, 200);
+      const items: unknown[] = [];
+      for (let i = 0; i < nums.length; i += 50) {
+        const q = nums.slice(i, i + 50).map((n) => "ShipmentNumbers=" + n).join("&");
+        const r = await ppl(`/shipment?${q}&limit=100&offset=0`);
+        const d = await readBody(r);
+        if (!r.ok) return json({ error: `Stav zásilek nejde načíst (HTTP ${r.status})`, detail: d }, 400);
+        if (Array.isArray(d)) items.push(...d);
+      }
+      return json({ items, env: ENV });
     }
 
     if (action === "codelist") {
