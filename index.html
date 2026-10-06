@@ -3533,7 +3533,8 @@ async function loadAdresar(force) {
 }
 function pplDraftPrazdny(k) {
   const d = new Date();
-  const ref = 'M' + d.toISOString().slice(2, 19).replace(/\D/g, '');   // jedinečná reference, např. M261006143512
+  // jedinečná reference, např. M2610061435121 (poslední číslice = pořadí v okně, ať se dvě zásilky ve stejné sekundě nepotkají)
+  const ref = 'M' + d.toISOString().slice(2, 19).replace(/\D/g, '') + (pplDrafts.filter(x => x.mimo).length % 10);
   return {
     orderId: null, mimo: true, on: true, open: true, done: null, adresarId: k?.id || null,
     f: {
@@ -3555,13 +3556,19 @@ async function openPplMimo() {
     <div class="form-label" style="margin-bottom:4px">Komu posíláš? Najdi v adresáři PPL</div>
     <input class="form-input" id="ppl-adr-q" placeholder="Firma, město, kontaktní osoba nebo telefon…" oninput="pplAdrHledat(this.value)" autocomplete="off">
     <div id="ppl-adr-hits"></div>
-    <div class="ppl-hint" style="margin-top:4px">Nebo vyplň příjemce ručně níže. Adresář: <span id="ppl-adr-n">načítám…</span></div></div>`;
+    <div class="ppl-hint" style="margin-top:4px">Každý vybraný kontakt přidá <b>další zásilku</b> do seznamu – všechny se pak vytisknou najednou.
+      <button class="ppl-link" onclick="pplPridatPrazdnou()">+ Přidat zásilku s ručně vyplněným příjemcem</button><br>Adresář: <span id="ppl-adr-n">načítám…</span></div></div>`;
   renderPpl();
   document.getElementById('ppl-modal').classList.add('active');
   setTimeout(() => document.getElementById('ppl-adr-q')?.focus(), 100);
   pplCheckEnv();
   const a = await loadAdresar();
   document.getElementById('ppl-adr-n').textContent = window._pplAdrErr ? 'nejde načíst (' + window._pplAdrErr + ')' : a.length + ' kontaktů (nový export z PPL nahraješ v Nastavení → PPL štítky)';
+}
+function pplPridatPrazdnou() {
+  pplDrafts.forEach(d => { d.open = false; });
+  pplDrafts.push(pplDraftPrazdny());
+  renderPpl();
 }
 function pplAdrHledat(q) {
   const el = document.getElementById('ppl-adr-hits');
@@ -3571,12 +3578,14 @@ function pplAdrHledat(q) {
   el.innerHTML = hits.length ? `<div class="ppl-adr-hits">${hits.map(k => `<button onclick="pplVybratKontakt('${k.id}')"><b>${escHtml(k.nazev)}</b><span>${escHtml([k.ulice, [k.psc, k.mesto].filter(Boolean).join(' ')].filter(Boolean).join(', '))}${k.kontakt ? ' · ' + escHtml(k.kontakt) : ''}${k.telefon ? ' · ' + escHtml(k.telefon) : ''}</span></button>`).join('')}</div>`
     : '<div class="ppl-hint" style="padding:6px 2px">Nic nenalezeno – vyplň příjemce ručně.</div>';
 }
+// každý vybraný kontakt = další zásilka v seznamu (prázdný řádek se vyplní, jinak přibude nový) → vytisknou se všechny najednou
 function pplVybratKontakt(id) {
   const k = (pplAdresar || []).find(x => x.id === id);
   if (!k) return;
-  const i = pplDrafts.findIndex(d => !d.done);
+  const i = pplDrafts.findIndex(d => d.mimo && !d.done && !d.f.name.trim() && !d.f.street.trim());
   const nove = pplDraftPrazdny(k);
-  if (i >= 0) { nove.f.base = pplDrafts[i].f.base; pplDrafts[i] = nove; } else pplDrafts.push(nove);
+  pplDrafts.forEach(d => { d.open = false; });
+  if (i >= 0) { nove.f.ref = pplDrafts[i].f.ref; pplDrafts[i] = nove; } else pplDrafts.push(nove);
   document.getElementById('ppl-adr-q').value = '';
   document.getElementById('ppl-adr-hits').innerHTML = '';
   renderPpl();
