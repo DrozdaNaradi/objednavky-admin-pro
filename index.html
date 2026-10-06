@@ -186,6 +186,12 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 /* ── STATUS BUTTONS ─── */
 .status-row{display:flex;gap:6px;margin-top:10px}
+.quick-mail{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
+.quick-mail-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:2px}
+.qm-btn{height:30px;padding:0 11px;border-radius:6px;border:1px solid var(--border);background:var(--card);font-family:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;white-space:nowrap}
+.qm-btn:hover{background:var(--card-alt)}
+.qm-btn.qm-ship{background:var(--ink);border-color:var(--ink);color:#fff}
+.qm-btn.qm-ship:hover{background:#262626}
 .status-btn{padding:9px 28px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);transition:all .1s;font-family:inherit;background:var(--card);color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:6px}
 .status-btn .dot{width:6px;height:6px;border-radius:50%;background:var(--border)}
 .status-btn.s-new:not(.active){color:var(--accent);border-color:var(--accent)}
@@ -385,6 +391,9 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
   .panel{width:100vw}
   .modal-grid{grid-template-columns:1fr}
 }
+
+.supplier-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--warn-border);background:var(--warn-bg);color:var(--warn-ink);border-radius:8px;padding:10px 14px;margin-top:14px;font-size:12.5px;line-height:1.5}
+.supplier-bar>div{flex:1;min-width:220px}
 
 /* ── NASTAVENÍ ─── */
 .set-modal{width:900px;padding:0;overflow:hidden;display:flex;flex-direction:column}
@@ -686,10 +695,13 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <button class="status-btn s-new" id="s-new" onclick="setStatus('new')"><span class="dot"></span>NOVÁ</button>
         <button class="status-btn s-open" id="s-open" onclick="setStatus('open')"><span class="dot"></span>OTEVŘ.</button>
         <button class="status-btn s-closed" id="s-closed" onclick="setStatus('closed')"><span class="dot"></span>ODESLÁNO</button>
-        <button class="status-btn s-ship-email" onclick="openShipEmail()" title="Otevře předvyplněný email o odeslání (PPL sledování, faktura). Po odeslání se objednávka označí jako Odesláno.">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          ODESLÁNO + EMAIL
-        </button>
+      </div>
+      <div class="quick-mail">
+        <span class="quick-mail-label">Email zákazníkovi:</span>
+        <button class="qm-btn qm-ship" onclick="openShipEmail('ship_inv')" title="Odesláno + číslo zásilky a odkaz na sledování PPL + přiložená faktura. Po odeslání se objednávka označí jako Odesláno.">📦 Odesláno + PPL + faktura</button>
+        <button class="qm-btn qm-ship" onclick="openShipEmail('ship')" title="Odesláno + číslo zásilky a odkaz na sledování PPL. Po odeslání se objednávka označí jako Odesláno.">📦 Odesláno + PPL</button>
+        <button class="qm-btn" onclick="openShipEmail('supplier')" title="Část zboží není skladem a je objednaná u dodavatele. Objednávka zůstane otevřená.">🕓 Objednáno u dodavatele</button>
+        <button class="qm-btn" onclick="openShipEmail('general')" title="Prázdný email zákazníkovi">✉ Obecný</button>
       </div>
     </div>
     <div class="panel-header-right">
@@ -1608,10 +1620,11 @@ async function openPanel(orderId) {
   document.getElementById('order-panel').classList.add('active');
   switchTab('overview');
   renderPanelOverview();
+  // email předvyplnit hned, ať ho rychlá tlačítka nahoře hned potom nepřepíšou
+  prefillEmailForm();
   await loadPanelNotes();
   await loadActivityLog();
   await renderQuickNotes();
-  prefillEmailForm();
 }
 
 function closePanel() {
@@ -1769,6 +1782,7 @@ function renderPanelOverview() {
     </div>
     ${pplOverviewBox(o)}
 
+    <div id="supplier-bar"></div>
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin:16px 0 10px;color:var(--muted)">Souhrn objednávky</div>
     <div style="border:1px solid var(--border-soft);border-radius:var(--radius-lg);overflow:hidden">
       <table class="items-table">
@@ -1803,6 +1817,7 @@ function renderPanelOverview() {
       <span class="total-val">${totalVatStr}</span>
     </div>
   `;
+  refreshSupplierBar();
 
   loadItemNotes(o.id, items.length);
 }
@@ -1864,6 +1879,7 @@ async function toggleSupplierOrder(idx) {
   }
   btn.disabled = false;
   await loadItemNotes(currentOrderId, document.querySelectorAll('[id^="item-row-"]').length);
+  refreshSupplierBar();
 }
 
 async function saveItemNote(idx) {
@@ -2028,7 +2044,9 @@ async function loadActivityLog() {
   const { data } = await db.from('order_activity').select('*').eq('order_id', currentOrderId).order('created_at',{ascending:false});
   const list = document.getElementById('activity-list');
   const acts = data || [];
+  window._lastActs = acts;
   renderEmailHistory(acts);
+  refreshSupplierBar();
   if (!acts.length) { list.innerHTML = '<div class="empty-notes">Žádné aktivity.</div>'; return; }
   list.innerHTML = acts.map(a => activityItem(a)).join('');
 }
@@ -2156,7 +2174,7 @@ function emailDetailHtml(a) {
     <div class="mail-sent-meta">
       <div><b>Komu:</b> ${escHtml(d.to||'—')}</div>
       <div><b>Předmět:</b> ${escHtml(d.subject||'—')}</div>
-      <div><b>Čas:</b> ${formatTime(d.sentAt || a.created_at)}${d.kind === 'shipping' ? ' · email „Odesláno"' : d.kind === 'ppl_tracking' ? ' · email se sledováním PPL' : ''}</div>
+      <div><b>Čas:</b> ${formatTime(d.sentAt || a.created_at)}${d.kind === 'shipping' ? ' · email „Odesláno"' : d.kind === 'supplier' ? ' · email „Objednáno u dodavatele"' : d.kind === 'ppl_tracking' ? ' · email se sledováním PPL' : ''}</div>
       ${d.attachment ? `<div><b>Příloha:</b> 📎 ${escHtml(d.attachment.name)} (${Math.round((d.attachment.size||0)/1024)} kB)</div>` : ''}
       ${!ok ? `<div style="color:#991b1b"><b>Chyba:</b> ${escHtml(d.error||'neznámá')}</div>` : ''}
     </div>
@@ -2227,8 +2245,56 @@ let emailAttachment = null; // { name, size, dataUrl }
 const EMAIL_TPL = {
   ship_inv: 'Odesláno + PPL + faktura',
   ship: 'Odesláno + PPL',
+  supplier: 'Zboží objednáno u dodavatele',
   general: 'Obecný email',
 };
+
+// ─── ZBOŽÍ OBJEDNANÉ U DODAVATELE ────────────────────────────────────────────
+// Chybějící = položka není skladem (z e-shopu) nebo je ručně označená „Objednáno u dodavatele".
+async function supplierSplit(o) {
+  const items = (Array.isArray(o.items) ? o.items : []).filter(it => !it.type);
+  const { data } = await db.from('order_notes').select('item_index').eq('order_id', o.id).eq('content', '__SUPPLIER_ORDER__');
+  const marked = new Set((data || []).map(n => n.item_index));
+  const missing = [], ready = [];
+  items.forEach((it, i) => ((it.availability === false || marked.has(i)) ? missing : ready).push(it));
+  return { missing, ready };
+}
+function supplierEmail(o, split) {
+  const line = it => `• ${it.name || 'Položka'}${(it.qty || 1) > 1 ? ` (${it.qty} ks)` : ''}`;
+  const lines = [
+    'Dobrý den,',
+    '',
+    `děkujeme za Vaši objednávku č. ${o.order_number}.`,
+    '',
+    split.missing.length === 1
+      ? 'Následující zboží jsme v tuto chvíli neměli skladem, a proto jsme ho pro Vás objednali u dodavatele:'
+      : 'Následující zboží jsme v tuto chvíli neměli skladem, a proto jsme ho pro Vás objednali u dodavatele:',
+    ...split.missing.map(line),
+  ];
+  if (split.ready.length) lines.push('', 'Ostatní zboží z objednávky už máme připravené:', ...split.ready.map(line));
+  lines.push(
+    '',
+    'Jakmile objednané zboží naskladníme, dáme Vám hned vědět.',
+    '',
+    'Kdybyste mezitím chtěli v objednávce cokoliv změnit nebo měli dotaz, stačí odpovědět na tento e-mail.',
+    '',
+    'Děkujeme za trpělivost a pochopení.',
+  );
+  return { subject: `Objednávka č. ${o.order_number} – část zboží objednáváme u dodavatele`, body: lines.join('\n') + emailSignatureText() };
+}
+async function refreshSupplierBar() {
+  const el = document.getElementById('supplier-bar');
+  const o = currentOrder;
+  if (!el || !o) return;
+  const split = await supplierSplit(o);
+  if (o !== currentOrder) return;
+  const n = split.missing.length;
+  if (!n) { el.innerHTML = ''; return; }
+  const sent = (window._lastActs || []).some(a => a.action === 'email_sent' && a.details?.kind === 'supplier');
+  el.innerHTML = `<div class="supplier-bar"><div><b>${n} ${n === 1 ? 'položka není' : n < 5 ? 'položky nejsou' : 'položek není'} skladem / ${n === 1 ? 'objednána' : 'objednány'} u dodavatele:</b> ${escHtml(split.missing.map(it => it.name).join(', '))}
+    ${sent ? '<div class="ppl-hint">✓ Zákazník už o tom dostal email (viz Historie).</div>' : ''}</div>
+    <button class="btn btn-sm" onclick="openShipEmail('supplier')">Dát vědět zákazníkovi</button></div>`;
+}
 function applyEmailTemplate(kind) {
   const o = currentOrder;
   if (!o) return;
@@ -2243,7 +2309,20 @@ function applyEmailTemplate(kind) {
   document.getElementById('email-attach').style.display = kind === 'ship_inv' ? '' : 'none';
   renderEmailAttachment();
   document.getElementById('email-to').value = o.customer_email || '';
-  if (isShip) {
+  if (kind === 'supplier') {
+    document.getElementById('email-template-hint').innerHTML = 'Načítám položky, které nejsou skladem…';
+    document.getElementById('email-subject').value = '';
+    document.getElementById('email-body').value = '';
+    supplierSplit(o).then(split => {
+      if (o !== currentOrder || emailTemplate !== 'supplier') return;
+      document.getElementById('email-template-hint').innerHTML = split.missing.length
+        ? `Vypsané jsou položky, které nejsou skladem nebo jsou označené „Objednáno u dodavatele" (${split.missing.length}). Text můžeš upravit. Objednávka zůstane rozpracovaná (Otevřená).`
+        : '<span style="color:#991b1b">U této objednávky není žádná položka mimo sklad ani označená „Objednáno u dodavatele". Označ ji v Přehledu u položky.</span>';
+      const m = supplierEmail(o, split);
+      document.getElementById('email-subject').value = m.subject;
+      document.getElementById('email-body').value = m.body;
+    });
+  } else if (isShip) {
     const m = shippingEmail(o, kind === 'ship_inv');
     document.getElementById('email-subject').value = m.subject;
     document.getElementById('email-body').value = m.body;
@@ -2252,7 +2331,7 @@ function applyEmailTemplate(kind) {
     document.getElementById('email-body').value = `Dobrý den,\n\nVaši objednávku č. ${o.order_number} zpracováváme.\n\nKdybyste měli jakýkoli dotaz, stačí odpovědět na tento e-mail.${emailSignatureText()}`;
   }
   const btn = document.getElementById('send-email-btn');
-  btn.lastChild.textContent = isShip ? ' Odeslat a označit jako Odesláno' : ' Odeslat zákazníkovi';
+  btn.lastChild.textContent = isShip ? ' Odeslat a označit jako Odesláno' : kind === 'supplier' ? ' Odeslat zákazníkovi (objednávka zůstane otevřená)' : ' Odeslat zákazníkovi';
 }
 // tlačítko ODESLÁNO + EMAIL a „Poslat email se sledováním" — otevře předvyplněný email, nic neodešle
 function openShipEmail(kind) {
@@ -2310,11 +2389,13 @@ async function sendEmail() {
   btn.disabled = true; btn.lastChild.textContent = ' Odesílám…';
   try {
     const att = emailTemplate === 'ship_inv' ? emailAttachment : null;
-    const res = await sendLoggedEmail({ to: allTo, subject, body, kind: isShip ? 'shipping' : 'manual', attachment: att });
+    const res = await sendLoggedEmail({ to: allTo, subject, body, kind: isShip ? 'shipping' : emailTemplate === 'supplier' ? 'supplier' : 'manual', attachment: att });
     if (isShip && currentOrder?.status !== 'closed') await setStatus('closed');
+    if (emailTemplate === 'supplier' && currentOrder?.status === 'new') await setStatus('open');
     if (att) { emailAttachment = null; renderEmailAttachment(); }
     await loadActivityLog();
-    toast(isShip ? 'Email odeslán (potvrzeno) a objednávka označena jako Odesláno' : `Email odeslán — potvrzeno (${res?.status||''} ${res?.text||''})`, 'success');
+    if (emailTemplate === 'supplier') refreshSupplierBar();
+    toast(isShip ? 'Email odeslán (potvrzeno) a objednávka označena jako Odesláno' : emailTemplate === 'supplier' ? 'Email odeslán (potvrzeno) — objednávka zůstává otevřená' : `Email odeslán — potvrzeno (${res?.status||''} ${res?.text||''})`, 'success');
   } catch (e) {
     const msg = e?.text || e?.message || '';
     toast('Email se NEODESLAL: ' + msg + (e?.status === 413 || /size|large/i.test(msg) ? ' — příloha je pro EmailJS moc velká' : ''), 'error');
