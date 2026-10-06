@@ -686,7 +686,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <button class="status-btn s-new" id="s-new" onclick="setStatus('new')"><span class="dot"></span>NOVÁ</button>
         <button class="status-btn s-open" id="s-open" onclick="setStatus('open')"><span class="dot"></span>OTEVŘ.</button>
         <button class="status-btn s-closed" id="s-closed" onclick="setStatus('closed')"><span class="dot"></span>ODESLÁNO</button>
-        <button class="status-btn s-ship-email" onclick="sendShippingEmail()" title="Nastav stav Odesláno a pošli zákazníkovi email">
+        <button class="status-btn s-ship-email" onclick="openShipEmail()" title="Otevře předvyplněný email o odeslání (PPL sledování, faktura). Po odeslání se objednávka označí jako Odesláno.">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           ODESLÁNO + EMAIL
         </button>
@@ -787,6 +787,14 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <div class="form-group">
           <div class="form-label">Zpráva</div>
           <textarea class="form-textarea" id="email-body" placeholder="Dobrý den,&#10;&#10;Vaši objednávku zpracováváme…"></textarea>
+        </div>
+        <div class="form-group" id="email-attach" style="display:none">
+          <div class="form-label">Faktura v příloze</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <button class="btn" onclick="document.getElementById('email-attach-input').click()">📎 Přiložit fakturu…</button>
+            <div id="email-attach-file"></div>
+          </div>
+          <input type="file" id="email-attach-input" accept=".pdf,application/pdf" style="display:none" onchange="pickEmailAttachment(this)">
         </div>
         <details class="mail-sent" style="margin-top:0">
           <summary>Podpis, který se připojí pod email</summary>
@@ -905,7 +913,10 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
           <div class="ppl-grid">
             <div class="form-group ppl-s3"><div class="form-label">Service ID</div><input class="form-input" id="set-ejs-service" placeholder="service_xxxxxxx"></div>
             <div class="form-group ppl-s3"><div class="form-label">Public Key</div><input class="form-input" id="set-ejs-key"></div>
+            <div class="form-group ppl-s3"><div class="form-label">Tarif EmailJS (limit přílohy)</div>
+              <select class="form-input" id="set-ejs-plan"><option value="">Nevím</option><option value="free">Free – 50 kB</option><option value="personal">Personal – 500 kB</option><option value="professional">Professional – 2 MB</option><option value="business">Business – 30 MB</option></select></div>
           </div>
+          <div class="ppl-info" style="margin-top:12px">Pro přikládání faktur: v šabloně EmailJS → <b>Attachments</b> → <b>Add Attachment</b> → typ <b>Variable Attachment</b>, Parameter name <code>faktura</code>, Filename <code>{{faktura_nazev}}</code>, Content type PDF.</div>
           <div class="ppl-info" style="margin-top:12px">Šablona: <b>template_2v1bgzs</b>. Aby se zobrazil HTML podpis s logy, musí být v obsahu šablony <code>{{{message_html}}}</code> (tři složené závorky). <code>{{message}}</code> je stejný email jako čistý text.</div>
           <div class="set-actions"><button class="btn btn-red" onclick="saveEmailConfig()">Uložit</button></div>
         </section>
@@ -2124,6 +2135,7 @@ function prefillEmailForm() {
   if (!currentOrder) return;
   document.getElementById('email-to').value = currentOrder.customer_email || '';
   document.getElementById('email-extra').value = '';
+  emailAttachment = null;
   applyEmailTemplate('general');
   renderEmailSignaturePreview();
   const noConfig = !window._ejsService;
@@ -2144,7 +2156,8 @@ function emailDetailHtml(a) {
     <div class="mail-sent-meta">
       <div><b>Komu:</b> ${escHtml(d.to||'—')}</div>
       <div><b>Předmět:</b> ${escHtml(d.subject||'—')}</div>
-      <div><b>Čas:</b> ${formatTime(d.sentAt || a.created_at)}${d.kind === 'shipping' ? ' · tlačítko „Odesláno + email"' : d.kind === 'ppl_tracking' ? ' · email se sledováním PPL' : ''}</div>
+      <div><b>Čas:</b> ${formatTime(d.sentAt || a.created_at)}${d.kind === 'shipping' ? ' · email „Odesláno"' : d.kind === 'ppl_tracking' ? ' · email se sledováním PPL' : ''}</div>
+      ${d.attachment ? `<div><b>Příloha:</b> 📎 ${escHtml(d.attachment.name)} (${Math.round((d.attachment.size||0)/1024)} kB)</div>` : ''}
       ${!ok ? `<div style="color:#991b1b"><b>Chyba:</b> ${escHtml(d.error||'neznámá')}</div>` : ''}
     </div>
     ${d.body ? `<div class="mail-sent-body">${escHtml(d.body).replace(/<br>/g, '\n')}</div>` : '<div class="mail-sent-meta ppl-hint">Text se u starších emailů neukládal.</div>'}
@@ -2156,14 +2169,17 @@ function renderEmailHistory(acts) {
   const mails = acts.filter(a => a.action === 'email_sent' || a.action === 'email_failed');
   el.innerHTML = mails.length ? mails.map(a => activityItem(a)).join('') : '<div class="empty-notes">Zatím žádné emaily.</div>';
 }
-async function sendLoggedEmail({ to, subject, body, kind }) {
+async function sendLoggedEmail({ to, subject, body, kind, attachment }) {
   const sentAt = new Date().toISOString();
   try {
-    const res = await emailjs.send(window._ejsService, 'template_2v1bgzs', { to_email: to, subject, message: body, message_html: emailHtml(body), order_number: currentOrder?.order_number, customer_name: currentOrder?.customer_name });
-    await logActivity('email_sent', { to, subject, body, kind, sentAt, status: res?.status, response: res?.text || '' });
+    const params = { to_email: to, subject, message: body, message_html: emailHtml(body), order_number: currentOrder?.order_number, customer_name: currentOrder?.customer_name };
+    // příloha: v EmailJS šabloně Variable Attachment s parametrem „faktura", název souboru {{faktura_nazev}}
+    if (attachment) { params.faktura = attachment.dataUrl; params.faktura_nazev = attachment.name; }
+    const res = await emailjs.send(window._ejsService, 'template_2v1bgzs', params);
+    await logActivity('email_sent', { to, subject, body, kind, sentAt, status: res?.status, response: res?.text || '', attachment: attachment ? { name: attachment.name, size: attachment.size } : undefined });
     return res;
   } catch (e) {
-    await logActivity('email_failed', { to, subject, body, kind, sentAt, error: e?.text || e?.message || String(e), status: e?.status });
+    await logActivity('email_failed', { to, subject, body, kind, sentAt, error: e?.text || e?.message || String(e), status: e?.status, attachment: attachment ? { name: attachment.name, size: attachment.size } : undefined });
     await loadActivityLog();
     throw e;
   }
@@ -2171,75 +2187,108 @@ async function sendLoggedEmail({ to, subject, body, kind }) {
 
 // ─── EMAIL ŠABLONY (obecný / odesláno + sledování PPL) ───────────────────────
 function pplTrackUrl(n) { return 'https://www.ppl.cz/vyhledat-zasilku?shipmentId=' + encodeURIComponent(n); }
-function shippingEmail(o) {
+function shippingEmail(o, withInvoice) {
   const nums = o.ppl?.shipments || [];
-  const name = o.customer_name || '';
-  const subject = `Vaše objednávka č. ${o.order_number} byla odeslána`;
-  if (!nums.length) return { subject, body: `Dobrý den, ${name},\n\nVaše objednávka č. ${o.order_number} byla dnes odeslána.\n\nDěkujeme za Váš nákup a těšíme se na další spolupráci.${emailSignatureText()}` };
-  const req = o.ppl.request || {};
-  const isPs = /^SMA/.test(o.ppl.productType || '') || !!req.specificDelivery?.parcelShopCode;
-  const cod = req.cashOnDelivery?.codPrice;
-  const place = (o.shipping_method || '').replace(/\s*\[[^\]]*\]/g, '').replace(/^PPL\s+(ParcelShop|ParcelBox)\s*-\s*/i, '').trim();
-  const lines = [
-    `Dobrý den, ${name},`,
+  const subject = `Vaše objednávka č. ${o.order_number} je na cestě`;
+  const thanks = 'děkujeme za Váš nákup v Drozda Nářadí.';
+  const lines = ['Dobrý den,', ''];
+  if (nums.length) {
+    const req = o.ppl.request || {};
+    const isPs = /^SMA/.test(o.ppl.productType || '') || !!req.specificDelivery?.parcelShopCode;
+    const cod = req.cashOnDelivery?.codPrice;
+    const place = (o.shipping_method || '').replace(/\s*\[[^\]]*\]/g, '').replace(/^PPL\s+(ParcelShop|ParcelBox)\s*-\s*/i, '').trim();
+    lines.push(
+      `${thanks} Vaši objednávku č. ${o.order_number} jsme dnes předali přepravní společnosti PPL a je na cestě k Vám.`,
+      '',
+      nums.length === 1 ? `Číslo zásilky: ${nums[0]}` : `Čísla zásilek (${nums.length} balíky): ${nums.join(', ')}`,
+      `Kde je zásilka teď, uvidíte zde: ${pplTrackUrl(nums[0])}`,
+      '',
+      isPs
+        ? `Zásilka bude doručena na výdejní místo PPL${place ? ': ' + place : ''}. Jakmile bude připravena k vyzvednutí, PPL Vám pošle SMS nebo e-mail.`
+        : 'Kurýr PPL Vás bude v den doručení kontaktovat.',
+    );
+    if (cod) lines.push('', `Při převzetí prosím připravte k úhradě ${Number(cod).toLocaleString('cs-CZ')} Kč (dobírka).`);
+  } else {
+    lines.push(`${thanks} Vaši objednávku č. ${o.order_number} jsme dnes odeslali a je na cestě k Vám.`);
+  }
+  if (withInvoice) lines.push('', 'V příloze Vám zasíláme fakturu k objednávce.');
+  lines.push(
     '',
-    `Vaše objednávka č. ${o.order_number} byla dnes předána přepravní společnosti PPL.`,
+    'Kdybyste měli jakýkoli dotaz, stačí odpovědět na tento e-mail.',
     '',
-    nums.length === 1 ? `Číslo zásilky: ${nums[0]}` : `Čísla zásilek (${nums.length} balíky): ${nums.join(', ')}`,
-    `Sledování zásilky: ${pplTrackUrl(nums[0])}`,
-    '',
-    isPs
-      ? `Zásilka bude doručena na výdejní místo PPL${place ? ': ' + place : ''}. Jakmile bude připravena k vyzvednutí, PPL Vám pošle SMS nebo e-mail.`
-      : 'Kurýr PPL Vás bude v den doručení kontaktovat.',
-  ];
-  if (cod) lines.push('', `Při převzetí prosím připravte k úhradě ${Number(cod).toLocaleString('cs-CZ')} Kč (dobírka).`);
-  lines.push('', 'Děkujeme za Váš nákup a těšíme se na další spolupráci.');
+    'Ještě jednou děkujeme za důvěru a přejeme, ať Vám nářadí dobře slouží.',
+  );
   return { subject, body: lines.join('\n') + emailSignatureText() };
 }
+
+// Šablony: ship_inv = odesláno + PPL + faktura, ship = odesláno + PPL, general = obecný email
 let emailTemplate = 'general';
+let emailAttachment = null; // { name, size, dataUrl }
+const EMAIL_TPL = {
+  ship_inv: 'Odesláno + PPL + faktura',
+  ship: 'Odesláno + PPL',
+  general: 'Obecný email',
+};
 function applyEmailTemplate(kind) {
   const o = currentOrder;
   if (!o) return;
   emailTemplate = kind;
   const hasPpl = !!o.ppl?.shipments?.length;
-  document.getElementById('email-templates').innerHTML = `
-    <label class="${kind === 'general' ? 'on' : ''}"><input type="radio" name="email-tpl" ${kind === 'general' ? 'checked' : ''} onchange="applyEmailTemplate('general')">Obecný email</label>
-    <label class="${kind === 'ppl' ? 'on' : ''}"${hasPpl ? '' : ' style="opacity:.5;cursor:not-allowed"'}><input type="radio" name="email-tpl" ${kind === 'ppl' ? 'checked' : ''} ${hasPpl ? '' : 'disabled'} onchange="applyEmailTemplate('ppl')">Odesláno + sledování PPL</label>`;
-  document.getElementById('email-template-hint').textContent = hasPpl
-    ? (kind === 'ppl' ? 'Text je předvyplněný včetně odkazu na sledování — před odesláním ho můžeš upravit.' : '')
-    : 'Email se sledováním půjde poslat, až bude u objednávky vytištěný PPL štítek.';
+  const isShip = kind === 'ship' || kind === 'ship_inv';
+  document.getElementById('email-templates').innerHTML = Object.entries(EMAIL_TPL).map(([k, label]) =>
+    `<label class="${kind === k ? 'on' : ''}"><input type="radio" name="email-tpl" ${kind === k ? 'checked' : ''} onchange="applyEmailTemplate('${k}')">${label}</label>`).join('');
+  document.getElementById('email-template-hint').innerHTML = !isShip ? ''
+    : hasPpl ? `Předvyplněno včetně čísla zásilky a odkazu na sledování. Text můžeš upravit.${kind === 'ship_inv' ? ' <b>Nezapomeň přiložit fakturu.</b>' : ''} Po odeslání se objednávka označí jako <b>Odesláno</b>.`
+    : `Objednávka zatím nemá PPL štítek — email bude bez odkazu na sledování. Po odeslání se objednávka označí jako <b>Odesláno</b>.`;
+  document.getElementById('email-attach').style.display = kind === 'ship_inv' ? '' : 'none';
+  renderEmailAttachment();
   document.getElementById('email-to').value = o.customer_email || '';
-  if (kind === 'ppl' && hasPpl) {
-    const m = shippingEmail(o);
+  if (isShip) {
+    const m = shippingEmail(o, kind === 'ship_inv');
     document.getElementById('email-subject').value = m.subject;
     document.getElementById('email-body').value = m.body;
   } else {
     document.getElementById('email-subject').value = `Vaše objednávka č. ${o.order_number}`;
-    document.getElementById('email-body').value = `Dobrý den, ${o.customer_name||''},\n\nVaši objednávku č. ${o.order_number} zpracováváme.\n\nV případě dotazů nás neváhejte kontaktovat.${emailSignatureText()}`;
+    document.getElementById('email-body').value = `Dobrý den,\n\nVaši objednávku č. ${o.order_number} zpracováváme.\n\nKdybyste měli jakýkoli dotaz, stačí odpovědět na tento e-mail.${emailSignatureText()}`;
   }
+  const btn = document.getElementById('send-email-btn');
+  btn.lastChild.textContent = isShip ? ' Odeslat a označit jako Odesláno' : ' Odeslat zákazníkovi';
 }
-function openTrackingEmail() {
+// tlačítko ODESLÁNO + EMAIL a „Poslat email se sledováním" — otevře předvyplněný email, nic neodešle
+function openShipEmail(kind) {
   switchTab('email');
-  applyEmailTemplate('ppl');
+  emailAttachment = null;
+  applyEmailTemplate(kind || 'ship_inv');
   const b = document.getElementById('email-body');
-  b.style.height = '320px';
-  b.focus(); b.setSelectionRange(0, 0); b.scrollTop = 0;
+  b.style.height = '340px';
+  b.scrollTop = 0;
   document.getElementById('email-templates').scrollIntoView({ block: 'nearest' });
 }
 
-async function sendShippingEmail() {
-  if (!currentOrderId || !currentOrder) return;
-  if (!window._ejsService) { toast('EmailJS není nakonfigurováno', 'error'); return; }
-  const to = currentOrder.customer_email;
-  if (!to) { toast('Zákazník nemá email', 'error'); return; }
-  // s PPL štítkem obsahuje i číslo zásilky a odkaz na sledování
-  const { subject, body } = shippingEmail(currentOrder);
-  try {
-    await sendLoggedEmail({ to, subject, body, kind: 'shipping' });
-    await setStatus('closed');
-    await loadActivityLog();
-    toast('Email odeslán (potvrzeno) a objednávka označena jako Odesláno', 'success');
-  } catch(e) { toast('Chyba: ' + (e.text||e.message), 'error'); }
+function emailPlanLimit() {
+  const p = ({ ...DEFAULT_CONFIG, ...getConfig() }).emailjsPlan || '';
+  return { free: 50e3, personal: 500e3, professional: 2e6, business: 30e6 }[p] || 0;
+}
+function pickEmailAttachment(input) {
+  const f = input.files?.[0];
+  input.value = '';
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { emailAttachment = { name: f.name, size: f.size, dataUrl: rd.result }; renderEmailAttachment(); };
+  rd.onerror = () => toast('Soubor se nepodařilo načíst', 'error');
+  rd.readAsDataURL(f);
+}
+function removeEmailAttachment() { emailAttachment = null; renderEmailAttachment(); }
+function renderEmailAttachment() {
+  const el = document.getElementById('email-attach-file');
+  if (!el) return;
+  if (!emailAttachment) { el.innerHTML = '<span class="ppl-hint">Žádný soubor — klikni na „Přiložit fakturu" (PDF).</span>'; return; }
+  const kb = Math.round(emailAttachment.size / 1024);
+  const lim = emailPlanLimit();
+  const tooBig = lim && emailAttachment.dataUrl.length > lim;
+  el.innerHTML = `<span class="mail-ok" style="background:#e8eefb;color:#003087">📎 ${escHtml(emailAttachment.name)} · ${kb} kB</span>
+    <button class="ppl-link" onclick="removeEmailAttachment()">Odebrat</button>
+    ${tooBig ? `<div class="ppl-why" style="margin-top:4px">Soubor je na tarif EmailJS nejspíš moc velký (limit ${Math.round(lim / 1024)} kB včetně kódování). Zkus menší PDF.</div>` : ''}`;
 }
 
 async function sendEmail() {
@@ -2249,16 +2298,29 @@ async function sendEmail() {
   const subject = document.getElementById('email-subject').value.trim();
   const body = document.getElementById('email-body').value.trim();
   if (!to || !subject || !body) { toast('Vyplň všechna pole', 'error'); return; }
+  const isShip = emailTemplate === 'ship' || emailTemplate === 'ship_inv';
+  if (emailTemplate === 'ship_inv' && !emailAttachment) {
+    toast('Přilož fakturu, nebo zvol „Odesláno + PPL" bez faktury', 'error');
+    document.getElementById('email-attach').scrollIntoView({ block: 'center' });
+    return;
+  }
   const allTo = [to, ...extra.split(',').map(e=>e.trim()).filter(Boolean)].join(', ');
   const btn = document.getElementById('send-email-btn');
-  btn.disabled = true; btn.textContent = 'Odesílám…';
+  const label = btn.lastChild.textContent;
+  btn.disabled = true; btn.lastChild.textContent = ' Odesílám…';
   try {
-    const res = await sendLoggedEmail({ to: allTo, subject, body, kind: emailTemplate === 'ppl' ? 'ppl_tracking' : 'manual' });
+    const att = emailTemplate === 'ship_inv' ? emailAttachment : null;
+    const res = await sendLoggedEmail({ to: allTo, subject, body, kind: isShip ? 'shipping' : 'manual', attachment: att });
+    if (isShip && currentOrder?.status !== 'closed') await setStatus('closed');
+    if (att) { emailAttachment = null; renderEmailAttachment(); }
     await loadActivityLog();
-    toast(`Email odeslán — potvrzeno (${res?.status||''} ${res?.text||''})`, 'success');
-  } catch (e) { toast('Chyba při odesílání: ' + (e.text||e.message), 'error'); }
+    toast(isShip ? 'Email odeslán (potvrzeno) a objednávka označena jako Odesláno' : `Email odeslán — potvrzeno (${res?.status||''} ${res?.text||''})`, 'success');
+  } catch (e) {
+    const msg = e?.text || e?.message || '';
+    toast('Email se NEODESLAL: ' + msg + (e?.status === 413 || /size|large/i.test(msg) ? ' — příloha je pro EmailJS moc velká' : ''), 'error');
+  }
   btn.disabled = false;
-  btn.innerHTML = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Odeslat zákazníkovi`;
+  btn.lastChild.textContent = label;
 }
 
 // ─── PRINT ───────────────────────────────────────────────────────────────────
@@ -3183,7 +3245,7 @@ function pplOverviewBox(o) {
       <div class="ppl-hint">Vytvořeno ${formatTime(p.createdAt)}${p.by ? ' · ' + escHtml(p.by) : ''}</div>
     </div>
     <div style="margin-left:auto;display:flex;gap:6px">
-      <button class="btn btn-sm btn-ppl" onclick="openTrackingEmail()">Poslat email se sledováním</button>
+      <button class="btn btn-sm btn-ppl" onclick="openShipEmail()">Email zákazníkovi: odesláno</button>
       <button class="btn btn-sm" onclick="pplReprint()">Znovu stáhnout štítek</button>
       <button class="btn btn-sm" onclick="pplCancelCurrent()">Stornovat</button>
     </div>
@@ -3237,12 +3299,13 @@ function settingsTab(sec) {
     const c = { ...DEFAULT_CONFIG, ...getConfig() };
     document.getElementById('set-ejs-service').value = c.emailjsService || '';
     document.getElementById('set-ejs-key').value = c.emailjsKey || '';
+    document.getElementById('set-ejs-plan').value = c.emailjsPlan || '';
   }
 }
 function saveEmailConfig() {
   const service = document.getElementById('set-ejs-service').value.trim();
   const key = document.getElementById('set-ejs-key').value.trim();
-  saveConfigData({ ...getConfig(), emailjsService: service, emailjsKey: key });
+  saveConfigData({ ...getConfig(), emailjsService: service, emailjsKey: key, emailjsPlan: document.getElementById('set-ejs-plan').value });
   if (service && key) { emailjs.init(key); window._ejsService = service; }
   toast('Nastavení emailů uloženo', 'success');
 }
