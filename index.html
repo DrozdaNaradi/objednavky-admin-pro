@@ -375,6 +375,44 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
   .panel{width:100vw}
   .modal-grid{grid-template-columns:1fr}
 }
+
+/* ── PPL ŠTÍTKY ─── */
+.ppl-blue{color:#003087}
+.btn-ppl{background:#003087;color:#fff;border-color:#003087}.btn-ppl:hover{background:#00246a;border-color:#00246a}
+.ppl-modal{width:820px}
+.ppl-info{font-size:12px;color:var(--ink-2);background:var(--card-alt);border:1px solid var(--border-soft);border-radius:8px;padding:10px 12px;line-height:1.5;margin-bottom:12px}
+.ppl-info.warn{background:var(--warn-bg);border-color:var(--warn-border);color:var(--warn-ink)}
+.ppl-info.err{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+.ppl-info.ok{background:var(--ok-bg);border-color:var(--ok-border);color:var(--ok-ink)}
+.ppl-top{display:flex;gap:16px;align-items:flex-start;margin-bottom:14px}
+.ppl-pos{display:grid;grid-template-columns:repeat(2,44px);gap:4px;padding:6px;border:1px solid var(--border);border-radius:8px;background:var(--card-alt);flex-shrink:0}
+.ppl-pos button{height:56px;border:1px dashed var(--border);border-radius:4px;background:var(--card);font-family:inherit;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer}
+.ppl-pos button.used{background:#e5e5e5;color:#a3a3a3;text-decoration:line-through}
+.ppl-pos button.on{background:#003087;border:1px solid #003087;color:#fff}
+.ppl-pos-help{font-size:12px;color:var(--ink-2);line-height:1.5}
+.ppl-pos-help b{color:var(--ink)}
+.ppl-card{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--card)}
+.ppl-card.off{opacity:.55}
+.ppl-card-head{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;user-select:none}
+.ppl-card-head input[type=checkbox]{width:16px;height:16px;accent-color:#003087;flex-shrink:0}
+.ppl-card-sum{flex:1;min-width:0;font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ppl-card-sum b{color:var(--ink);font-size:13px}
+.ppl-chip{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:#e8eefb;color:#003087;white-space:nowrap}
+.ppl-chip.cod{background:#fef3c7;color:#92400e}
+.ppl-chip.bad{background:#fee2e2;color:#991b1b}
+.ppl-card-body{border-top:1px solid var(--border-soft);padding:12px;display:none}
+.ppl-card.open .ppl-card-body{display:block}
+.ppl-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.ppl-grid .form-group{gap:3px}
+.ppl-grid .form-label{font-size:10px}
+.ppl-grid .form-input{height:32px;font-size:12px;width:100%}
+.ppl-s2{grid-column:span 2}.ppl-s3{grid-column:span 3}.ppl-s4{grid-column:span 4}.ppl-s6{grid-column:1/-1}
+.ppl-sec{grid-column:1/-1;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:6px}
+.ppl-hint{font-size:11px;color:var(--muted);line-height:1.4}
+.ppl-box{border:1px solid #c7d4ee;background:#f5f8fe;border-radius:8px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ppl-box-num{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:#003087}
+.ppl-log{font-family:'JetBrains Mono',monospace;font-size:11px;white-space:pre-wrap;max-height:160px;overflow:auto;margin-top:6px}
+@media (max-width:700px){.ppl-grid{grid-template-columns:1fr 1fr}.ppl-s2,.ppl-s3,.ppl-s4{grid-column:1/-1}.ppl-top{flex-direction:column}}
 </style>
 </head>
 <body>
@@ -546,6 +584,10 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
           Opravit fotky
         </button>
         <input type="file" id="img-xml-input" accept=".xml" style="display:none" onchange="importImagesFromXml(this)">
+        <button class="btn btn-ppl btn-sm" onclick="openPplBatch()" data-tip="Vytiskne PPL štítky na A4 (4 na stranu)&#10;pro všechny čekající PPL objednávky.&#10;Před odesláním jde vše upravit.">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          PPL štítky
+        </button>
         <button class="btn btn-red btn-sm" onclick="openNewOrderModal()">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
           Nová objednávka
@@ -591,6 +633,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       </div>
     </div>
     <div class="panel-header-right">
+      <button class="btn btn-ppl btn-sm" onclick="openPplModal([currentOrderId])">PPL štítek</button>
       <button class="btn btn-gray btn-sm" onclick="printOrder()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         Tisknout
@@ -688,6 +731,62 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
           EmailJS není nakonfigurováno. Zadej Service ID a Public Key v nastavení.
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- PPL ŠTÍTKY -->
+<div class="modal-overlay" id="ppl-modal">
+  <div class="modal ppl-modal">
+    <div class="modal-title" style="display:flex;align-items:center;gap:10px">
+      <span class="ppl-blue">PPL</span> štítky
+      <span id="ppl-env-chip" class="ppl-chip" style="display:none"></span>
+      <button class="btn btn-sm" style="margin-left:auto" onclick="openPplSettings()">⚙ Nastavení PPL</button>
+    </div>
+    <div id="ppl-msg"></div>
+    <div class="ppl-top">
+      <div class="ppl-pos" id="ppl-pos"></div>
+      <div class="ppl-pos-help" id="ppl-pos-help"></div>
+    </div>
+    <div id="ppl-list"></div>
+    <div class="modal-footer" style="align-items:center">
+      <div id="ppl-count" style="margin-right:auto;font-size:12px;color:var(--muted)"></div>
+      <button class="btn" onclick="closePplModal()">Zavřít</button>
+      <button class="btn btn-ppl" id="ppl-submit" onclick="submitPpl()">Odeslat do PPL a tisknout</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ppl-settings-modal">
+  <div class="modal" style="width:600px">
+    <div class="modal-title">Nastavení PPL</div>
+    <div class="ppl-info">Odesílatel a účet pro dobírky se ukládají do databáze — platí pro všechny, kdo appku používají. PIN se ukládá jen v tomhle prohlížeči.</div>
+    <div class="ppl-grid">
+      <div class="ppl-sec">Odesílatel (bude na štítku)</div>
+      <div class="form-group ppl-s3"><div class="form-label">Firma / jméno</div><input class="form-input" id="pset-name"></div>
+      <div class="form-group ppl-s3"><div class="form-label">Kontaktní osoba</div><input class="form-input" id="pset-contact"></div>
+      <div class="form-group ppl-s3"><div class="form-label">Ulice a č.p.</div><input class="form-input" id="pset-street"></div>
+      <div class="form-group ppl-s2"><div class="form-label">Město</div><input class="form-input" id="pset-city"></div>
+      <div class="form-group"><div class="form-label">PSČ</div><input class="form-input" id="pset-zip"></div>
+      <div class="form-group ppl-s3"><div class="form-label">Telefon</div><input class="form-input" id="pset-phone"></div>
+      <div class="form-group ppl-s3"><div class="form-label">Email</div><input class="form-input" id="pset-email"></div>
+      <div class="ppl-sec">Účet, kam PPL pošle peníze za dobírky</div>
+      <div class="form-group"><div class="form-label">Předčíslí</div><input class="form-input" id="pset-accpre" placeholder="—"></div>
+      <div class="form-group ppl-s3"><div class="form-label">Číslo účtu</div><input class="form-input" id="pset-acc"></div>
+      <div class="form-group ppl-s2"><div class="form-label">Kód banky</div><input class="form-input" id="pset-bank" placeholder="např. 0800"></div>
+      <div class="ppl-sec">Výchozí hodnoty</div>
+      <div class="form-group ppl-s3"><div class="form-label">Doručení kurýrem na adresu</div>
+        <select class="form-input" id="pset-courier"><option value="PRIV">PPL Parcel CZ Private</option><option value="BUSS">PPL Parcel CZ Business</option></select></div>
+      <div class="form-group ppl-s3"><div class="form-label">Firmám (s IČO) posílat jako</div>
+        <select class="form-input" id="pset-courier-b2b"><option value="BUSS">PPL Parcel CZ Business</option><option value="PRIV">PPL Parcel CZ Private</option></select></div>
+      <div class="ppl-sec">Přístup k PPL</div>
+      <div class="form-group ppl-s3"><div class="form-label">PIN (PPL_APP_PIN)</div><input class="form-input" id="pset-pin" type="password" autocomplete="off"></div>
+      <div class="form-group ppl-s3" style="justify-content:flex-end"><button class="btn" onclick="testPpl()">Otestovat spojení s PPL</button></div>
+      <div class="ppl-s6" id="pset-msg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('ppl-settings-modal').classList.remove('active')">Zrušit</button>
+      <button class="btn btn-red" onclick="savePplSettings()">Uložit nastavení</button>
     </div>
   </div>
 </div>
@@ -1036,6 +1135,7 @@ async function initSupabase(url, key, ejsService, ejsKey) {
   showLoading(true);
   try {
     db = window.supabase.createClient(url, key);
+    window._sb = { url, key };
     const { data, error } = await db.from('orders').select('id').limit(1);
     if (error) throw new Error('Databáze: ' + error.message + ' (kód: ' + error.code + ')');
     if (ejsService && ejsKey) { emailjs.init(ejsKey); window._ejsService = ejsService; }
@@ -1339,6 +1439,7 @@ function orderRow(o) {
       <div class="ocard-meta-chips">
         ${shipHtml ? `<div class="ocard-chip ocard-ship-chip">${shipHtml}</div>` : ''}
         <div class="ocard-chip"><span class="ocard-date-chip">${dateStr}</span></div>
+        ${o.ppl?.shipments?.length ? `<div class="ocard-chip"><span class="ppl-chip" title="PPL zásilka ${escHtml(o.ppl.shipments.join(', '))}">📦 ${escHtml(o.ppl.shipments[0])}${o.ppl.env==='test'?' · test':''}</span></div>` : ''}
         <div class="ocard-chip"><span class="ocard-ordernum-chip">#${escHtml(o.order_number||'')}</span></div>
       </div>
     </div>
@@ -1522,6 +1623,7 @@ function renderPanelOverview() {
       <div class="delivery-label">Způsob platby</div>
       <div class="delivery-val">${escHtml(o.payment_method||'—')}</div>
     </div>
+    ${pplOverviewBox(o)}
 
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin:16px 0 10px;color:var(--muted)">Souhrn objednávky</div>
     <div style="border:1px solid var(--border-soft);border-radius:var(--radius-lg);overflow:hidden">
@@ -1800,6 +1902,12 @@ function activityItem(a) {
   } else if (a.action === 'supplier_order') {
     icon = '🛒'; cls = 'ai-note';
     text = `<strong>${escHtml(a.author)}</strong> objednal(a) u dodavatele položku č. ${(a.details?.item_index ?? 0) + 1}`;
+  } else if (a.action === 'ppl_label') {
+    icon = '📦'; cls = 'ai-email';
+    text = `<strong>${escHtml(a.author)}</strong> vytvořil(a) PPL zásilku <strong>${escHtml((a.details?.shipments||[]).join(', '))}</strong>${a.details?.env==='test'?' (testovací prostředí)':''}`;
+  } else if (a.action === 'ppl_cancel') {
+    icon = '🗑'; cls = 'ai-status';
+    text = `<strong>${escHtml(a.author)}</strong> stornoval(a) PPL zásilku <strong>${escHtml(a.details?.shipment||'')}</strong>`;
   } else if (a.action === 'created') {
     icon = '🆕'; cls = 'ai-created';
     text = `<strong>${escHtml(a.author)}</strong> vytvořil(a) objednávku`;
@@ -2321,6 +2429,466 @@ function switchTab(name) {
   const tabs = ['overview','notes','history','email'];
   const idx = tabs.indexOf(name);
   document.querySelectorAll('.tab-btn')[idx]?.classList.add('active');
+}
+
+// ─── PPL ŠTÍTKY ──────────────────────────────────────────────────────────────
+// Zásilky jdou přes Supabase Edge Function „ppl" (klíče od PPL jsou jen tam).
+// Štítky: PDF A4, 4 na stranu, tisk může začít na libovolné pozici 1–4.
+const PPL_PRODUCTS = {
+  PRIV: { label: 'PPL Parcel CZ Private — kurýr na adresu', cod: 'PRID' },
+  BUSS: { label: 'PPL Parcel CZ Business — kurýr pro firmy', cod: 'BUSD' },
+  SMAR: { label: 'PPL Parcel CZ Smart — ParcelShop / ParcelBox', cod: 'SMAD' },
+};
+const PPL_DEFAULTS = {
+  name: 'Drozda Nářadí - Heavy Duty Center', contact: '', street: 'Masarykova 1483', city: 'Rudná u Prahy', zip: '25219',
+  phone: '', email: 'prodejna@drozda-naradi.cz', accPre: '', acc: '', bank: '', courier: 'PRIV', courierB2b: 'BUSS',
+};
+let pplSettings = null;
+let pplDrafts = [];
+let pplPos = 1;
+let pplBusy = false;
+let pplEnv = '';
+
+async function loadPplSettings(force) {
+  if (pplSettings && !force) return pplSettings;
+  let v = null;
+  window._pplSettingsErr = '';
+  try {
+    const { data, error } = await db.from('app_settings').select('value').eq('key', 'ppl').maybeSingle();
+    if (error) window._pplSettingsErr = error.message; else if (data) v = data.value;
+  } catch (e) { window._pplSettingsErr = e.message; }
+  pplSettings = { ...PPL_DEFAULTS, ...(v || {}) };
+  return pplSettings;
+}
+function pplPin() { try { return localStorage.getItem('ppl_pin') || ''; } catch (e) { return ''; } }
+
+async function pplCall(action, data = {}) {
+  let r;
+  try {
+    r = await fetch(window._sb.url.replace(/\/$/, '') + '/functions/v1/ppl', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: window._sb.key, 'x-app-pin': pplPin() },
+      body: JSON.stringify({ action, ...data }),
+    });
+  } catch (e) {
+    throw new Error('Nepodařilo se spojit s funkcí „ppl" v Supabase. Je nasazená? (' + e.message + ')');
+  }
+  let d = null;
+  try { d = await r.json(); } catch (e) {}
+  if (r.status === 404) throw new Error('V Supabase zatím není nasazená funkce „ppl" — postup je v PPL-NAVOD.md.');
+  if (r.status === 401 && !d?.error) throw new Error('Supabase odmítl volání funkce — u funkce „ppl" vypni „Verify JWT".');
+  if (!r.ok || d?.error) {
+    const err = new Error(d?.error || d?.message || ('HTTP ' + r.status));
+    err.detail = d?.detail;
+    throw err;
+  }
+  return d;
+}
+
+function pplPhone(p) {
+  let s = String(p || '').replace(/[^\d+]/g, '');
+  if (/^\d{9}$/.test(s)) s = '+420' + s;
+  else if (s.startsWith('00')) s = '+' + s.slice(2);
+  return s;
+}
+function pplCompanyParts(raw) {
+  let name = '', ico = '';
+  String(raw || '').split('|').forEach(part => {
+    const p = part.trim();
+    if (/^IČO?:/i.test(p)) ico = p.replace(/^IČO?:/i, '').trim();
+    else if (/^DIČ:/i.test(p)) {}
+    else if (p) name = p;
+  });
+  return { name, ico };
+}
+function pplParseAddr(o) {
+  const parts = (o.delivery_address || '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
+  let zip = '';
+  if (parts.length && /^\d{3}\s?\d{2}$/.test(parts[parts.length - 1])) zip = parts.pop().replace(/\s/g, '');
+  const city = parts.length ? parts.pop().replace(/\s*\[.*?\]/g, '').trim() : '';
+  // PSČ občas zákazník napíše i do ulice — z ulice ho vyhodíme
+  return { street: parts.filter(x => !/^\d{3}\s?\d{2}$/.test(x)).join(', '), city, zip };
+}
+function pplProductType(f) { return f.cod ? PPL_PRODUCTS[f.base].cod : f.base; }
+
+function pplDraftFromOrder(o) {
+  const st = pplSettings;
+  const ship = o.shipping_method || '';
+  const psM = ship.match(/\[([A-Z]{2}\d{5,})\]/);
+  const isPs = !!psM || /parcel\s*(shop|box)|výdejn|alzabox/i.test(ship);
+  const isCod = /dobírk/i.test(o.payment_method || '');
+  const comp = pplCompanyParts(o.company);
+  const a = pplParseAddr(o);
+  return {
+    orderId: o.id, on: true, open: false, done: null,
+    f: {
+      base: isPs ? 'SMAR' : (comp.name || comp.ico ? st.courierB2b : st.courier),
+      cod: isCod, codPrice: isCod ? Math.round(orderTotal(o)) : '',
+      vs: String(o.order_number || '').replace(/\D/g, '').slice(-10),
+      parcelShop: psM ? psM[1] : '',
+      name: (isPs ? '' : comp.name) || o.customer_name || '',
+      contact: !isPs && comp.name ? (o.customer_name || '') : '',
+      street: a.street, city: a.city, zip: a.zip, country: 'CZ',
+      phone: pplPhone(o.customer_phone), email: o.customer_email || '',
+      count: 1, weight: '', note: '', ref: String(o.order_number || ''),
+    },
+  };
+}
+
+function pplValidate(f) {
+  const e = [];
+  if (!f.name.trim()) e.push('chybí jméno příjemce');
+  if (!f.street.trim()) e.push('chybí ulice');
+  if (!f.city.trim()) e.push('chybí město');
+  if (!/^\d{5}$/.test(String(f.zip).replace(/\s/g, ''))) e.push('PSČ musí mít 5 číslic');
+  if (!f.phone.trim() && !f.email.trim()) e.push('chybí telefon i email');
+  if (f.base === 'SMAR' && !f.parcelShop.trim()) e.push('chybí kód výdejního místa');
+  if (!f.ref.trim()) e.push('chybí reference');
+  const n = parseInt(f.count);
+  if (!(n >= 1 && n <= 20)) e.push('počet balíků 1–20');
+  if (f.cod) {
+    if (!(parseFloat(f.codPrice) > 0)) e.push('chybí částka dobírky');
+    if (!/^\d{1,10}$/.test(f.vs)) e.push('VS dobírky jen číslice (max 10)');
+    if (!pplSettings.acc || !pplSettings.bank) e.push('v Nastavení PPL chybí účet pro dobírky');
+  }
+  return e;
+}
+function pplSenderMissing() {
+  const s = pplSettings;
+  return ['name', 'street', 'city', 'zip'].filter(k => !String(s[k] || '').trim());
+}
+
+function pplShipment(f) {
+  const s = pplSettings;
+  const sh = {
+    referenceId: f.ref.trim(),
+    productType: pplProductType(f),
+    note: f.note.trim() || undefined,
+    shipmentSet: parseInt(f.count) > 1 ? { numberOfShipments: parseInt(f.count) } : undefined,
+    sender: {
+      name: s.name, contact: s.contact || undefined, street: s.street, city: s.city,
+      zipCode: String(s.zip).replace(/\s/g, ''), country: 'CZ',
+      phone: pplPhone(s.phone) || undefined, email: s.email || undefined,
+    },
+    recipient: {
+      name: f.name.trim(), contact: f.contact.trim() || undefined, street: f.street.trim(), city: f.city.trim(),
+      zipCode: String(f.zip).replace(/\s/g, ''), country: f.country || 'CZ',
+      phone: pplPhone(f.phone) || undefined, email: f.email.trim() || undefined,
+    },
+  };
+  if (f.parcelShop.trim() && f.base !== 'BUSS') sh.specificDelivery = { parcelShopCode: f.parcelShop.trim() };
+  if (f.cod) sh.cashOnDelivery = {
+    codPrice: Math.round(parseFloat(f.codPrice)), codCurrency: 'CZK', codVarSym: f.vs,
+    account: s.acc, accountPre: s.accPre || undefined, bankCode: s.bank,
+  };
+  const w = parseFloat(String(f.weight).replace(',', '.'));
+  if (w > 0) sh.weighedShipmentInfo = { weight: w };
+  return JSON.parse(JSON.stringify(sh));
+}
+
+function pplMsg(type, html) {
+  document.getElementById('ppl-msg').innerHTML = html ? `<div class="ppl-info ${type}">${html}</div>` : '';
+}
+function pplLabelCount() {
+  return pplDrafts.filter(d => d.on && !d.done).reduce((s, d) => s + (parseInt(d.f.count) || 1), 0);
+}
+
+async function openPplModal(ids) {
+  if (!ids.length) return;
+  await loadPplSettings();
+  pplDrafts = ids.map(id => orders.find(o => o.id === id)).filter(Boolean).map(pplDraftFromOrder);
+  if (pplDrafts.length === 1) pplDrafts[0].open = true;
+  try { pplPos = parseInt(localStorage.getItem('ppl_next_pos')) || 1; } catch (e) { pplPos = 1; }
+  pplMsg('', '');
+  const notes = [];
+  if (window._pplSettingsErr) notes.push('Nastavení PPL se nepodařilo načíst z databáze (' + escHtml(window._pplSettingsErr) + ') — spusť v Supabase <b>supabase-ppl.sql</b>. Zatím se použijí výchozí údaje.');
+  const already = pplDrafts.filter(d => orders.find(o => o.id === d.orderId)?.ppl?.shipments?.length);
+  if (already.length) notes.push(`<b>${already.length}×</b> objednávka už PPL štítek má — odesláním vznikne <b>další</b> zásilka. Pro znovu-vytištění použij „Znovu stáhnout štítek" v detailu objednávky.`);
+  if (pplSenderMissing().length) notes.push('V Nastavení PPL chybí údaje odesílatele.');
+  if (notes.length) pplMsg('warn', notes.join('<br>'));
+  renderPpl();
+  document.getElementById('ppl-modal').classList.add('active');
+  pplCheckEnv();
+}
+function openPplBatch() {
+  const cand = orders
+    .filter(o => (o.status === 'new' || o.status === 'open') && /ppl/i.test(o.shipping_method || '') && !o.ppl?.shipments?.length)
+    .sort((a, b) => new Date(a.order_date || a.created_at) - new Date(b.order_date || b.created_at));
+  if (!cand.length) { toast('Žádná nová ani otevřená PPL objednávka bez štítku'); return; }
+  openPplModal(cand.map(o => o.id));
+}
+function closePplModal() { document.getElementById('ppl-modal').classList.remove('active'); }
+
+async function pplCheckEnv() {
+  const chip = document.getElementById('ppl-env-chip');
+  chip.style.display = 'none';
+  if (!pplPin()) { pplMsgAppend('warn', 'Není zadaný PIN pro PPL — doplň ho v <b>Nastavení PPL</b>.'); return; }
+  try {
+    const d = await pplCall('ping');
+    pplEnv = d.env;
+    chip.textContent = d.env === 'prod' ? 'OSTRÝ PROVOZ' : 'TESTOVACÍ PROSTŘEDÍ';
+    chip.className = 'ppl-chip' + (d.env === 'prod' ? '' : ' cod');
+    chip.style.display = '';
+  } catch (e) {
+    pplEnv = '';
+    pplMsgAppend('err', 'PPL zatím není připojené: ' + escHtml(e.message) + '<br>Štítky jde připravit a zkontrolovat, odeslat až po připojení.');
+  }
+}
+function pplMsgAppend(type, html) {
+  document.getElementById('ppl-msg').insertAdjacentHTML('beforeend', `<div class="ppl-info ${type}">${html}</div>`);
+}
+
+function renderPplPos() {
+  const n = pplLabelCount();
+  document.getElementById('ppl-pos').innerHTML = [1, 2, 3, 4].map(p => {
+    const cls = p < pplPos ? 'used' : (p - pplPos < n ? 'on' : '');
+    return `<button class="${cls}" onclick="pplPos=${p};renderPplPos()" title="Začít tisk na pozici ${p}">${p}</button>`;
+  }).join('');
+  const sheets = Math.ceil((pplPos - 1 + n) / 4);
+  document.getElementById('ppl-pos-help').innerHTML = `
+    <b>Kam na arch A4 začít tisknout?</b> Klikni na první volné místo.<br>
+    ${pplPos > 1 ? `Pozice 1–${pplPos - 1} jsou přeškrtnuté = na archu už použité.<br>` : ''}
+    ${n} ${n === 1 ? 'štítek' : n < 5 ? 'štítky' : 'štítků'} → ${sheets} ${sheets === 1 ? 'arch' : sheets < 5 ? 'archy' : 'archů'} A4.
+    <div class="ppl-hint" style="margin-top:4px">Appka si pamatuje, kde jsi minule skončil(a). Pořadí pozic určuje PPL (1–2 nahoře, 3–4 dole).</div>`;
+  const on = pplDrafts.filter(d => d.on && !d.done).length;
+  document.getElementById('ppl-count').textContent = `Vybráno ${on} z ${pplDrafts.length} objednávek`;
+  const btn = document.getElementById('ppl-submit');
+  btn.disabled = !on || pplBusy;
+  btn.style.opacity = btn.disabled ? .5 : 1;
+}
+
+function pplSummary(d) {
+  const f = d.f, o = orders.find(x => x.id === d.orderId) || {};
+  if (d.done) return `<b>#${escHtml(o.order_number)} ${escHtml(f.name)}</b> · <span class="ppl-chip">✓ ${escHtml(d.done.join(', '))}</span>`;
+  const errs = pplValidate(f);
+  return `<b>#${escHtml(o.order_number || '')} ${escHtml(f.name || '—')}</b> · ${escHtml(f.city || '—')}
+    <span class="ppl-chip">${pplProductType(f)}</span>
+    ${f.parcelShop && f.base !== 'BUSS' ? `<span class="ppl-chip">${escHtml(f.parcelShop)}</span>` : ''}
+    ${f.cod ? `<span class="ppl-chip cod">dobírka ${Math.round(parseFloat(f.codPrice) || 0).toLocaleString('cs-CZ')} Kč</span>` : ''}
+    ${parseInt(f.count) > 1 ? `<span class="ppl-chip">${parseInt(f.count)} balíky</span>` : ''}
+    ${errs.length ? `<span class="ppl-chip bad" title="${escHtml(errs.join(', '))}">⚠ ${errs.length}× doplnit</span>` : ''}
+    ${o.ppl?.shipments?.length ? `<span class="ppl-chip bad">už má štítek</span>` : ''}`;
+}
+
+function renderPpl() {
+  document.getElementById('ppl-list').innerHTML = pplDrafts.map((d, i) => {
+    const f = d.f, o = orders.find(x => x.id === d.orderId) || {};
+    const v = k => escHtml(String(f[k] ?? '')).replace(/<br>/g, ' ');
+    const inp = (k, label, cls = 'ppl-s3', extra = '') => `<div class="form-group ${cls}"><div class="form-label">${label}</div><input class="form-input" value="${v(k)}" oninput="pplSet(${i},'${k}',this.value)" ${extra}></div>`;
+    const errs = pplValidate(f);
+    return `<div class="ppl-card${d.open ? ' open' : ''}${d.on && !d.done ? '' : ' off'}" id="ppl-card-${i}">
+      <div class="ppl-card-head" onclick="pplToggleOpen(${i})">
+        <input type="checkbox" ${d.on && !d.done ? 'checked' : ''} ${d.done ? 'disabled' : ''} onclick="event.stopPropagation();pplToggleOn(${i},this.checked)" title="Zahrnout do tisku">
+        <div class="ppl-card-sum" id="ppl-sum-${i}">${pplSummary(d)}</div>
+        <span style="font-size:11px;color:var(--muted)">${d.open ? 'Sbalit ▲' : 'Upravit ▼'}</span>
+      </div>
+      <div class="ppl-card-body">
+        <div class="ppl-hint" style="margin-bottom:8px">Z e-shopu: ${escHtml(o.shipping_method || '—')} · ${escHtml(o.payment_method || '—')} · celkem ${orderTotal(o).toLocaleString('cs-CZ', { minimumFractionDigits: 2 })} Kč</div>
+        <div class="ppl-grid">
+          <div class="ppl-sec">Služba</div>
+          <div class="form-group ppl-s4"><div class="form-label">Produkt PPL</div>
+            <select class="form-input" onchange="pplSet(${i},'base',this.value,true)">
+              ${Object.entries(PPL_PRODUCTS).map(([k, p]) => `<option value="${k}"${f.base === k ? ' selected' : ''}>${p.label}</option>`).join('')}
+            </select></div>
+          ${f.base !== 'BUSS' ? inp('parcelShop', f.base === 'SMAR' ? 'Kód výdejního místa' : 'Kód výdejního místa (nepovinné)', 'ppl-s2', 'placeholder="KM10625751"') : '<div class="ppl-s2"></div>'}
+          <div class="form-group ppl-s2"><div class="form-label">Dobírka</div>
+            <label style="display:flex;align-items:center;gap:6px;height:32px;font-size:12px;font-weight:600;cursor:pointer"><input type="checkbox" ${f.cod ? 'checked' : ''} onchange="pplSet(${i},'cod',this.checked,true)" style="accent-color:#003087"> vybírat dobírku</label></div>
+          ${f.cod ? inp('codPrice', 'Částka dobírky (Kč, celá)', 'ppl-s2', 'inputmode="numeric"') + inp('vs', 'VS dobírky', 'ppl-s2', 'inputmode="numeric"') : '<div class="ppl-s4"></div>'}
+          ${inp('count', 'Počet balíků', '', 'type="number" min="1" max="20"')}
+          ${inp('weight', 'Váha kg', '', 'placeholder="nepovinné"')}
+          ${inp('ref', 'Reference', 'ppl-s2')}
+          ${inp('note', 'Poznámka na štítek', 'ppl-s2', 'maxlength="300"')}
+          <div class="ppl-sec">Příjemce</div>
+          ${inp('name', f.base === 'SMAR' ? 'Jméno příjemce' : 'Jméno / firma')}
+          ${inp('contact', 'Kontaktní osoba', 'ppl-s3', 'placeholder="nepovinné"')}
+          ${inp('street', 'Ulice a č.p.')}
+          ${inp('city', 'Město', 'ppl-s2')}
+          ${inp('zip', 'PSČ', '', 'inputmode="numeric"')}
+          ${inp('phone', 'Telefon')}
+          ${inp('email', 'Email')}
+          ${f.base === 'SMAR' ? '<div class="ppl-hint ppl-s6">U výdejního místa PPL doručí na místo podle kódu; adresa příjemce slouží pro kontakt a SMS/email.</div>' : ''}
+          <div class="ppl-s6" id="ppl-err-${i}">${errs.length && d.on ? `<div class="ppl-hint" style="color:#b91c1c">⚠ ${escHtml(errs.join(' · '))}</div>` : ''}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  renderPplPos();
+}
+function pplSet(i, k, val, rerender) {
+  const d = pplDrafts[i];
+  d.f[k] = val;
+  if (rerender) { renderPpl(); return; }
+  document.getElementById('ppl-sum-' + i).innerHTML = pplSummary(d);
+  const errs = pplValidate(d.f);
+  document.getElementById('ppl-err-' + i).innerHTML = errs.length ? `<div class="ppl-hint" style="color:#b91c1c">⚠ ${escHtml(errs.join(' · '))}</div>` : '';
+  if (k === 'count') renderPplPos();
+}
+function pplToggleOpen(i) { pplDrafts[i].open = !pplDrafts[i].open; renderPpl(); }
+function pplToggleOn(i, on) { pplDrafts[i].on = on; renderPpl(); }
+
+async function submitPpl() {
+  if (pplBusy) return;
+  const sel = pplDrafts.filter(d => d.on && !d.done);
+  if (!sel.length) return;
+  const errs = [];
+  if (pplSenderMissing().length) errs.push('Odesílatel: chybí ' + pplSenderMissing().join(', ') + ' (Nastavení PPL)');
+  sel.forEach(d => {
+    const e = pplValidate(d.f);
+    if (e.length) { d.open = true; errs.push(`#${escHtml(d.f.ref)}: ${escHtml(e.join(', '))}`); }
+  });
+  const refs = sel.map(d => d.f.ref.trim());
+  if (new Set(refs).size !== refs.length) errs.push('Dvě zásilky mají stejnou referenci.');
+  if (errs.length) { renderPpl(); pplMsg('err', '<b>Před odesláním oprav:</b><br>' + errs.join('<br>')); return; }
+
+  const labels = pplLabelCount();
+  const envTxt = pplEnv === 'prod' ? 'OSTRÉ — vzniknou skutečné zásilky u PPL' : pplEnv === 'test' ? 'testovací prostředí PPL' : 'prostředí PPL neověřeno';
+  if (!confirm(`Odeslat ${sel.length} ${sel.length === 1 ? 'zásilku' : 'zásilek'} do PPL (${envTxt})?\n\nŠtítků: ${labels}, tisk od pozice ${pplPos}.`)) return;
+
+  pplBusy = true; renderPplPos();
+  const btn = document.getElementById('ppl-submit');
+  btn.textContent = 'Odesílám…';
+  const pdfWin = window.open('', '_blank');
+  if (pdfWin) pdfWin.document.write('<p style="font:16px -apple-system,sans-serif;padding:40px">Čekám na štítky od PPL…</p>');
+  try {
+    const shipments = sel.map(d => pplShipment(d.f));
+    pplMsg('', 'Odesílám zásilky do PPL…');
+    const body = { labelSettings: { format: 'Pdf', completeLabelSettings: { isCompleteLabelRequested: true, pageSize: 'A4', position: pplPos } }, shipments };
+    const { batchId, env } = await pplCall('create', { body });
+
+    let items = [];
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, i < 5 ? 1000 : 2000));
+      const st = await pplCall('status', { batchId });
+      items = st.items || [];
+      const fin = items.filter(x => x.importState === 'Complete' || x.importState === 'Error').length;
+      pplMsg('', `PPL zpracovává zásilky… ${fin} / ${sel.length}`);
+      if (items.length >= sel.length && fin === items.length) break;
+    }
+
+    const now = new Date().toISOString();
+    const okNums = [], failed = [];
+    let okLabels = 0;
+    for (let k = 0; k < sel.length; k++) {
+      const d = sel[k];
+      const it = items.find(x => String(x.referenceId) === d.f.ref.trim());
+      if (!it || it.importState !== 'Complete') { failed.push({ d, it }); continue; }
+      const nums = [it.shipmentNumber, ...(it.relatedItems || []).filter(r => r.relationType !== 'Dormant').map(r => r.shipmentNumber)].filter(Boolean);
+      const o = orders.find(x => x.id === d.orderId);
+      const prev = o?.ppl?.shipments?.length ? [...(o.ppl.history || []), { ...o.ppl, history: undefined }] : (o?.ppl?.history || []);
+      const ppl = { env, batchId, shipments: nums, productType: shipments[k].productType, position: pplPos, createdAt: now, by: author, request: shipments[k], history: prev };
+      const { error } = await db.from('orders').update({ ppl }).eq('id', d.orderId);
+      if (error) failed.push({ d, it, saveErr: error.message + ' — zásilka u PPL VZNIKLA (' + nums.join(', ') + '), jen se neuložila do appky. Spusť supabase-ppl.sql.' });
+      if (o) o.ppl = ppl;
+      await db.from('order_activity').insert({ order_id: d.orderId, action: 'ppl_label', details: { shipments: nums, batchId, env }, author });
+      d.done = nums; d.on = false; d.open = false;
+      okNums.push(...nums);
+      okLabels += parseInt(d.f.count) || 1;
+    }
+
+    if (okLabels) {
+      const lab = await pplCall('label', { batchId, position: pplPos });
+      const bytes = Uint8Array.from(atob(lab.pdf), c => c.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+      if (pdfWin) pdfWin.location.href = url; else window.open(url, '_blank');
+      pplPos = ((pplPos - 1 + okLabels) % 4) + 1;
+      try { localStorage.setItem('ppl_next_pos', pplPos); } catch (e) {}
+    } else if (pdfWin) pdfWin.close();
+
+    const parts = [];
+    if (okNums.length) parts.push(`<div class="ppl-info ok">✓ Vytvořeno ${okNums.length} ${okNums.length === 1 ? 'balík' : 'balíků'}${env === 'test' ? ' (TESTOVACÍ prostředí — nejsou skutečné)' : ''}: <b>${okNums.join(', ')}</b><br>PDF se štítky se otevřelo v novém okně → vytiskni na A4. Příští tisk začne na pozici ${pplPos}.</div>`);
+    if (failed.length) parts.push(`<div class="ppl-info err"><b>Nepovedlo se ${failed.length}:</b><br>${failed.map(x => `#${escHtml(x.d.f.ref)}: ${escHtml(x.saveErr || x.it?.errorMessage || x.it?.errorCode || (x.it ? x.it.importState : 'PPL nevrátilo výsledek'))}${x.it && !x.saveErr ? `<div class="ppl-log">${escHtml(JSON.stringify(x.it, null, 1))}</div>` : ''}`).join('<br>')}<br>Oprav údaje a odešli znovu.</div>`);
+    document.getElementById('ppl-msg').innerHTML = parts.join('');
+    renderPpl();
+    renderOrders();
+    if (currentOrder && sel.some(d => d.orderId === currentOrderId)) renderPanelOverview();
+  } catch (e) {
+    if (pdfWin) pdfWin.close();
+    const det = e.detail ? `<div class="ppl-log">${escHtml(typeof e.detail === 'string' ? e.detail : JSON.stringify(e.detail, null, 1))}</div>` : '';
+    pplMsg('err', '<b>' + escHtml(e.message) + '</b>' + det);
+  }
+  pplBusy = false;
+  btn.textContent = 'Odeslat do PPL a tisknout';
+  renderPplPos();
+}
+
+function pplOverviewBox(o) {
+  const p = o.ppl;
+  if (!p?.shipments?.length) return '';
+  const nums = p.shipments.map(n => `<a class="ppl-box-num" href="https://www.ppl.cz/vyhledat-zasilku?shipmentId=${encodeURIComponent(n)}" target="_blank" rel="noopener">${escHtml(n)}</a>
+    <button class="copy-btn" data-v="${escHtml(n)}" onclick="copyVal(this.dataset.v,this)">copy</button>`).join(' ');
+  return `<div class="ppl-box">
+    <div>
+      <div class="delivery-label">PPL zásilka${p.env === 'test' ? ' · TESTOVACÍ' : ''} · ${escHtml(p.productType || '')}</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${nums}</div>
+      <div class="ppl-hint">Vytvořeno ${formatTime(p.createdAt)}${p.by ? ' · ' + escHtml(p.by) : ''}</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button class="btn btn-sm" onclick="pplReprint()">Znovu stáhnout štítek</button>
+      <button class="btn btn-sm" onclick="pplCancelCurrent()">Stornovat</button>
+    </div>
+  </div>`;
+}
+
+async function pplReprint() {
+  const p = currentOrder?.ppl;
+  if (!p?.batchId) return;
+  let def = 1; try { def = parseInt(localStorage.getItem('ppl_next_pos')) || 1; } catch (e) {}
+  const pos = parseInt(prompt('Na kterou pozici archu A4 tisknout? (1–4)\nPozn.: pokud byla zásilka vytvořena spolu s dalšími, PDF obsahuje celou dávku.', def));
+  if (!(pos >= 1 && pos <= 4)) return;
+  const win = window.open('', '_blank');
+  try {
+    const lab = await pplCall('label', { batchId: p.batchId, position: pos });
+    const bytes = Uint8Array.from(atob(lab.pdf), c => c.charCodeAt(0));
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+    if (win) win.location.href = url; else window.open(url, '_blank');
+  } catch (e) { if (win) win.close(); toast('PPL: ' + e.message, 'error'); }
+}
+
+async function pplCancelCurrent() {
+  const o = currentOrder, p = o?.ppl;
+  if (!p?.shipments?.length) return;
+  if (!confirm(`Stornovat PPL zásilku ${p.shipments.join(', ')}?\n\nJde jen u balíku, který ještě nepřevzal řidič PPL.`)) return;
+  try {
+    for (const n of p.shipments) await pplCall('cancel', { shipmentNumber: n });
+    const ppl = { history: [...(p.history || []), { ...p, history: undefined, cancelledAt: new Date().toISOString(), cancelledBy: author }] };
+    const { error } = await db.from('orders').update({ ppl }).eq('id', o.id);
+    if (error) throw new Error(error.message);
+    o.ppl = ppl;
+    await logActivity('ppl_cancel', { shipment: p.shipments.join(', ') });
+    toast('Zásilka stornována', 'success');
+    renderPanelOverview(); renderOrders();
+  } catch (e) { toast('Storno se nepovedlo: ' + e.message, 'error'); }
+}
+
+async function openPplSettings() {
+  const s = await loadPplSettings(true);
+  const map = { name: 'name', contact: 'contact', street: 'street', city: 'city', zip: 'zip', phone: 'phone', email: 'email', accpre: 'accPre', acc: 'acc', bank: 'bank', courier: 'courier', 'courier-b2b': 'courierB2b' };
+  Object.entries(map).forEach(([id, k]) => { document.getElementById('pset-' + id).value = s[k] || ''; });
+  document.getElementById('pset-pin').value = pplPin();
+  document.getElementById('pset-msg').innerHTML = window._pplSettingsErr
+    ? `<div class="ppl-info warn">Databáze zatím nemá tabulku pro nastavení (${escHtml(window._pplSettingsErr)}). Spusť v Supabase <b>supabase-ppl.sql</b>, jinak se nastavení neuloží.</div>` : '';
+  document.getElementById('ppl-settings-modal').classList.add('active');
+}
+async function savePplSettings() {
+  const g = id => document.getElementById('pset-' + id).value.trim();
+  const v = { name: g('name'), contact: g('contact'), street: g('street'), city: g('city'), zip: g('zip').replace(/\s/g, ''), phone: g('phone'), email: g('email'), accPre: g('accpre'), acc: g('acc'), bank: g('bank'), courier: g('courier'), courierB2b: g('courier-b2b') };
+  try { localStorage.setItem('ppl_pin', g('pin')); } catch (e) {}
+  const { error } = await db.from('app_settings').upsert({ key: 'ppl', value: v, updated_at: new Date().toISOString() });
+  if (error) { document.getElementById('pset-msg').innerHTML = `<div class="ppl-info err">Nastavení se neuložilo: ${escHtml(error.message)}<br>Spusť v Supabase <b>supabase-ppl.sql</b>.</div>`; return; }
+  pplSettings = { ...PPL_DEFAULTS, ...v };
+  window._pplSettingsErr = '';
+  document.getElementById('ppl-settings-modal').classList.remove('active');
+  toast('Nastavení PPL uloženo', 'success');
+  if (document.getElementById('ppl-modal').classList.contains('active')) { renderPpl(); pplMsg('', ''); pplCheckEnv(); }
+}
+async function testPpl() {
+  try { localStorage.setItem('ppl_pin', document.getElementById('pset-pin').value.trim()); } catch (e) {}
+  const m = document.getElementById('pset-msg');
+  m.innerHTML = '<div class="ppl-info">Zkouším spojení s PPL…</div>';
+  try {
+    const d = await pplCall('ping');
+    m.innerHTML = `<div class="ppl-info ok">✓ Spojení s PPL funguje — ${d.env === 'prod' ? '<b>OSTRÝ provoz</b>' : '<b>testovací prostředí</b>'}.</div>`;
+  } catch (e) { m.innerHTML = `<div class="ppl-info err">${escHtml(e.message)}</div>`; }
 }
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
