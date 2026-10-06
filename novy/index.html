@@ -46,6 +46,12 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .nav-sec:first-child{padding-top:4px}
 .ni{width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
 .nav-item.active .ni{box-shadow:0 0 0 1.5px rgba(255,255,255,.35)}
+.ppl-hbox{display:flex;align-items:center;gap:6px;background:#eef3fc;border:1.5px solid #003087;border-radius:10px;padding:4px 5px 4px 4px}
+.ppl-hlogo{background:#003087;color:#fff;font-weight:800;font-size:12px;letter-spacing:.04em;border-radius:7px;padding:0 9px;height:30px;display:flex;align-items:center}
+.ppl-hbtn{height:30px;padding:0 11px;border-radius:7px;border:1px solid #c7d4ee;background:#fff;color:#003087;font-family:inherit;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.ppl-hbtn:hover{background:#003087;border-color:#003087;color:#fff}
+.ppl-hn{background:#003087;color:#fff;font-size:11px;font-weight:700;border-radius:9px;padding:0 6px;line-height:17px;min-width:17px;text-align:center}
+.ppl-hbtn:hover .ppl-hn{background:#fff;color:#003087}
 .ss-refresh{margin-left:auto;width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--ink-2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .ss-refresh:hover{background:var(--card-alt);color:var(--ink)}
 [data-tip-r]{position:relative}
@@ -637,18 +643,6 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <span class="nav-count" id="count-closed">0</span>
       </button>
 
-      <div class="nav-sec">PPL zásilky</div>
-      <button class="nav-item" onclick="openPplBatch()" data-tip-r="Štítky pro všechny nové a otevřené&#10;PPL objednávky bez štítku –&#10;tisk na A4, 4 na arch">
-        <span class="ni" style="background:#003087"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span>Tisk štítků
-        <span class="nav-count" id="count-ppl-ready">0</span>
-      </button>
-      <button class="nav-item" onclick="openPplMimo()" data-tip-r="Poslat balík bez objednávky z e-shopu&#10;(firma z adresáře PPL nebo ručně)">
-        <span class="ni" style="background:#2563eb"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>Zásilka mimo e‑shop
-      </button>
-      <button class="nav-item" onclick="openZasilky()" data-tip-r="Všechny zásilky a jejich stav přímo od PPL&#10;(čeká, na cestě, doručeno) + storno">
-        <span class="ni" style="background:#0891b2"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>Přehled zásilek
-        <span class="nav-count" id="count-zas">0</span>
-      </button>
     </nav>
     <div class="sync-status-box" id="sync-status-box">
       <div class="sync-status-head">
@@ -706,10 +700,12 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       </div>
       <div class="main-header-right">
         <input type="file" id="img-xml-input" accept=".xml" style="display:none" onchange="importImagesFromXml(this)">
-        <button class="btn btn-red btn-sm" onclick="openNewOrderModal()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-          Nová objednávka
-        </button>
+        <div class="ppl-hbox" aria-label="PPL zásilky">
+          <span class="ppl-hlogo">PPL</span>
+          <button class="ppl-hbtn" onclick="openPplBatch()" data-tip="Štítky pro objednávky z e-shopu:&#10;všechny nové a otevřené PPL objednávky&#10;bez štítku – tisk na A4, 4 na arch"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>PPL eshop<span class="ppl-hn" id="count-ppl-ready">0</span></button>
+          <button class="ppl-hbtn" onclick="openPplMimo()" data-tip="Poslat balík bez objednávky z e-shopu&#10;(firma z adresáře PPL nebo ručně)"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>PPL mimo eshop</button>
+          <button class="ppl-hbtn" onclick="openZasilky()" data-tip="Všechny zásilky a jejich stav přímo od PPL&#10;(čeká, na cestě, doručeno) + storno"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>PPL přehled zásilek<span class="ppl-hn" id="count-zas">0</span></button>
+        </div>
       </div>
     </header>
 
