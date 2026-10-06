@@ -403,6 +403,17 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
 .supplier-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--warn-border);background:var(--warn-bg);color:var(--warn-ink);border-radius:8px;padding:10px 14px;margin-top:14px;font-size:12.5px;line-height:1.5}
 .supplier-bar>div{flex:1;min-width:220px}
 
+/* ── PPL MIMO E-SHOP ─── */
+.ppl-adr-box{border:1px solid #c7d4ee;background:#f5f8fe;border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.ppl-adr-box .form-input{width:100%}
+.ppl-adr-hits{margin-top:6px;border:1px solid var(--border);border-radius:6px;background:#fff;max-height:260px;overflow:auto}
+.ppl-adr-hits button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;text-align:left;border:none;border-bottom:1px solid var(--border-soft);background:#fff;padding:7px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+.ppl-adr-hits button:hover{background:#e8eefb}
+.ppl-adr-hits span{font-size:11.5px;color:var(--muted)}
+.zas-mimo{font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:4px;background:#e8eefb;color:#003087}
+.zas-storno{margin-left:6px;font:inherit;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid #fecaca;background:#fff;color:#b91c1c;cursor:pointer}
+.zas-storno:hover{background:#fef2f2}
+
 /* ── ZÁSILKY PPL ─── */
 .zas-modal{width:1100px;padding:0;overflow:hidden;display:flex;flex-direction:column}
 .zas-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 20px 4px}
@@ -688,6 +699,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
           Nastavení
         </button>
+        <button class="btn btn-sm" onclick="openPplMimo()" style="color:#003087;border-color:#c7d4ee" data-tip="PPL zásilka bez objednávky z e-shopu&#10;příjemce najdeš v adresáři PPL">+ PPL mimo e‑shop</button>
         <button class="btn btn-ppl btn-sm" onclick="openPplBatch()" data-tip="Vytiskne PPL štítky na A4 (4 na stranu)&#10;pro všechny čekající PPL objednávky.&#10;Před odesláním jde vše upravit.">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
           PPL štítky
@@ -886,6 +898,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
           <span style="margin-left:auto;display:flex;gap:12px"><button class="ppl-link" onclick="pplSelectAll(true)">Vybrat vše</button><button class="ppl-link" onclick="pplSelectAll(false)">Zrušit výběr</button></span>
         </div>
         <div class="ppl-hint" style="margin:-4px 0 8px">Zaškrtnuté se vytisknou. Kliknutím na řádek ho otevřeš a můžeš cokoliv opravit.</div>
+        <div id="ppl-adr"></div>
         <div id="ppl-list"></div>
       </div>
       <div class="ppl-side">
@@ -973,6 +986,14 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <select class="form-input" id="pset-courier"><option value="PRIV">PPL Parcel CZ Private</option><option value="BUSS">PPL Parcel CZ Business</option></select></div>
       <div class="form-group ppl-s3"><div class="form-label">Firmám (s IČO) posílat jako</div>
         <select class="form-input" id="pset-courier-b2b"><option value="BUSS">PPL Parcel CZ Business</option><option value="PRIV">PPL Parcel CZ Private</option></select></div>
+      <div class="ppl-sec">Adresář příjemců (pro „PPL mimo e‑shop“)</div>
+      <div class="ppl-s6" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span>V adresáři: <b id="pset-adr-n">—</b></span>
+        <button class="btn btn-sm" onclick="document.getElementById('pset-adr-file').click()">Nahrát export z PPL (CSV)…</button>
+        <input type="file" id="pset-adr-file" accept=".csv,text/csv" style="display:none" onchange="pplImportAdresar(this)">
+        <span class="ppl-hint">klient.ppl.cz → Adresář → Export. Stejné kontakty se aktualizují, nové přibudou.</span>
+      </div>
+      <div class="ppl-s6" id="pset-adr-msg"></div>
       <div class="ppl-sec">Přístup k PPL</div>
       <div class="form-group ppl-s3"><div class="form-label">PIN (PPL_APP_PIN)</div><input class="form-input" id="pset-pin" type="password" autocomplete="off"></div>
       <div class="form-group ppl-s3" style="justify-content:flex-end"><button class="btn" onclick="testPpl()">Otestovat spojení s PPL</button></div>
@@ -1363,6 +1384,7 @@ async function initSupabase(url, key, ejsService, ejsKey) {
     document.getElementById('app-layout').classList.remove('hidden');
     checkAuthor();
     await loadOrders();
+    loadPplMimo().then(() => renderOrders()).catch(() => {});
     setupRealtime();
     // Sync hned po načtení (5s zpoždění aby se UI stihlo vykreslit) + každou hodinu
     setTimeout(() => syncFromEshop(true), 5000);
@@ -3160,6 +3182,8 @@ function pplSetupIssues() {
 async function openPplModal(ids) {
   if (!ids.length) return;
   await loadPplSettings();
+  pplMimoMode = false;
+  document.getElementById('ppl-adr').innerHTML = '';
   pplDrafts = ids.map(id => orders.find(o => o.id === id)).filter(Boolean).map(pplDraftFromOrder);
   pplDrafts.forEach(d => { if (orders.find(o => o.id === d.orderId)?.ppl?.shipments?.length) d.on = false; });
   if (pplDrafts.length === 1) { pplDrafts[0].open = true; pplDrafts[0].on = true; }
@@ -3273,14 +3297,14 @@ function pplRowHtml(d, i) {
     <div class="ppl-row-head" onclick="pplToggleOpen(${i})">
       <input type="checkbox" ${d.on && !d.done ? 'checked' : ''} ${d.done ? 'disabled' : ''} onclick="event.stopPropagation();pplToggleOn(${i},this.checked)" title="Tisknout tuto zásilku">
       <div class="ppl-row-main">
-        <div class="ppl-row-name">${escHtml(f.name || '—')} <span>#${escHtml(o.order_number || '')}</span></div>
+        <div class="ppl-row-name">${escHtml(f.name || (d.mimo ? 'Nový příjemce' : '—'))} <span>${d.mimo ? 'mimo e‑shop' : '#' + escHtml(o.order_number || '')}</span></div>
         <div class="ppl-row-desc" id="ppl-desc-${i}">${escHtml(pplDesc(f))}</div>
       </div>
       <span id="ppl-state-${i}">${pplRowState(d)}</span>
       <span class="ppl-row-edit">${d.done ? '' : open ? 'Zavřít ▲' : 'Upravit ▼'}</span>
     </div>
     ${open ? `<div class="ppl-row-body">
-      <div class="ppl-hint" style="margin-bottom:8px">Objednáno v e-shopu: ${escHtml(o.shipping_method || '—')} · ${escHtml(o.payment_method || '—')} · ${orderTotal(o).toLocaleString('cs-CZ', { minimumFractionDigits: 2 })} Kč</div>
+      ${d.mimo ? '<div class="ppl-hint" style="margin-bottom:8px">Zásilka mimo e‑shop – bez objednávky. Uloží se do přehledu Zásilky PPL.</div>' : `<div class="ppl-hint" style="margin-bottom:8px">Objednáno v e-shopu: ${escHtml(o.shipping_method || '—')} · ${escHtml(o.payment_method || '—')} · ${orderTotal(o).toLocaleString('cs-CZ', { minimumFractionDigits: 2 })} Kč</div>`}
       <div class="ppl-q">Jak doručit?</div>
       <div class="ppl-choice">${radio('base', 'SMAR', 'Na výdejní místo PPL')}${radio('base', 'PRIV', 'Kurýrem domů')}${radio('base', 'BUSS', 'Kurýrem do firmy')}</div>
       ${f.base === 'SMAR' ? `<div class="ppl-grid" style="margin-top:8px">${inp('parcelShop', 'Kód výdejního místa', 'ppl-s2', 'placeholder="např. KM10625751"')}<div class="ppl-hint ppl-s4" style="align-self:end;padding-bottom:6px">Kód je v e-shopu v hranaté závorce u dopravy.</div></div>` : ''}
@@ -3385,6 +3409,16 @@ async function submitPpl() {
       const it = items.find(x => String(x.referenceId) === d.f.ref.trim());
       if (!it || it.importState !== 'Complete') { failed.push({ d, it }); continue; }
       const nums = [it.shipmentNumber, ...(it.relatedItems || []).filter(r => r.relationType !== 'Dormant').map(r => r.shipmentNumber)].filter(Boolean);
+      if (d.mimo) {   // zásilka bez objednávky → tabulka ppl_zasilky_mimo
+        const ppl = { env, batchId, shipments: nums, productType: shipments[k].productType, position: startPos, createdAt: now, by: author, request: shipments[k], history: [] };
+        const { data: ins, error } = await db.from('ppl_zasilky_mimo').insert({ created_by: author, prijemce: shipments[k].recipient, ppl }).select().single();
+        if (error) failed.push({ d, it, saveErr: error.message + ' — zásilka u PPL VZNIKLA (' + nums.join(', ') + '), jen se neuložila do appky.' });
+        else pplMimo.unshift(ins);
+        d.done = nums; d.on = false; d.open = false;
+        okNums.push(...nums);
+        okLabels += parseInt(d.f.count) || 1;
+        continue;
+      }
       const o = orders.find(x => x.id === d.orderId);
       const prev = o?.ppl?.shipments?.length ? [...(o.ppl.history || []), { ...o.ppl, history: undefined }] : (o?.ppl?.history || []);
       const ppl = { env, batchId, shipments: nums, productType: shipments[k].productType, position: startPos, createdAt: now, by: author, request: shipments[k], history: prev };
@@ -3475,6 +3509,169 @@ async function pplCancelCurrent() {
   } catch (e) { toast('Storno se nepovedlo: ' + e.message, 'error'); }
 }
 
+// ─── PPL MIMO E-SHOP (zásilka bez objednávky, příjemce z adresáře PPL) ─────
+let pplAdresar = null;
+let pplMimo = [];          // zásilky mimo e-shop (tabulka ppl_zasilky_mimo)
+let pplMimoMode = false;
+const bezDiakr = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+async function loadPplMimo() {
+  const { data } = await db.from('ppl_zasilky_mimo').select('*').order('created_at', { ascending: false });
+  pplMimo = data || [];
+}
+async function loadAdresar(force) {
+  if (pplAdresar && !force) return pplAdresar;
+  const all = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db.from('ppl_adresar').select('*').order('nazev').range(from, from + 999);
+    if (error) { window._pplAdrErr = error.message; break; }
+    all.push(...data);
+    if (data.length < 1000) break;
+  }
+  pplAdresar = all;
+  return all;
+}
+function pplDraftPrazdny(k) {
+  const d = new Date();
+  const ref = 'M' + d.toISOString().slice(2, 19).replace(/\D/g, '');   // jedinečná reference, např. M261006143512
+  return {
+    orderId: null, mimo: true, on: true, open: true, done: null, adresarId: k?.id || null,
+    f: {
+      base: pplSettings.courierB2b, cod: false, codPrice: '', vs: '', parcelShop: '',
+      name: k?.nazev || '', contact: k?.kontakt || '', street: k?.ulice || '', city: k?.mesto || '',
+      zip: String(k?.psc || '').replace(/\s/g, ''), country: k?.zeme || 'CZ',
+      phone: pplPhone(k?.telefon), email: k?.email || '', count: 1, weight: '', note: '', ref,
+    },
+  };
+}
+async function openPplMimo() {
+  await loadPplSettings();
+  pplMimoMode = true;
+  pplDrafts = [pplDraftPrazdny()];
+  try { pplPos = parseInt(localStorage.getItem('ppl_next_pos')) || 1; } catch (e) { pplPos = 1; }
+  pplLastPdf = '';
+  pplMsg('', '');
+  document.getElementById('ppl-adr').innerHTML = `<div class="ppl-adr-box">
+    <div class="form-label" style="margin-bottom:4px">Komu posíláš? Najdi v adresáři PPL</div>
+    <input class="form-input" id="ppl-adr-q" placeholder="Firma, město, kontaktní osoba nebo telefon…" oninput="pplAdrHledat(this.value)" autocomplete="off">
+    <div id="ppl-adr-hits"></div>
+    <div class="ppl-hint" style="margin-top:4px">Nebo vyplň příjemce ručně níže. Adresář: <span id="ppl-adr-n">načítám…</span></div></div>`;
+  renderPpl();
+  document.getElementById('ppl-modal').classList.add('active');
+  setTimeout(() => document.getElementById('ppl-adr-q')?.focus(), 100);
+  pplCheckEnv();
+  const a = await loadAdresar();
+  document.getElementById('ppl-adr-n').textContent = window._pplAdrErr ? 'nejde načíst (' + window._pplAdrErr + ')' : a.length + ' kontaktů (nový export z PPL nahraješ v Nastavení → PPL štítky)';
+}
+function pplAdrHledat(q) {
+  const el = document.getElementById('ppl-adr-hits');
+  const slova = bezDiakr(q).split(/\s+/).filter(Boolean);
+  if (!slova.length || !pplAdresar) { el.innerHTML = ''; return; }
+  const hits = pplAdresar.filter(k => { const t = bezDiakr([k.nazev, k.mesto, k.ulice, k.kontakt, k.telefon, k.email, k.psc].join(' ')); return slova.every(s => t.includes(s)); }).slice(0, 8);
+  el.innerHTML = hits.length ? `<div class="ppl-adr-hits">${hits.map(k => `<button onclick="pplVybratKontakt('${k.id}')"><b>${escHtml(k.nazev)}</b><span>${escHtml([k.ulice, [k.psc, k.mesto].filter(Boolean).join(' ')].filter(Boolean).join(', '))}${k.kontakt ? ' · ' + escHtml(k.kontakt) : ''}${k.telefon ? ' · ' + escHtml(k.telefon) : ''}</span></button>`).join('')}</div>`
+    : '<div class="ppl-hint" style="padding:6px 2px">Nic nenalezeno – vyplň příjemce ručně.</div>';
+}
+function pplVybratKontakt(id) {
+  const k = (pplAdresar || []).find(x => x.id === id);
+  if (!k) return;
+  const i = pplDrafts.findIndex(d => !d.done);
+  const nove = pplDraftPrazdny(k);
+  if (i >= 0) { nove.f.base = pplDrafts[i].f.base; pplDrafts[i] = nove; } else pplDrafts.push(nove);
+  document.getElementById('ppl-adr-q').value = '';
+  document.getElementById('ppl-adr-hits').innerHTML = '';
+  renderPpl();
+}
+
+// nahrání nového exportu adresáře z klient.ppl.cz (CSV ve Windows-1250, oddělovač ;)
+function pplCsvRadky(text) {
+  const out = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; } else if (c === '"') q = false; else cell += c; }
+    else if (c === '"') q = true;
+    else if (c === ';') { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cell); out.push(row); row = []; cell = ''; }
+    else cell += c;
+  }
+  if (cell || row.length) { row.push(cell); out.push(row); }
+  return out.filter(r => r.some(x => x.trim()));
+}
+async function pplImportAdresar(input) {
+  const f = input.files?.[0]; input.value = '';
+  if (!f) return;
+  const msg = document.getElementById('pset-adr-msg');
+  try {
+    const buf = await f.arrayBuffer();
+    // export z PPL bývá ve Windows-1250; když to není platné UTF-8, přečte se tak
+    let text = new TextDecoder('utf-8').decode(buf);
+    if (text.includes('\uFFFD')) text = new TextDecoder('windows-1250').decode(buf);
+    text = text.replace(/^\uFEFF/, '');
+    const radky = pplCsvRadky(text);
+    const hl = radky.shift().map(h => h.trim().toUpperCase());
+    const ix = n => hl.indexOf(n);
+    if (ix('ZAKAZNIK_ID') < 0 || ix('NAZEV') < 0) throw new Error('Tohle není export adresáře z PPL (chybí sloupce ZAKAZNIK_ID / NAZEV).');
+    const val = (r, n) => (ix(n) >= 0 ? (r[ix(n)] || '').trim() : '') || null;
+    const map = {};
+    radky.forEach(r => {
+      const id = val(r, 'ZAKAZNIK_ID'); if (!id || !val(r, 'NAZEV')) return;
+      map[id] = { ppl_id: id, nazev: val(r, 'NAZEV'), ulice: val(r, 'ULICE_CP'), mesto: val(r, 'MESTO'), psc: (val(r, 'PSC') || '').replace(/\s/g, '') || null, zeme: val(r, 'ZEME') || 'CZ', email: val(r, 'EMAIL'), telefon: val(r, 'TELEFON'), kontakt: val(r, 'KONTAKTNI_OS'), poznamka: val(r, 'POZNAMKA') || val(r, 'POZNAMKA_TISK'), updated_at: new Date().toISOString() };
+    });
+    const data = Object.values(map);
+    for (let i = 0; i < data.length; i += 300) {
+      const { error } = await db.from('ppl_adresar').upsert(data.slice(i, i + 300), { onConflict: 'ppl_id' });
+      if (error) throw new Error(error.message);
+    }
+    await loadAdresar(true);
+    msg.innerHTML = `<div class="ppl-info ok">✓ Nahráno ${data.length} kontaktů. V adresáři je teď ${pplAdresar.length} kontaktů.</div>`;
+  } catch (e) {
+    msg.innerHTML = `<div class="ppl-info err">Nahrání se nepovedlo: ${escHtml(e.message)}</div>`;
+  }
+}
+async function pplAdresarInfo() {
+  const el = document.getElementById('pset-adr-n');
+  if (!el) return;
+  const { count } = await db.from('ppl_adresar').select('*', { count: 'exact', head: true });
+  el.textContent = count != null ? count + ' kontaktů' : '—';
+}
+
+// storno a znovu-tisk přímo z přehledu Zásilky PPL (objednávky i mimo e-shop)
+async function zasStorno(cislo) {
+  const r = zasRadky().find(x => x.cislo === cislo && !x.z.cancelledAt);
+  if (!r) return;
+  if (!confirm(`Stornovat PPL zásilku ${r.z.shipments.join(', ')}?\n\nJde jen u balíku, který ještě nepřevzal řidič PPL.`)) return;
+  try {
+    for (const n of r.z.shipments) await pplCall('cancel', { shipmentNumber: n });
+    const p = r.src.ppl;
+    const ppl = { history: [...(p.history || []), { ...p, history: undefined, cancelledAt: new Date().toISOString(), cancelledBy: author }] };
+    if (r.mimo) {
+      const { error } = await db.from('ppl_zasilky_mimo').update({ ppl }).eq('id', r.src.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await db.from('orders').update({ ppl }).eq('id', r.o.id);
+      if (error) throw new Error(error.message);
+      await db.from('order_activity').insert({ order_id: r.o.id, action: 'ppl_cancel', details: { shipment: r.z.shipments.join(', ') }, author });
+    }
+    r.src.ppl = ppl;
+    toast('Zásilka stornována', 'success');
+    renderZasilky(); renderOrders();
+    if (currentOrder && currentOrder.id === r.o.id) renderPanelOverview();
+  } catch (e) { toast('Storno se nepovedlo: ' + e.message, 'error'); }
+}
+async function zasTisk(cislo) {
+  const r = zasRadky().find(x => x.cislo === cislo);
+  if (!r?.z.batchId) return;
+  let def = 1; try { def = parseInt(localStorage.getItem('ppl_next_pos')) || 1; } catch (e) {}
+  const pos = parseInt(prompt('Na kterou pozici archu A4 tisknout? (1–4)', def));
+  if (!(pos >= 1 && pos <= 4)) return;
+  const win = window.open('', '_blank');
+  try {
+    const lab = await pplCall('label', { batchId: r.z.batchId, position: pos });
+    const bytes = Uint8Array.from(atob(lab.pdf), c => c.charCodeAt(0));
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+    if (win) win.location.href = url; else window.open(url, '_blank');
+  } catch (e) { if (win) win.close(); toast('PPL: ' + e.message, 'error'); }
+}
+
 // ─── ZÁSILKY PPL (přehled všech zásilek + stav přímo od PPL) ───────────────
 let zasStav = {};          // číslo zásilky → odpověď PPL (sledování)
 let zasFiltr = 'vse';
@@ -3490,7 +3687,15 @@ function zasRadky() {
     const zaznamy = [...(p.shipments?.length ? [{ ...p, history: undefined }] : []), ...(p.history || [])];
     zaznamy.forEach(z => {
       if (!z.shipments?.length) return;
-      rows.push({ o, z, cislo: z.shipments[0] });
+      rows.push({ o, z, cislo: z.shipments[0], src: o });
+    });
+  });
+  pplMimo.forEach(m => {
+    const p = m.ppl;
+    if (!p) return;
+    const o = { id: null, order_number: null, customer_name: m.prijemce?.name || '' };
+    [...(p.shipments?.length ? [{ ...p, history: undefined }] : []), ...(p.history || [])].forEach(z => {
+      if (z.shipments?.length) rows.push({ o, z, cislo: z.shipments[0], src: m, mimo: true });
     });
   });
   return rows.sort((a, b) => new Date(b.z.createdAt || 0) - new Date(a.z.createdAt || 0));
@@ -3521,6 +3726,7 @@ const ZAS_KAT = {
 
 async function openZasilky() {
   document.getElementById('zas-modal').classList.add('active');
+  await loadPplMimo();
   renderZasilky();
   if (!zasNacteno || Date.now() - zasNacteno > 5 * 60 * 1000) await zasObnovit();
 }
@@ -3575,15 +3781,19 @@ function renderZasilky() {
         <div class="zas-c1"><div class="zas-b">${formatTime(r.z.createdAt)}</div><div class="zas-s">${escHtml(r.z.by || '')}${r.z.env === 'test' ? ' · test' : ''}</div></div>
         <div class="zas-c2"><a class="ppl-box-num" style="font-size:13px" href="${pplTrackUrl(r.cislo)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${escHtml(r.cislo)}</a>
           ${r.z.shipments.length > 1 ? `<div class="zas-s">+ ${r.z.shipments.length - 1} ${r.z.shipments.length === 2 ? 'další balík' : 'další balíky'}</div>` : ''}</div>
-        <div class="zas-c3"><div class="zas-b"><button class="ppl-link" onclick="event.stopPropagation();closeZasilky();openPanel('${r.o.id}')">#${escHtml(r.o.order_number)}</button> ${escHtml(r.o.customer_name || '')}</div><div class="zas-s">${escHtml(dor.typ)}${dor.kam ? ' · ' + escHtml(dor.kam) : ''}</div></div>
+        <div class="zas-c3"><div class="zas-b">${r.mimo ? '<span class="zas-mimo">mimo e‑shop</span>' : `<button class="ppl-link" onclick="event.stopPropagation();closeZasilky();openPanel('${r.o.id}')">#${escHtml(r.o.order_number)}</button>`} ${escHtml(r.o.customer_name || '')}</div><div class="zas-s">${escHtml(dor.typ)}${dor.kam ? ' · ' + escHtml(dor.kam) : ''}</div></div>
         <div class="zas-c4">${cod ? `<b>${Number(cod).toLocaleString('cs-CZ')} Kč</b><div class="zas-s">dobírka</div>` : '<span class="zas-s">bez dobírky</span>'}</div>
-        <div class="zas-c5"><span class="zas-st" style="background:${bg};color:${fg}">${kl}</span>
+        <div class="zas-c5"><span class="zas-st" style="background:${bg};color:${fg}">${kl}</span>${!r.z.cancelledAt && k === 'ceka' ? ` <button class="zas-storno" onclick="event.stopPropagation();zasStorno('${r.cislo}')" title="Stornovat zásilku u PPL">Stornovat</button>` : ''}
           <div class="zas-s">${r.z.cancelledAt ? 'stornoval(a) ' + escHtml(r.z.cancelledBy || '') + ' ' + formatTime(r.z.cancelledAt) : tt.lastEventName ? escHtml(tt.lastEventName) + ' · ' + formatTime(tt.lastEventDate) : ''}</div></div>
       </div>
       ${open ? `<div class="zas-det">
         <div class="zas-det-g">
           <div><div class="delivery-label">Příjemce</div>${escHtml([dor.ps ? (s?.recipient?.name2 || '') : '', r.z.request?.recipient?.name, r.z.request?.recipient?.street, [r.z.request?.recipient?.zipCode, r.z.request?.recipient?.city].filter(Boolean).join(' ')].filter(Boolean).join(', '))}<div class="zas-s">${escHtml([r.z.request?.recipient?.phone, r.z.request?.recipient?.email].filter(Boolean).join(' · '))}</div></div>
           <div><div class="delivery-label">Zásilka</div>${escHtml(r.z.productType || '')}${dor.ps ? ' · výdejní místo ' + escHtml(dor.ps) : ''}${r.z.shipments.length > 1 ? '<br>Balíky: ' + r.z.shipments.map(escHtml).join(', ') : ''}${cod ? `<br>Dobírka ${Number(cod).toLocaleString('cs-CZ')} Kč, VS ${escHtml(r.z.request.cashOnDelivery.codVarSym || '')}` : ''}</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px">
+          ${r.z.batchId && !r.z.cancelledAt ? `<button class="btn btn-sm" onclick="zasTisk('${r.cislo}')">Znovu stáhnout štítek</button>` : ''}
+          ${!r.z.cancelledAt && ['ceka', 'nezname'].includes(k) ? `<button class="btn btn-sm" onclick="zasStorno('${r.cislo}')">Stornovat zásilku</button>` : ''}
         </div>
         <div class="delivery-label" style="margin-top:10px">Historie od PPL</div>
         ${udalosti.length ? `<div class="zas-ev">${udalosti.map(e => `<div><span>${formatTime(e.eventDate || e.date)}</span>${escHtml(e.name || e.eventName || e.code || '')}${e.city ? ' · ' + escHtml(e.city) : ''}</div>`).join('')}</div>` : '<div class="zas-s">Zatím žádné události.</div>'}
@@ -3603,7 +3813,7 @@ function settingsTab(sec) {
   document.querySelectorAll('#set-nav button').forEach(b => b.classList.toggle('on', b.dataset.sec === sec));
   document.querySelectorAll('.set-sec').forEach(el => el.classList.toggle('on', el.id === 'set-' + sec));
   if (sec === 'profile') renderEmailSignaturePreview();
-  if (sec === 'ppl') fillPplSettings();
+  if (sec === 'ppl') { fillPplSettings(); pplAdresarInfo(); }
   if (sec === 'email') {
     const c = { ...DEFAULT_CONFIG, ...getConfig() };
     document.getElementById('set-ejs-service').value = c.emailjsService || '';
