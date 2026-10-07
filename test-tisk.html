@@ -1,0 +1,8 @@
+<!DOCTYPE html><meta charset="utf-8"><title>Test tiskového pomocníka</title>
+<body style="font:16px -apple-system,sans-serif;padding:30px">
+<h2>Test spojení s tiskovým pomocníkem</h2><div id="o">Zkouším…</div>
+<script>
+const o=document.getElementById('o');
+Promise.allSettled([fetch('http://127.0.0.1:5310/ping?safari-ip').then(r=>r.json()),fetch('http://localhost:5310/ping?safari-localhost').then(r=>r.json())])
+.then(r=>o.innerHTML=r.map((x,i)=>(i?'localhost: ':'127.0.0.1: ')+(x.status==='fulfilled'?'✅ funguje – tiskárna '+x.value.tiskarna:'❌ '+x.reason)).join('<br>'));
+</script></body>
