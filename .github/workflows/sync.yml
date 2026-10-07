@@ -1,0 +1,16 @@
+name: Auto Sync z eshopu
+
+on:
+  schedule:
+    - cron: '0 4 * * *'   # 6:00 CET (UTC+2) = 4:00 UTC
+  workflow_dispatch:        # možnost spustit ručně z GitHubu
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync objednávky z eshopu do Supabase
+        run: python3 .github/scripts/sync.py

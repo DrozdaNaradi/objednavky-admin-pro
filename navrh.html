@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="cs" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Návrh 2 – Objednávky</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--red:#e5322d;--blue:#3b82f6;--green:#22c55e;--orange:#f59e0b;--r:10px}
+[data-theme=dark]{--bg:#000;--bg2:#0d0d0f;--card:#1c1c1e;--card2:#2c2c2e;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);--ink:#f5f5f7;--ink2:#d1d1d6;--muted:#8e8e93;--bar:rgba(18,18,20,.72);--sel:rgba(229,50,45,.14);--hover:rgba(255,255,255,.04);--tint-red:rgba(255,69,58,.16);--tint-green:rgba(48,209,88,.15);--tint-orange:rgba(255,159,10,.16);--tint-blue:rgba(59,130,246,.18);--photo:#fff}
+[data-theme=light]{--bg:#f2f2f7;--bg2:#f2f2f7;--card:#fff;--card2:#f2f2f7;--line:rgba(0,0,0,.08);--line2:rgba(0,0,0,.14);--ink:#1c1c1e;--ink2:#3a3a3c;--muted:#8e8e93;--bar:rgba(249,249,251,.8);--sel:rgba(229,50,45,.09);--hover:rgba(0,0,0,.03);--tint-red:#fee2e2;--tint-green:#dcfce7;--tint-orange:#fef3c7;--tint-blue:#dbeafe;--photo:#fff}
+body{font-family:Inter,-apple-system,sans-serif;font-size:13.5px;color:var(--ink);background:var(--bg);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+.note-banner{font-size:11.5px;color:var(--muted);text-align:center;padding:5px;background:var(--bg2);border-bottom:1px solid var(--line)}
+/* top bar */
+.top{height:56px;display:flex;align-items:center;gap:14px;padding:0 18px;background:var(--bar);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.logo{white-space:nowrap;display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;letter-spacing:-.01em}
+.logo span{width:28px;height:28px;border-radius:8px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.seg{display:flex;background:var(--card2);border-radius:9px;padding:2px;gap:2px;margin-left:8px}
+.seg button{white-space:nowrap;border:none;background:none;padding:6px 14px;border-radius:7px;font-weight:600;font-size:13px;color:var(--ink2);display:flex;gap:7px;align-items:center}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.seg .n{font-size:11.5px;background:var(--red);color:#fff;border-radius:10px;padding:0 6px;line-height:17px}
+.seg .n.g{background:var(--card2);color:var(--muted)}
+.srch{margin-left:auto;display:flex;align-items:center;gap:7px;background:var(--card2);border-radius:9px;padding:0 10px;height:32px;flex:0 1 300px;min-width:150px;color:var(--muted)}
+.srch input{border:none;outline:none;background:none;color:var(--ink);font:inherit;flex:1}
+.ib{width:34px;height:34px;border-radius:9px;border:none;background:none;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--ink2);position:relative}
+.ib:hover{background:var(--hover)}
+.ib.plus{background:var(--red);color:#fff}
+.sync{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+.av{width:30px;height:30px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+/* layout */
+.main{display:grid;grid-template-columns:400px minmax(0,1fr);height:calc(100vh - 56px - 25px)}
+.list{border-right:1px solid var(--line);overflow:auto;background:var(--bg2)}
+.grp{padding:16px 16px 6px;font-size:12px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:8px}
+.grp small{font-weight:500}
+.ord{display:flex;gap:12px;padding:12px 16px;margin:0 8px;border-radius:12px;cursor:pointer;position:relative}
+.ord:hover{background:var(--hover)}
+.ord.on{background:var(--sel)}
+.ph3{position:relative;width:58px;height:58px;flex:none}
+.ph3 img{position:absolute;width:46px;height:46px;object-fit:contain;background:var(--photo);border-radius:9px;border:1px solid var(--line)}
+.ph3 img:nth-child(1){left:0;top:0;z-index:3}.ph3 img:nth-child(2){left:8px;top:6px;z-index:2;opacity:.9}.ph3 img:nth-child(3){left:12px;top:12px;z-index:1;opacity:.75}
+.ph3 .more{position:absolute;right:-2px;bottom:-2px;z-index:4;font-size:10.5px;font-weight:700;background:var(--card2);border:1px solid var(--line2);border-radius:8px;padding:0 5px;line-height:16px}
+.ob{flex:1;min-width:0}
+.o1{display:flex;align-items:baseline;gap:8px}.o1 b{font-size:14px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.o1 span{font-weight:600;font-size:13.5px}
+.o2{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.o3{font-size:12px;font-weight:600;margin-top:5px;display:flex;align-items:center;gap:5px}
+.unread{position:absolute;left:4px;top:30px;width:7px;height:7px;border-radius:50%;background:var(--blue)}
+/* detail */
+.det{overflow:auto;padding:22px 28px 40px}
+.dwrap{max-width:980px;margin:0 auto}
+.dh{display:flex;align-items:flex-start;gap:16px}
+.dh h1{font-size:26px;font-weight:700;letter-spacing:-.02em}
+.dh .meta{color:var(--muted);font-size:13px;margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.cp{cursor:pointer;border-bottom:1px dashed transparent}.cp:hover{border-bottom-color:var(--muted)}
+.total{margin-left:auto;text-align:right}.total b{font-size:26px;font-weight:700;letter-spacing:-.02em}.total div{font-size:12.5px;margin-top:3px}
+.more-btn{margin-left:6px}
+/* stepper */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:22px 0 0;position:relative}
+.st{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;position:relative;padding:0 6px}
+.st::before{content:'';position:absolute;top:17px;left:calc(-50% + 22px);right:calc(50% + 22px);height:2px;background:var(--line2)}
+.st:first-child::before{display:none}
+.st.done::before,.st.cur::before{background:var(--green)}
+.st .c{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--card2);color:var(--muted);border:2px solid transparent;z-index:1}
+.st.done .c{background:var(--green);color:#fff}
+.st.cur .c{background:var(--card);border-color:var(--red);color:var(--red)}
+.st b{font-size:13px;font-weight:600}.st.todo b{color:var(--muted)}
+.st small{font-size:11.5px;color:var(--muted)}
+.now{margin-top:16px;background:var(--card);border-radius:14px;padding:18px 20px;display:flex;gap:18px;align-items:center;border:1px solid var(--line)}
+.now .ic{width:46px;height:46px;border-radius:12px;background:var(--tint-red);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+.now h3{font-size:16px;font-weight:600}
+.now p{color:var(--ink2);font-size:13px;margin-top:3px;line-height:1.45}
+.checks{display:flex;gap:14px;margin-top:9px;flex-wrap:wrap}
+.chk{font-size:12.5px;display:flex;align-items:center;gap:5px;font-weight:500}
+.chk.ok{color:var(--green)}.chk.no{color:var(--orange)}
+.acts{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex:none}
+.primary{height:42px;padding:0 20px;border-radius:11px;border:none;background:var(--red);color:#fff;font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.primary:hover{filter:brightness(1.08)}
+.link{border:none;background:none;color:var(--blue);font-size:12.5px;font-weight:500}
+/* sections */
+.sec{margin-top:26px}
+.sh{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.sh h2{font-size:15px;font-weight:600}
+.sh span{font-size:12.5px;color:var(--muted)}
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.it{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.it .img{background:var(--photo);height:150px;position:relative;display:flex;align-items:center;justify-content:center}
+.it .img img{max-width:86%;max-height:86%;object-fit:contain}
+.qty{position:absolute;left:10px;top:10px;background:rgba(0,0,0,.78);color:#fff;font-weight:700;font-size:13px;border-radius:8px;padding:2px 8px}
+.stock{position:absolute;right:10px;top:10px;font-size:11.5px;font-weight:600;border-radius:7px;padding:3px 8px}
+.stock.ok{background:#dcfce7;color:#166534}.stock.no{background:#fef3c7;color:#92400e}.stock.ord{background:#dbeafe;color:#1e40af}
+.it .tx{padding:11px 13px 13px;display:flex;flex-direction:column;gap:4px;flex:1}
+.it .nm{font-size:13px;font-weight:500;line-height:1.35}
+.it .row{display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:6px}
+.it .code{font-size:12px;color:var(--muted);font-family:ui-monospace,monospace}
+.it .pr{margin-left:auto;font-weight:600}
+.it .miss{border:none;background:var(--tint-orange);color:var(--orange);font-size:12px;font-weight:600;border-radius:8px;padding:6px 9px;margin-top:6px;text-align:left;display:flex;gap:6px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 0}
+.li{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:none}
+.li i{font-size:18px;color:var(--muted);width:20px;text-align:center}
+.li .k{font-size:11.5px;color:var(--muted)}.li .v{font-size:13.5px}
+.li .copy{margin-left:auto;opacity:0;color:var(--muted);font-size:15px}.li:hover .copy{opacity:1}
+.li.click{cursor:pointer}.li.click:hover{background:var(--hover)}
+/* feed */
+.feed{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.ev{display:flex;gap:11px;padding:8px 0}
+.ev .a{width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.ev .b{flex:1;font-size:13px;line-height:1.45}
+.ev .b small{color:var(--muted);font-size:11.5px;display:block}
+.ev .bub{background:var(--card2);border-radius:12px;padding:8px 11px;display:inline-block;margin-top:3px}
+.ev .mail{border:1px solid var(--line2);border-radius:12px;padding:8px 11px;margin-top:3px;display:inline-block}
+.compose{margin-top:10px;border:1px solid var(--line2);border-radius:13px;overflow:hidden}
+.ctabs{display:flex;border-bottom:1px solid var(--line)}
+.ctabs button{flex:1;border:none;background:none;padding:9px;font-size:12.5px;font-weight:600;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px}
+.ctabs button.on{color:var(--ink);box-shadow:inset 0 -2px 0 var(--red)}
+.tpls{display:flex;gap:6px;padding:10px 12px 0;flex-wrap:wrap}
+.tpl{border:1px solid var(--line2);background:none;border-radius:16px;padding:5px 11px;font-size:12px;font-weight:500}
+.tpl:hover{background:var(--hover)}
+.compose textarea{width:100%;border:none;outline:none;background:none;color:var(--ink);font:inherit;padding:12px;min-height:64px;resize:vertical}
+.cfoot{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line)}
+.cfoot .hint{font-size:11.5px;color:var(--muted)}
+.send{margin-left:auto;height:32px;padding:0 14px;border:none;border-radius:9px;background:var(--ink);color:var(--bg);font-weight:600;font-size:13px}
+/* menus, tips, overlay */
+.menu{position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--line2);border-radius:13px;padding:6px;min-width:280px;z-index:50;box-shadow:0 18px 40px rgba(0,0,0,.35);display:none}
+.menu.open{display:block}
+.menu button{display:flex;gap:11px;width:100%;border:none;background:none;padding:9px 10px;border-radius:9px;text-align:left;align-items:flex-start}
+.menu button:hover{background:var(--hover)}
+.menu i{font-size:18px;color:var(--muted);margin-top:1px}.menu b{font-weight:600;font-size:13px;display:block}.menu small{font-size:11.5px;color:var(--muted);display:block;line-height:1.35}
+.menu hr{border:none;border-top:1px solid var(--line);margin:4px 6px}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;top:calc(100% + 7px);left:50%;transform:translateX(-50%);background:#2c2c2e;color:#f5f5f7;font-size:11.5px;font-weight:500;line-height:1.4;padding:6px 9px;border-radius:7px;white-space:pre-line;width:max-content;max-width:230px;z-index:60;pointer-events:none;text-align:left}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--card2);color:var(--ink);padding:9px 16px;border-radius:12px;font-weight:500;opacity:0;transition:.2s;border:1px solid var(--line2)}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:80}
+.ov.open{display:flex}
+.help{background:var(--card);border-radius:18px;padding:26px 28px;width:640px;max-width:92vw;border:1px solid var(--line2)}
+.help h2{font-size:20px;font-weight:700}
+.hs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+.hs div{background:var(--card2);border-radius:12px;padding:12px}
+.hs i{font-size:22px;color:var(--red)}.hs b{display:block;margin:6px 0 3px;font-size:13px}.hs p{font-size:12px;color:var(--ink2);line-height:1.45}
+.hl{margin-top:16px;font-size:12.5px;color:var(--ink2);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="note-banner">Návrh 2 · klikací náhled s vymyšlenými zákazníky a skutečnými fotkami produktů · nic se neukládá · zkus: vybrat objednávku, hlavní tlačítko, ⋯, + a „Jak to funguje“</div>
+<div class="top">
+  <div class="logo"><span><i class="ti ti-package"></i></span>Objednávky</div>
+  <div class="seg" id="tabs">
+    <button class="on" data-tip="Vše, co je potřeba vyřídit –&#10;seřazené podle toho, co je na řadě">K vyřízení <span class="n">6</span></button>
+    <button data-tip="Hotové objednávky, odeslané zákazníkům">Odesláno <span class="n g">272</span></button>
+    <button data-tip="Všechny PPL zásilky a jejich stav&#10;přímo od PPL (na cestě, doručeno…)">Zásilky PPL <span class="n g">3</span></button>
+  </div>
+  <div class="srch"><i class="ti ti-search"></i><input placeholder="Hledat zákazníka, číslo nebo produkt"></div>
+  <div class="sync" data-tip="Nové objednávky z e-shopu se stahují samy.&#10;Kliknutím stáhneš hned." style="position:relative;cursor:pointer"><span class="dot" style="background:var(--green)"></span>Aktuální · 17:36</div>
+  <button class="ib" id="helpbtn" data-tip="Jak to funguje – 4 kroky objednávky"><i class="ti ti-help-circle"></i></button>
+  <div style="position:relative"><button class="ib plus" id="plusbtn" data-tip="Vytvořit…"><i class="ti ti-plus"></i></button>
+    <div class="menu" id="plusmenu">
+      <button><i class="ti ti-file-plus"></i><div><b>Ruční objednávka</b><small>Objednávka z telefonu nebo prodejny, mimo e‑shop</small></div></button>
+      <button><i class="ti ti-truck"></i><div><b>Zásilka PPL bez objednávky</b><small>Poslat balík firmě z adresáře PPL</small></div></button>
+      <hr><button><i class="ti ti-printer"></i><div><b>Vytisknout všechny štítky</b><small>Štítky PPL pro všechny objednávky připravené k zabalení</small></div></button>
+    </div></div>
+  <button class="ib" id="themebtn" data-tip="Světlý / tmavý vzhled"><i class="ti ti-sun"></i></button>
+  <button class="ib" data-tip="Nastavení – podpis, PPL, emaily, fotky"><i class="ti ti-settings"></i></button>
+  <div class="av" data-tip="Robert Klat – tvoje jméno u poznámek" style="position:relative">R</div>
+</div>
+<div class="main">
+  <div class="list" id="list"></div>
+  <div class="det"><div class="dwrap" id="det"></div></div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="ov" id="help"><div class="help">
+  <h2>Jak to funguje</h2>
+  <p style="color:var(--muted);margin-top:4px">Každá objednávka projde čtyřmi kroky. Appka vždy ukáže, co je na řadě, a nabídne na to jedno tlačítko.</p>
+  <div class="hs">
+    <div><i class="ti ti-inbox"></i><b>1 · Přijato</b><p>Přišla z e‑shopu. Zkontroluj platbu a sklad.</p></div>
+    <div><i class="ti ti-packages"></i><b>2 · Připravit zboží</b><p>Vychystej podle fotek. Co chybí, objednej – zákazník dostane email.</p></div>
+    <div><i class="ti ti-tag"></i><b>3 · Zabalit a štítek</b><p>Vytiskni štítek PPL (A4, 4 na arch) a nalep na balík.</p></div>
+    <div><i class="ti ti-send"></i><b>4 · Odesláno</b><p>Zákazník dostane email se sledováním (a fakturou).</p></div>
+  </div>
+  <p class="hl">Všechno ostatní – tisk objednávky, storno zásilky, historie – najdeš pod <b>⋯</b> vpravo nahoře v objednávce. Kliknutím na jakýkoliv údaj zákazníka ho zkopíruješ.</p>
+  <div style="text-align:right;margin-top:16px"><button class="primary" style="display:inline-flex" onclick="document.getElementById('help').classList.remove('open')">Rozumím</button></div>
+</div></div>
+
+<script>
+const P = {
+  krytka:['Milwaukee DSG125 Kryt pro odsávání prachu','4932499769','https://www.drozda-naradi.cz/fotky92438/fotos/feed_images/_vyr_17352_4932499769--Hero_1.jpg',2866],
+  karabina:['Milwaukee Držák bitů na karabině','4932502117','https://www.drozda-naradi.cz/fotky92438/fotos/feed_images/_vyr_17825_4932502117-1.jpg',496],
+  svetlo:['Milwaukee M18 HOAL-0 Svítilna 4000 lm','4933478118','https://www.drozda-naradi.cz/fotky92438/fotos/M18_HOAL-0--Hero_1-milwaukee-drozda-naradi-bigg.jpg',6038],
+  kladivo:['ToughBuilt Držák na kladivo na opasek','TB-52','https://www.drozda-naradi.cz/fotky92438/fotos/_vyr_15220_TB-52_Front.jpg',212],
+  opasek:['ToughBuilt Pracovní opasek – ClipTech','TB-CT-42','https://www.drozda-naradi.cz/fotky92438/fotos/_vyr_15212_TB-CT-42_Front.jpg',273],
+  kolena:['ToughBuilt Chrániče kolen GelFit','TB-KP-G3','https://www.drozda-naradi.cz/fotky92438/fotos/_vyr_15157_TB-KP-G3_Hero.jpg',2178],
+  pouzdro:['ToughBuilt Velké pouzdro na aku vrtačku','TB-CT-20-L','https://www.drozda-naradi.cz/fotky92438/fotos/feed_images/_vyr_15190_9d3b9e36407c58a273a675ddca619a35_1.jpg',842],
+  mazani:['Milwaukee M12 GG-0 Mazací pistole','4933440435','https://www.drozda-naradi.cz/fotky92438/fotos/M12_GG-0--Hero_1-milwaukee-drozda-naradi-big.jpg',5154],
+  pila:['Milwaukee M18 FTPS30-0 Vyvětvovací pila','4933480868','https://www.drozda-naradi.cz/fotky92438/fotos/_vyr_14679_M18_FTPS30-0--Hero_1.jpg',22233],
+  zebrik:['Little Giant Jumbo Step 3','11903EN','https://www.drozda-naradi.cz/fotky92438/fotos/feed_images/_vyr_17060_11903EN-jumpo-step-3-hero.jpg',5855],
+  tuzka:['Milwaukee stavební tužka ⌀2,8 mm','4932501903','https://www.drozda-naradi.cz/fotky92438/fotos/4932501156--Hero_1.jpg',327],
+  fix:['Milwaukee INKZALL popisovač','4932501154','https://www.drozda-naradi.cz/fotky92438/fotos/4932501154--Hero_1.jpg',115],
+};
+// step: 0 přijato, 1 připravit, 2 zabalit+štítek, 3 odesláno
+const O = [
+  {id:1, name:'Tomáš Černý', no:'21241517', ago:'před 12 min', step:0, unread:true, paid:true, pay:'Zaplaceno QR platbou', ship:'PPL výdejní místo', place:'AlzaBox 106, U Stadionu 1, Bystřice', adr:'U Stadionu 1, 257 51 Bystřice', mail:'tomas@example.cz', tel:'797 000 337', items:[['kladivo',2,'ok','Skladem 2 ks']], total:'522,70 Kč', feed:[]},
+  {id:2, name:'Stavby Malý s.r.o.', no:'09251518', ago:'před 2 h', step:0, unread:true, paid:false, pay:'Čeká na platbu QR kódem', ship:'PPL kurýr', place:'', adr:'Nádražní 88, 251 01 Říčany', mail:'info@example.cz', tel:'724 555 222', firm:'IČO 12345678', items:[['svetlo',1,'ok','Skladem 1 ks'],['krytka',1,'no','Není skladem']], total:'8 904,00 Kč', feed:[]},
+  {id:3, name:'Jan Novák', no:'15181512', ago:'včera', step:1, paid:true, cod:true, pay:'Dobírka 8 421 Kč', ship:'PPL kurýr', place:'', adr:'Lipová 12, 370 01 České Budějovice', mail:'jan.novak@example.cz', tel:'777 123 456', items:[['mazani',1,'ok','Skladem 1 ks'],['pila',1,'ord','Objednáno u dodavatele'],['tuzka',3,'ok','Skladem 22 ks']], total:'28 368,00 Kč', feed:[['E','Eva','Včera 10:24','note','Organizér dorazí ve čtvrtek, zákazník souhlasí.'],['E','Eva','Včera 10:20','mail','Objednávka 15181512 – část zboží objednáváme u dodavatele']]},
+  {id:4, name:'Marie Dvořáková', no:'14371516', ago:'včera', step:1, paid:true, pay:'Zaplaceno převodem', ship:'PPL výdejní místo', place:'ParcelShop Dolní Podluží 507', adr:'Dolní Podluží 507, 407 55', mail:'marie@example.cz', tel:'731 222 333', items:[['kladivo',1,'ok','Skladem'],['opasek',1,'ok','Skladem'],['kolena',1,'ok','Skladem'],['pouzdro',1,'ok','Skladem']], total:'3 504,00 Kč', feed:[]},
+  {id:5, name:'Petr Svoboda', no:'27387000', ago:'2 dny', step:2, paid:true, pay:'Zaplaceno převodem', ship:'PPL kurýr', place:'', adr:'Hlavní 4, 252 19 Rudná', mail:'petr@example.cz', tel:'602 000 111', items:[['zebrik',1,'ok','Skladem'],['fix',4,'ok','Skladem']], total:'6 315,00 Kč', feed:[['O','Oto','Pondělí 9:12','note','Zabalit do velké krabice, žebřík zvlášť.']]},
+  {id:6, name:'Lucie Králová', no:'14081520', ago:'3 dny', step:2, paid:true, pay:'Zaplaceno kartou', ship:'PPL kurýr', place:'', adr:'Polní 1, 267 51 Zdice', mail:'lucie@example.cz', tel:'774 000 778', items:[['karabina',2,'ok','Skladem'],['pouzdro',1,'ok','Skladem']], total:'1 834,00 Kč', ppl:'81094000386', feed:[['R','Robert','Pondělí 14:14','sys','Vytvořen štítek PPL 81094000386']]},
+];
+const STEPS = [
+  {t:'Přijato', i:'ti-inbox'}, {t:'Připravit zboží', i:'ti-packages'}, {t:'Zabalit a štítek', i:'ti-tag'}, {t:'Odesláno', i:'ti-send'},
+];
+let SEL = 1;
+const $ = s => document.querySelector(s);
+const photo = k => P[k][2];
+function hint(o){
+  if (o.step===0) return o.paid ? (o.items.some(i=>i[2]==='no') ? ['var(--orange)','ti-alert-circle','Něco není skladem'] : ['var(--green)','ti-circle-check','Zaplaceno a skladem – můžeš začít']) : ['var(--orange)','ti-clock','Čeká na platbu'];
+  if (o.step===1) return o.items.some(i=>i[2]==='ord') ? ['var(--blue)','ti-truck-loading','Čeká na zboží od dodavatele'] : ['var(--ink2)','ti-packages','Vychystat zboží'];
+  if (o.step===2) return o.ppl ? ['var(--blue)','ti-send','Štítek hotový – předat PPL'] : ['var(--red)','ti-tag','Vytisknout štítek PPL'];
+  return ['var(--green)','ti-check','Odesláno'];
+}
+function list(){
+  const groups = [[0,'Nové','zkontroluj platbu a sklad'],[1,'Připravit zboží','vychystat podle fotek'],[2,'Zabalit a poslat','štítek PPL a email']];
+  $('#list').innerHTML = groups.map(([s,t,sub]) => {
+    const rows = O.filter(o=>o.step===s); if(!rows.length) return '';
+    return `<div class="grp">${t} · ${rows.length} <small>– ${sub}</small></div>` + rows.map(o => {
+      const h = hint(o);
+      const ph = o.items.slice(0,3).map(i=>`<img src="${photo(i[0])}" alt="">`).join('');
+      const cnt = o.items.reduce((a,i)=>a+i[1],0);
+      return `<div class="ord ${o.id===SEL?'on':''}" onclick="pick(${o.id})">${o.unread?'<span class="unread"></span>':''}
+        <div class="ph3">${ph}${o.items.length>3?`<span class="more">+${o.items.length-3}</span>`:''}</div>
+        <div class="ob"><div class="o1"><b>${o.name}</b><span>${o.total}</span></div>
+        <div class="o2">${cnt} ${cnt===1?'kus':cnt<5?'kusy':'kusů'} · ${o.ship} · ${o.ago}</div>
+        <div class="o3" style="color:${h[0]}"><i class="ti ${h[1]}"></i>${h[2]}</div></div></div>`;
+    }).join('');
+  }).join('');
+}
+function nowBox(o){
+  const miss = o.items.filter(i=>i[2]==='no'), ord = o.items.filter(i=>i[2]==='ord');
+  if (o.step===0) return {ic:'ti-inbox', h:'Zkontroluj a začni připravovat', p:'Objednávka právě přišla z e‑shopu. Až je zaplacená a zboží je skladem, klikni na „Začít připravovat“ – kolegové uvidí, že na ní pracuješ.',
+    checks:[[o.paid,o.paid?'Zaplaceno':o.pay],[!miss.length, miss.length?`${miss.length} položka není skladem`:'Vše skladem']], btn:['ti-player-play','Začít připravovat'], sec: miss.length?['Objednat chybějící u dodavatele a dát vědět zákazníkovi']:[]};
+  if (o.step===1) return {ic:'ti-packages', h:ord.length?'Čekáme na zboží od dodavatele':'Vychystej zboží podle fotek', p:ord.length?'Zákazník už ví, že část zboží objednáváme. Až dorazí, odškrtni ho a pokračuj.':'Najdi zboží na skladě podle fotek níže. Až máš vše u sebe, pokračuj na zabalení.',
+    checks:[[!ord.length, ord.length?`${ord.length} položka čeká na dodavatele`:'Vše připraveno'],[true,'Zákazník informován']], btn:['ti-arrow-right','Vše mám – zabalit'], sec:[]};
+  if (o.step===2) return o.ppl ? {ic:'ti-send', h:'Předej balík PPL a dej vědět zákazníkovi', p:`Štítek ${o.ppl} je vytištěný. Až si balík vyzvedne řidič, pošli zákazníkovi email se sledováním – objednávka se tím označí jako odeslaná.`,
+    checks:[[true,'Štítek PPL'],[false,'Email se sledováním']], btn:['ti-mail','Odeslat email se sledováním'], sec:['Přiložit fakturu k emailu']}
+    : {ic:'ti-tag', h:'Zabal a vytiskni štítek PPL', p:`Doprava: ${o.ship}${o.place?' – '+o.place:''}. Štítek se tiskne na arch A4 (4 na stranu), před tiskem jde vše zkontrolovat.`,
+    checks:[[true,'Zboží připraveno'],[false,'Štítek PPL']], btn:['ti-printer','Vytisknout štítek PPL'], sec:['Tisknout více štítků najednou']};
+  return {ic:'ti-check',h:'Odesláno',p:'Hotovo.',checks:[],btn:null,sec:[]};
+}
+function det(){
+  const o = O.find(x=>x.id===SEL); const n = nowBox(o);
+  const cnt = o.items.reduce((a,i)=>a+i[1],0);
+  $('#det').innerHTML = `
+  <div class="dh"><div><h1>${o.name}</h1>
+    <div class="meta"><span class="cp" onclick="toast('Číslo objednávky zkopírováno')" data-tip="Kliknutím zkopíruješ" style="position:relative">Objednávka ${o.no}</span>·<span>přijata ${o.ago}</span>·<span>${cnt} ${cnt===1?'kus':cnt<5?'kusy':'kusů'}</span></div></div>
+    <div class="total"><b>${o.total}</b><div style="color:${o.paid?'var(--green)':'var(--orange)'}"><i class="ti ${o.paid?'ti-circle-check':'ti-clock'}"></i> ${o.pay}</div></div>
+    <div style="position:relative" class="more-btn"><button class="ib" id="morebtn" data-tip="Další možnosti"><i class="ti ti-dots"></i></button>
+      <div class="menu" id="moremenu">
+        <button><i class="ti ti-printer"></i><div><b>Vytisknout objednávku</b><small>Papír do krabice nebo pro sklad</small></div></button>
+        <button><i class="ti ti-mail"></i><div><b>Napsat zákazníkovi</b><small>Vlastní email – dole v komunikaci</small></div></button>
+        <button><i class="ti ti-tag"></i><div><b>Znovu stáhnout štítek PPL</b><small>Když se tisk nepovedl</small></div></button>
+        <hr>
+        <button><i class="ti ti-arrow-back-up"></i><div><b>Vrátit o krok zpět</b><small>Třeba když se omylem posunula dál</small></div></button>
+        <button><i class="ti ti-truck-off"></i><div><b>Stornovat zásilku PPL</b><small>Jen dokud ji nepřevzal řidič</small></div></button>
+        <button><i class="ti ti-history"></i><div><b>Historie změn</b><small>Kdo co kdy udělal</small></div></button>
+      </div></div>
+  </div>
+
+  <div class="steps">${STEPS.map((s,i)=>`<div class="st ${i<o.step?'done':i===o.step?'cur':'todo'}"><div class="c"><i class="ti ${i<o.step?'ti-check':s.i}"></i></div><b>${s.t}</b><small>${i<o.step?'hotovo':i===o.step?'teď':''}</small></div>`).join('')}</div>
+
+  ${n.btn?`<div class="now"><div class="ic"><i class="ti ${n.ic}"></i></div>
+    <div style="min-width:0"><h3>${n.h}</h3><p>${n.p}</p>
+      <div class="checks">${n.checks.map(c=>`<span class="chk ${c[0]?'ok':'no'}"><i class="ti ${c[0]?'ti-circle-check':'ti-circle-dashed'}"></i>${c[1]}</span>`).join('')}</div></div>
+    <div class="acts"><button class="primary" onclick="next()"><i class="ti ${n.btn[0]}"></i>${n.btn[1]}</button>${n.sec.map(s=>`<button class="link" onclick="toast('V návrhu jen ukázka')">${s}</button>`).join('')}</div></div>`:''}
+
+  <div class="sec"><div class="sh"><h2>Zboží</h2><span>${o.step<=1?'vychystej podle fotek · ':''}${o.items.length} ${o.items.length===1?'položka':o.items.length<5?'položky':'položek'}</span></div>
+    <div class="items">${o.items.map(i=>{const p=P[i[0]];return `<div class="it"><div class="img"><img src="${p[2]}" alt="">${i[1]>1?`<span class="qty">${i[1]}×</span>`:''}<span class="stock ${i[2]}">${i[3]}</span></div>
+      <div class="tx"><div class="nm">${p[0]}</div>
+      ${i[2]==='no'?`<button class="miss" onclick="toast('Označeno: objednáno u dodavatele')"><i class="ti ti-truck-loading"></i>Objednat u dodavatele</button>`:''}
+      <div class="row"><span class="code cp" onclick="toast('Kód zkopírován')">${p[1]}</span><span class="pr">${(p[3]*i[1]).toLocaleString('cs-CZ')} Kč</span></div></div></div>`}).join('')}</div></div>
+
+  <div class="sec grid2">
+    <div><div class="sh"><h2>Doručení</h2><span>kliknutím zkopíruješ</span></div><div class="card">
+      <div class="li click" onclick="toast('Zkopírováno')"><i class="ti ti-user"></i><div><div class="k">Příjemce</div><div class="v">${o.name}${o.firm?' · '+o.firm:''}</div></div><i class="ti ti-copy copy"></i></div>
+      <div class="li click" onclick="toast('Zkopírováno')"><i class="ti ti-map-pin"></i><div><div class="k">${o.place?'Výdejní místo':'Adresa'}</div><div class="v">${o.place||o.adr}</div></div><i class="ti ti-copy copy"></i></div>
+      <div class="li"><i class="ti ti-truck"></i><div><div class="k">Doprava</div><div class="v">${o.ship}${o.ppl?` · <a style="color:var(--blue)" href="#">${o.ppl}</a>`:''}</div></div></div>
+    </div></div>
+    <div><div class="sh"><h2>Kontakt</h2><span>&nbsp;</span></div><div class="card">
+      <div class="li click" onclick="toast('Zkopírováno')"><i class="ti ti-phone"></i><div><div class="k">Telefon</div><div class="v">${o.tel}</div></div><i class="ti ti-copy copy"></i></div>
+      <div class="li click" onclick="toast('Zkopírováno')"><i class="ti ti-mail"></i><div><div class="k">Email</div><div class="v">${o.mail}</div></div><i class="ti ti-copy copy"></i></div>
+      <div class="li"><i class="ti ti-receipt"></i><div><div class="k">Platba</div><div class="v">${o.pay}</div></div></div>
+    </div></div>
+  </div>
+
+  <div class="sec"><div class="sh"><h2>Komunikace</h2><span>poznámky pro kolegy i emaily zákazníkovi na jednom místě</span></div>
+    <div class="feed">${o.feed.length?o.feed.map(f=>`<div class="ev"><div class="a" style="background:${f[3]==='mail'?'var(--tint-blue)':f[3]==='sys'?'var(--card2)':'var(--tint-orange)'};color:${f[3]==='mail'?'var(--blue)':f[3]==='sys'?'var(--muted)':'var(--orange)'}">${f[3]==='mail'?'<i class="ti ti-mail"></i>':f[3]==='sys'?'<i class="ti ti-tag"></i>':f[0]}</div>
+      <div class="b"><small>${f[1]} · ${f[2]}${f[3]==='mail'?' · email zákazníkovi · ✓ doručeno':''}</small>${f[3]==='note'?`<span class="bub">${f[4]}</span>`:f[3]==='mail'?`<span class="mail"><i class="ti ti-mail" style="color:var(--muted)"></i> ${f[4]}</span>`:f[4]}</div></div>`).join(''):'<div style="color:var(--muted);font-size:13px;padding:4px 0 8px">Zatím žádné poznámky ani emaily.</div>'}
+      <div class="compose">
+        <div class="ctabs"><button class="on" data-m="note"><i class="ti ti-message"></i>Poznámka pro kolegy</button><button data-m="mail"><i class="ti ti-mail"></i>Zpráva zákazníkovi</button></div>
+        <div class="tpls" id="tpls" style="display:none">${['Odesláno + sledování','Čekáme na zboží','Faktura ke stažení','Vlastní zpráva'].map(t=>`<button class="tpl" onclick="tpl(this)">${t}</button>`).join('')}</div>
+        <textarea id="ta" placeholder="Napiš poznámku – uvidí ji všichni kolegové…"></textarea>
+        <div class="cfoot"><span class="hint" id="chint">Jen interní, zákazník ji neuvidí</span><button class="send" onclick="toast('V návrhu jen ukázka')">Uložit</button></div>
+      </div></div></div>`;
+  document.querySelectorAll('.ctabs button').forEach(b=>b.onclick=()=>{const m=b.dataset.m;document.querySelectorAll('.ctabs button').forEach(x=>x.classList.toggle('on',x===b));$('#tpls').style.display=m==='mail'?'flex':'none';$('#ta').placeholder=m==='mail'?'Vyber šablonu nahoře, nebo napiš vlastní zprávu – připojí se podpis s logem…':'Napiš poznámku – uvidí ji všichni kolegové…';$('#chint').textContent=m==='mail'?`Odejde na ${o.mail}`:'Jen interní, zákazník ji neuvidí';document.querySelector('.send').textContent=m==='mail'?'Odeslat zákazníkovi':'Uložit';});
+  $('#morebtn').onclick=e=>{e.stopPropagation();$('#moremenu').classList.toggle('open');};
+}
+function tpl(b){const t={'Odesláno + sledování':'Dobrý den,\n\nděkujeme za Váš nákup. Vaši objednávku jsme dnes předali PPL…\nSledování: https://www.ppl.cz/…','Čekáme na zboží':'Dobrý den,\n\nčást zboží jsme pro Vás objednali u dodavatele…','Faktura ke stažení':'Dobrý den,\n\nfakturu k objednávce si můžete stáhnout zde: [odkaz]','Vlastní zpráva':'Dobrý den,\n\n'}[b.textContent];$('#ta').value=t;document.querySelectorAll('.tpl').forEach(x=>x.style.background=x===b?'var(--hover)':'');}
+function pick(id){SEL=id;const o=O.find(x=>x.id===id);o.unread=false;list();det();document.querySelector('.det').scrollTop=0;}
+function next(){const o=O.find(x=>x.id===SEL); if(o.step===2 && !o.ppl){o.ppl='7101'+Math.floor(1e7*Math.random());o.feed.unshift(['R','Robert','Teď','sys','Vytvořen štítek PPL '+o.ppl]);toast('Štítek PPL vytištěn (ukázka)');} else {o.step=Math.min(3,o.step+1); toast(o.step===3?'Odesláno – zákazník dostal email (ukázka)':'Posunuto: '+STEPS[o.step].t);} if(o.step===3){O.splice(O.indexOf(o),1);SEL=O[0].id;} list();det();}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1800);}
+$('#plusbtn').onclick=e=>{e.stopPropagation();$('#plusmenu').classList.toggle('open');};
+document.addEventListener('click',()=>{document.querySelectorAll('.menu').forEach(m=>m.classList.remove('open'));});
+$('#helpbtn').onclick=()=>$('#help').classList.add('open');
+$('#themebtn').onclick=()=>{const h=document.documentElement;const d=h.dataset.theme==='dark';h.dataset.theme=d?'light':'dark';$('#themebtn').innerHTML=`<i class="ti ${d?'ti-moon':'ti-sun'}"></i>`;};
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b)); if(b!==document.querySelector('#tabs button')) toast('V návrhu je vidět jen „K vyřízení“');});
+list();det();
+</script>
+</body>
+</html>
