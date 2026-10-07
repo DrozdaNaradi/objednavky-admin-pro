@@ -890,6 +890,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       <div class="modal-title">Tisk štítků <span class="ppl-blue">PPL</span></div>
       <div class="ppl-conn" id="ppl-conn"></div>
       <button class="ppl-link" onclick="openPplSettings()">Nastavení</button>
+      <button class="close-btn" onclick="closePplModal()" aria-label="Zavřít" title="Zavřít" style="margin-left:10px"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
     <div id="ppl-setup"></div>
     <div class="ppl-layout">
@@ -986,6 +987,9 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <select class="form-input" id="pset-courier"><option value="PRIV">PPL Parcel CZ Private</option><option value="BUSS">PPL Parcel CZ Business</option></select></div>
       <div class="form-group ppl-s3"><div class="form-label">Firmám (s IČO) posílat jako</div>
         <select class="form-input" id="pset-courier-b2b"><option value="BUSS">PPL Parcel CZ Business</option><option value="PRIV">PPL Parcel CZ Private</option></select></div>
+      <div class="ppl-sec">Kam tisknout štítky (na tomto počítači)</div>
+      <div class="form-group ppl-s4"><select class="form-input" id="pset-tisk" onchange="try{localStorage.setItem('tisk_kam',this.value)}catch(e){};tiskNastaveniInfo()"></select></div>
+      <div class="ppl-s6 ppl-hint" id="pset-tisk-info"></div>
       <div class="ppl-sec">Adresář příjemců (pro „PPL mimo e‑shop“)</div>
       <div class="ppl-s6" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span>V adresáři: <b id="pset-adr-n">—</b></span>
@@ -1385,6 +1389,7 @@ async function initSupabase(url, key, ejsService, ejsKey) {
     checkAuthor();
     await loadOrders();
     loadPplMimo().then(() => renderOrders()).catch(() => {});
+    loadTiskarny(); setInterval(loadTiskarny, 30000);
     setupRealtime();
     // Sync hned po načtení (5s zpoždění aby se UI stihlo vykreslit) + každou hodinu
     setTimeout(() => syncFromEshop(true), 5000);
@@ -3194,6 +3199,7 @@ async function openPplModal(ids) {
   renderPpl();
   document.getElementById('ppl-modal').classList.add('active');
   pplCheckEnv();
+  loadTiskarny().then(renderPplSide);
   pplDrafts.forEach((d, i) => { if (d.open) pplOverit(i); });
 }
 function openPplBatch() {
@@ -3260,7 +3266,9 @@ function renderPplSide() {
   const btn = document.getElementById('ppl-submit');
   btn.disabled = pplBusy || why.length > 0;
   if (!pplBusy) btn.textContent = sel.length ? `Vytvořit ${n} ${pplPlural(n, 'štítek', 'štítky', 'štítků')} a tisknout` : 'Vytvořit štítky a tisknout';
-  document.getElementById('ppl-why').innerHTML = why.length && !pplBusy ? `<div class="ppl-why">${why.join('<br>')}</div>` : '';
+  const tc = tiskCil();
+  document.getElementById('ppl-why').innerHTML = (why.length && !pplBusy ? `<div class="ppl-why">${why.join('<br>')}</div>` : '')
+    + `<div class="ppl-hint" style="margin-top:6px">${tc ? `🖨 Vytiskne se rovnou na <b>${escHtml(tiskPopis(tc))}</b>` : 'Štítky se otevřou jako PDF k tisku'} · <button class="ppl-link" onclick="openSettings('ppl')">změnit</button></div>`;
 
   const okN = pplDrafts.filter(d => d.on && !d.done && !pplValidate(d.f).length).length;
   document.getElementById('ppl-step1-sub').textContent = `· vybráno ${sel.length} z ${pplDrafts.length}${sel.length - okN ? `, ${sel.length - okN} k doplnění` : ''}`;
@@ -3473,8 +3481,10 @@ async function submitPpl() {
   const btn = document.getElementById('ppl-submit');
   btn.textContent = 'Posílám do PPL…';
   renderPplSide();
-  const pdfWin = window.open('', '_blank');
+  const tCil = tiskCil();
+  const pdfWin = tCil ? null : window.open('', '_blank');
   if (pdfWin) pdfWin.document.write('<p style="font:16px -apple-system,sans-serif;padding:40px">Čekám na štítky od PPL… (okno nezavírej)</p>');
+  let tiskInfo = '';
   try {
     const shipments = sel.map(d => pplShipment(d.f));
     pplMsg('', 'Posílám zásilky do PPL…');
@@ -3524,17 +3534,22 @@ async function submitPpl() {
 
     if (okLabels) {
       const lab = await pplCall('label', { batchId, position: startPos });
-      const bytes = Uint8Array.from(atob(lab.pdf), c => c.charCodeAt(0));
-      pplLastPdf = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
-      if (pdfWin) pdfWin.location.href = pplLastPdf; else window.open(pplLastPdf, '_blank');
+      try {
+        const t = await tisknoutStitky(lab.pdf, `PPL štítky ${okNums[0] || ''}`, pdfWin, tCil);
+        pplLastPdf = t.url;
+        tiskInfo = t.primo ? `🖨 Štítky se tisknou na <b>${escHtml(tiskPopis(tCil))}</b> (100 %, A4).` : 'Štítky se otevřely v novém okně → vytiskni je na arch A4.';
+      } catch (e) {
+        pplLastPdf = URL.createObjectURL(new Blob([Uint8Array.from(atob(lab.pdf), c => c.charCodeAt(0))], { type: 'application/pdf' }));
+        tiskInfo = `<span style="color:#b91c1c">Na tiskárnu se to neposlalo: ${escHtml(e.message)}</span> Otevři štítky tlačítkem níže a vytiskni ručně.`;
+      }
       pplPos = ((startPos - 1 + okLabels) % 4) + 1;
       try { localStorage.setItem('ppl_next_pos', pplPos); } catch (e) {}
     } else if (pdfWin) pdfWin.close();
 
     const parts = [];
     if (okNums.length) parts.push(`<div class="ppl-info ok"><b>✓ Hotovo — ${okLabels} ${pplPlural(okLabels, 'štítek', 'štítky', 'štítků')}</b>${env === 'test' ? ' (zkušební)' : ''}<br>
-      Štítky se otevřely v novém okně → vytiskni je na arch A4.<br>
-      <button class="btn btn-sm" style="margin-top:6px" onclick="window.open(pplLastPdf,'_blank')">Otevřít štítky znovu</button>
+      ${tiskInfo}<br>
+      <button class="btn btn-sm" style="margin-top:6px" onclick="window.open(pplLastPdf,'_blank')">Otevřít štítky (PDF)</button>
       <div class="ppl-hint" style="margin-top:6px">Příští tisk začne na místě ${pplPos}.</div></div>`);
     if (failed.length) parts.push(`<div class="ppl-info err"><b>${failed.length} ${pplPlural(failed.length, 'zásilka se nepovedla', 'zásilky se nepovedly', 'zásilek se nepovedlo')}:</b><br>${failed.map(x => `${escHtml(x.d.f.name)}: ${escHtml(x.saveErr || x.it?.errorMessage || x.it?.errorCode || (x.it ? x.it.importState : 'PPL nevrátilo výsledek'))}${x.it && !x.saveErr ? `<div class="ppl-log">${escHtml(JSON.stringify(x.it, null, 1))}</div>` : ''}`).join('<br>')}<br>Oprav údaje vlevo a zkus to znovu.</div>`);
     failed.forEach(x => { x.d.open = true; });
@@ -3575,12 +3590,11 @@ async function pplReprint() {
   let def = 1; try { def = parseInt(localStorage.getItem('ppl_next_pos')) || 1; } catch (e) {}
   const pos = parseInt(prompt('Na kterou pozici archu A4 tisknout? (1–4)\nPozn.: pokud byla zásilka vytvořena spolu s dalšími, PDF obsahuje celou dávku.', def));
   if (!(pos >= 1 && pos <= 4)) return;
-  const win = window.open('', '_blank');
+  const cil = tiskCil();
+  const win = cil ? null : window.open('', '_blank');
   try {
     const lab = await pplCall('label', { batchId: p.batchId, position: pos });
-    const bytes = Uint8Array.from(atob(lab.pdf), c => c.charCodeAt(0));
-    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
-    if (win) win.location.href = url; else window.open(url, '_blank');
+    await tisknoutStitky(lab.pdf, 'PPL štítek znovu', win, cil);
   } catch (e) { if (win) win.close(); toast('PPL: ' + e.message, 'error'); }
 }
 
@@ -3647,14 +3661,13 @@ async function openPplMimo() {
     <div class="form-label" style="margin-bottom:4px">Komu posíláš? Najdi v adresáři PPL</div>
     <input class="form-input" id="ppl-adr-q" placeholder="Firma, město, kontaktní osoba nebo telefon…" oninput="pplAdrHledat(this.value)" autocomplete="off">
     <div id="ppl-adr-hits"></div>
-    <div class="ppl-hint" style="margin-top:4px">Každý vybraný kontakt přidá <b>další zásilku</b> do seznamu – všechny se pak vytisknou najednou.
-      <button class="ppl-link" onclick="pplPridatPrazdnou()">+ Přidat zásilku s ručně vyplněným příjemcem</button><br>Adresář: <span id="ppl-adr-n">načítám…</span></div></div>`;
+    <div style="margin-top:8px"><button class="btn btn-sm" onclick="pplPridatPrazdnou()">+ Přidat zásilku</button></div></div>`;
   renderPpl();
   document.getElementById('ppl-modal').classList.add('active');
   setTimeout(() => document.getElementById('ppl-adr-q')?.focus(), 100);
   pplCheckEnv();
   const a = await loadAdresar();
-  document.getElementById('ppl-adr-n').textContent = window._pplAdrErr ? 'nejde načíst (' + window._pplAdrErr + ')' : a.length + ' kontaktů (nový export z PPL nahraješ v Nastavení → PPL štítky)';
+  if (window._pplAdrErr) toast('Adresář PPL nejde načíst: ' + window._pplAdrErr, 'error');
 }
 function pplPridatPrazdnou() {
   pplDrafts.forEach(d => { d.open = false; });
@@ -3728,6 +3741,18 @@ async function pplImportAdresar(input) {
     msg.innerHTML = `<div class="ppl-info err">Nahrání se nepovedlo: ${escHtml(e.message)}</div>`;
   }
 }
+function tiskNastaveniInfo() {
+  const sel = document.getElementById('pset-tisk');
+  if (!sel) return;
+  const v = tiskVolba();
+  sel.innerHTML = `<option value="auto">Automaticky – tiskárna s pomocníkem${tiskOnline[0] ? ' (teď: ' + escHtml(tiskPopis(tiskOnline[0])) + ')' : ''}</option>`
+    + tiskOnline.map(t => `<option value="${escHtml(t.id)}">${escHtml(tiskPopis(t))}</option>`).join('')
+    + '<option value="pdf">Netisknout přímo – jen otevřít PDF</option>';
+  sel.value = [...sel.options].some(o => o.value === v) ? v : 'auto';
+  document.getElementById('pset-tisk-info').innerHTML = tiskOnline.length
+    ? `✓ Online: ${tiskOnline.map(t => escHtml(tiskPopis(t))).join(', ')}. Štítky se tisknou ve 100 % na A4 bez tiskového okna.`
+    : 'Žádná tiskárna s Tiskovým pomocníkem teď není online – štítky se otevřou jako PDF. Pomocníka nainstaluješ na Macu u tiskárny dvojklikem na „🖨 Nainstalovat tiskového pomocníka“ (složka Objednavky Admin Pro / Tiskovy pomocnik).';
+}
 async function pplAdresarInfo() {
   const el = document.getElementById('pset-adr-n');
   if (!el) return;
@@ -3764,13 +3789,53 @@ async function zasTisk(cislo) {
   let def = 1; try { def = parseInt(localStorage.getItem('ppl_next_pos')) || 1; } catch (e) {}
   const pos = parseInt(prompt('Na kterou pozici archu A4 tisknout? (1–4)', def));
   if (!(pos >= 1 && pos <= 4)) return;
-  const win = window.open('', '_blank');
+  const cil = tiskCil();
+  const win = cil ? null : window.open('', '_blank');
   try {
     const lab = await pplCall('label', { batchId: r.z.batchId, position: pos });
-    const bytes = Uint8Array.from(atob(lab.pdf), c => c.charCodeAt(0));
-    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
-    if (win) win.location.href = url; else window.open(url, '_blank');
+    await tisknoutStitky(lab.pdf, 'PPL štítek znovu', win, cil);
   } catch (e) { if (win) win.close(); toast('PPL: ' + e.message, 'error'); }
+}
+
+// ─── PŘÍMÝ TISK ŠTÍTKŮ: tisková fronta v Supabase → Tiskový pomocník na Macu u tiskárny ───
+// Prohlížeč nesmí tisknout bez okna; appka proto uloží PDF do fronty (tisk_fronta) a pomocník
+// na Macu s tiskárnou ho vytiskne ve 100 % na A4. Online tiskárny se hlásí do tabulky tiskarny.
+let tiskOnline = [];
+async function loadTiskarny() {
+  try {
+    const { data, error } = await db.from('tiskarny').select('*').gte('last_seen', new Date(Date.now() - 90000).toISOString());
+    tiskOnline = error ? [] : (data || []);
+  } catch (e) { tiskOnline = []; }
+  return tiskOnline;
+}
+function tiskVolba() { try { return localStorage.getItem('tisk_kam') || 'auto'; } catch (e) { return 'auto'; } }
+// kam tisknout – rozhoduje se hned (bez čekání), aby šlo případně otevřít okno s PDF
+function tiskCil() {
+  const v = tiskVolba();
+  if (v === 'pdf') return null;
+  if (v !== 'auto') return tiskOnline.find(t => t.id === v) || null;
+  return tiskOnline[0] || null;
+}
+function tiskPopis(t) { return `${String(t.tiskarna || 'tiskárna').replace(/_/g, ' ')} (${t.nazev || t.id})`; }
+async function tiskPrimo(cil, pdfB64, nazev) {
+  const { data, error } = await db.from('tisk_fronta').insert({ created_by: author, nazev, tiskarna_id: cil.id, pdf: pdfB64 }).select('id').single();
+  if (error) throw new Error('Tisková fronta: ' + error.message);
+  for (let i = 0; i < 20; i++) {
+    await new Promise(r => setTimeout(r, 1500));
+    const { data: j } = await db.from('tisk_fronta').select('stav,chyba').eq('id', data.id).single();
+    if (j?.stav === 'vytisteno') return true;
+    if (j?.stav === 'chyba') throw new Error(j.chyba || 'chyba tisku');
+  }
+  throw new Error('Tiskárna neodpověděla do 30 s – je Mac u tiskárny zapnutý?');
+}
+// společné pro tisk štítků: přímo na tiskárnu, nebo (bez pomocníka) otevřít PDF v okně
+async function tisknoutStitky(b64, nazev, win, cil) {
+  const url = URL.createObjectURL(new Blob([Uint8Array.from(atob(b64), c => c.charCodeAt(0))], { type: 'application/pdf' }));
+  if (!cil) { if (win) win.location.href = url; else window.open(url, '_blank'); return { url, primo: false }; }
+  toast('🖨 Odesílám na tiskárnu…');
+  await tiskPrimo(cil, b64, nazev);
+  toast('🖨 Vytištěno – ' + tiskPopis(cil), 'success');
+  return { url, primo: true };
 }
 
 // ─── ZÁSILKY PPL (přehled všech zásilek + stav přímo od PPL) ───────────────
@@ -3914,7 +3979,7 @@ function settingsTab(sec) {
   document.querySelectorAll('#set-nav button').forEach(b => b.classList.toggle('on', b.dataset.sec === sec));
   document.querySelectorAll('.set-sec').forEach(el => el.classList.toggle('on', el.id === 'set-' + sec));
   if (sec === 'profile') renderEmailSignaturePreview();
-  if (sec === 'ppl') { fillPplSettings(); pplAdresarInfo(); }
+  if (sec === 'ppl') { fillPplSettings(); pplAdresarInfo(); loadTiskarny().then(tiskNastaveniInfo); }
   if (sec === 'email') {
     const c = { ...DEFAULT_CONFIG, ...getConfig() };
     document.getElementById('set-ejs-service').value = c.emailjsService || '';
