@@ -202,6 +202,18 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .status-btn.s-open.active{background:#EAB308;color:#1c1400}
 .status-btn.s-open.active .dot{background:#1c1400}
 .status-btn.s-closed.active{background:var(--ok)}
+.kroky{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+.krok{display:flex;flex-direction:column;gap:6px;border:1px solid var(--border);border-radius:10px;padding:8px 10px 6px;background:var(--card-alt)}
+.krok-h{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2)}
+.krok-n{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;background:#0047bb;color:#fff;font-size:11.5px;font-weight:700;letter-spacing:0}
+#krok2 .krok-n{background:#16a34a}
+.krok.hotovo .krok-n{background:#16a34a}
+.krok.hotovo{background:#f6fdf8;border-color:#bbf7d0}
+.krok-sip{align-self:center;font-size:22px;color:#a3a3a3;line-height:1;padding:0 2px}
+.krok-ppl{height:38px;padding:0 14px;font-weight:600}
+.krok-stav{font-size:10.5px;line-height:1.3;min-height:14px;font-weight:600;color:var(--muted);white-space:nowrap}
+.krok-stav.ok{color:var(--ok-ink)}
+.krok-stav a{color:inherit}
 .ph-mails{display:flex;gap:6px;flex-wrap:wrap}
 .qm-item{display:flex;flex-direction:column;gap:3px}
 .qm-btn{height:38px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:#fff;font-family:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
@@ -211,7 +223,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .qm-btn.qm-amber{background:#fffbeb;border-color:#fde68a;color:#78350f}.qm-btn.qm-amber svg{color:#d97706}.qm-btn.qm-amber:hover{background:#fef3c7;border-color:#fcd34d}
 .qm-sent{font-size:10.5px;line-height:1.3;min-height:14px;color:var(--ok-ink);font-weight:600;padding-left:2px;white-space:nowrap}
 .qm-sent.fail{color:#b91c1c}
-@media (max-width:780px){.ph-divider{display:none}.ph-top{flex-wrap:wrap}}
+@media (max-width:780px){.ph-divider{display:none}.ph-top{flex-wrap:wrap}.krok-sip{display:none}}
 .close-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-3);transition:.12s}
 .close-btn:hover{background:var(--card-alt);color:var(--ink)}
 /* ── PANEL NOTES BAR ─── */
@@ -740,7 +752,6 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         </div>
       </div>
       <div class="ph-actions">
-        <button class="btn btn-ppl btn-sm" onclick="openPplModal([currentOrderId])"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Štítek PPL</button>
         <button class="btn btn-gray btn-sm" onclick="printOrder()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Tisk objednávky</button>
         <button class="close-btn" onclick="closePanel()" aria-label="Zavřít">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -757,9 +768,16 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         </div>
       </div>
       <div class="ph-divider"></div>
-      <div class="ph-group">
-        <div class="ph-label">Poslat zákazníkovi email</div>
-        <div class="ph-mails">
+      <div class="kroky">
+        <div class="krok" id="krok1">
+          <div class="krok-h"><span class="krok-n" id="krok1-n">1</span>Vytvořit štítek</div>
+          <div class="krok-b"><button class="btn btn-ppl krok-ppl" onclick="openPplModal([currentOrderId])"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Štítek PPL</button></div>
+          <div class="krok-stav" id="krok1-stav"></div>
+        </div>
+        <div class="krok-sip" aria-hidden="true">›</div>
+        <div class="krok" id="krok2">
+          <div class="krok-h"><span class="krok-n" id="krok2-n">2</span>Poslat zákazníkovi email</div>
+          <div class="ph-mails">
           <div class="qm-item"><button class="qm-btn qm-green" onclick="openShipEmail('ship_inv')" title="Odesláno + číslo zásilky a odkaz na sledování PPL + přiložená faktura. Po odeslání se objednávka označí jako Odesláno."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Odesláno + PPL + faktura</button><div class="qm-sent" id="qm-sent-ship_inv"></div></div>
           <div class="qm-item"><button class="qm-btn qm-green" onclick="openShipEmail('ship')" title="Odesláno + číslo zásilky a odkaz na sledování PPL. Po odeslání se objednávka označí jako Odesláno."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Odesláno + PPL</button><div class="qm-sent" id="qm-sent-ship"></div></div>
           <div class="qm-item"><button class="qm-btn qm-amber" onclick="openShipEmail('supplier')" title="Část zboží není skladem a je objednaná u dodavatele. Objednávka zůstane otevřená."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Objednáno u dodavatele</button><div class="qm-sent" id="qm-sent-supplier"></div></div>
@@ -1725,6 +1743,7 @@ function closePanel() {
 
 function refreshPanelHeader() {
   if (!currentOrder) return;
+  renderKroky(null);
   document.getElementById('p-order-num').textContent = '#' + currentOrder.order_number;
   document.getElementById('p-customer').textContent = currentOrder.customer_name || '—';
   const cpNum = document.getElementById('p-copy-num');
@@ -1733,6 +1752,7 @@ function refreshPanelHeader() {
 }
 
 function renderPanelOverview() {
+  renderKroky(null);
   if (!currentOrder) return;
   const o = currentOrder;
   // Separate product items from special shipping/payment items
@@ -2281,7 +2301,26 @@ function emailTplOf(a) {
   if (!d.kind && /byla odeslána/i.test(d.subject || '')) return 'ship';
   return 'general';
 }
+// kroky v hlavičce objednávky: 1 štítek PPL → 2 email zákazníkovi (zelené, když je hotovo)
+function renderKroky(acts) {
+  const o = currentOrder; if (!o) return;
+  const k1 = document.getElementById('krok1'), st = document.getElementById('krok1-stav');
+  if (k1 && st) {
+    const z = o.ppl?.shipments || [];
+    k1.classList.toggle('hotovo', !!z.length);
+    document.getElementById('krok1-n').textContent = z.length ? '✓' : '1';
+    st.className = 'krok-stav' + (z.length ? ' ok' : '');
+    st.innerHTML = z.length ? `✓ zásilka <a href="${pplTrackUrl(z[0])}" target="_blank" rel="noopener">${escHtml(z[0])}</a>${z.length > 1 ? ` · ${z.length} balíky` : ''}${o.ppl?.env === 'test' ? ' · test' : ''}` : 'zatím bez štítku';
+  }
+  const k2 = document.getElementById('krok2');
+  if (k2 && acts) {
+    const posl = acts.some(a => a.action === 'email_sent' && ['ship', 'ship_inv'].includes(emailTplOf(a)));
+    k2.classList.toggle('hotovo', posl);
+    document.getElementById('krok2-n').textContent = posl ? '✓' : '2';
+  }
+}
 function renderQuickMailSent(acts) {
+  renderKroky(acts);
   ['ship_inv', 'ship', 'supplier', 'general'].forEach(k => {
     const el = document.getElementById('qm-sent-' + k);
     if (!el) return;
@@ -2857,14 +2896,14 @@ async function fetchProductImages() {
   // 1. localStorage rychlý cache (1 hod.) — zabrání zbytečným dotazům
   try {
     const cached = JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || 'null');
-    if (cached && (Date.now() - cached.ts) < IMG_CACHE_TTL) return cached.map;
+    if (cached && (Date.now() - cached.ts) < IMG_CACHE_TTL && Object.keys(cached.map || {}).length >= 1000) return cached.map;   // useknutou mapu ignorovat
   } catch(e) {}
 
   // 2. Supabase sdílený cache — platný pro všechny uživatele
   let sbMap = null;
   try {
     const { data } = await db.from('product_image_cache').select('map, updated_at').eq('id','main').maybeSingle();
-    if (data?.map && Object.keys(data.map).length > 0) {
+    if (data?.map && Object.keys(data.map).length >= 1000) {
       const sbAge = Date.now() - new Date(data.updated_at).getTime();
       if (sbAge < IMG_CACHE_TTL) {
         // Supabase je čerstvý — uložit do localStorage a vrátit
@@ -2889,12 +2928,22 @@ async function fetchProductImages() {
     return {};
   }
   const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
-  const map = {};
+  const nova = {};
   doc.querySelectorAll('SHOPITEM').forEach(item => {
     const id = item.querySelector('ITEM_ID')?.textContent?.trim();
     const img = item.querySelector('IMGURL')?.textContent?.trim();
-    if (id && img) map[id] = img;
+    if (id && img) nova[id] = img;
   });
+  // POJISTKA: feed má ~15 000 produktů a proxy občas vrátí jen kousek (13. 10. přepsal mapu 53 položkami
+  // → nové objednávky bez fotek). Nová data se proto jen PŘIDAJÍ ke stávající mapě a useknutý feed se neuloží.
+  let stara = sbMap;
+  if (!stara) { try { stara = JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || 'null')?.map || null; } catch(e) {} }
+  const pocetStara = stara ? Object.keys(stara).length : 0, pocetNova = Object.keys(nova).length;
+  const map = { ...(stara || {}), ...nova };
+  if (pocetNova < 1000 || (pocetStara && pocetNova < pocetStara * 0.5)) {
+    console.warn(`Feed fotek vypadá useknutý (${pocetNova} položek, dřív ${pocetStara}) – sdílenou mapu nepřepisuji.`);
+    return map;
+  }
   // Uložit sdíleně do Supabase + lokálně do localStorage
   try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify({ ts: Date.now(), map })); } catch(e) {}
   await saveImgMapToSupabase(map);
