@@ -202,6 +202,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .status-btn.s-open.active{background:#EAB308;color:#1c1400}
 .status-btn.s-open.active .dot{background:#1c1400}
 .status-btn.s-closed.active{background:var(--ok)}
+.ph-stav{display:flex;align-items:center;gap:8px;margin-right:6px}
+.ph-stav-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .kroky{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
 .krok{display:flex;flex-direction:column;gap:6px;border:1px solid var(--border);border-radius:10px;padding:8px 10px 6px;background:var(--card-alt)}
 .krok-h{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2)}
@@ -223,7 +225,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .qm-btn.qm-amber{background:#fffbeb;border-color:#fde68a;color:#78350f}.qm-btn.qm-amber svg{color:#d97706}.qm-btn.qm-amber:hover{background:#fef3c7;border-color:#fcd34d}
 .qm-sent{font-size:10.5px;line-height:1.3;min-height:14px;color:var(--ok-ink);font-weight:600;padding-left:2px;white-space:nowrap}
 .qm-sent.fail{color:#b91c1c}
-@media (max-width:780px){.ph-divider{display:none}.ph-top{flex-wrap:wrap}.krok-sip{display:none}}
+@media (max-width:780px){.ph-divider{display:none}.ph-top{flex-wrap:wrap}.krok-sip{display:none}.ph-actions{flex-wrap:wrap}}
+@media (max-width:1100px){.ph-stav-l{display:none}}
 .close-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-3);transition:.12s}
 .close-btn:hover{background:var(--card-alt);color:var(--ink)}
 /* ── PANEL NOTES BAR ─── */
@@ -752,6 +755,11 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         </div>
       </div>
       <div class="ph-actions">
+        <div class="ph-stav" title="Stav objednávky"><span class="ph-stav-l">Stav</span><div class="seg">
+          <button class="status-btn s-new" id="s-new" onclick="setStatus('new')"><span class="dot"></span>Nová</button>
+          <button class="status-btn s-open" id="s-open" onclick="setStatus('open')"><span class="dot"></span>Otevřená</button>
+          <button class="status-btn s-closed" id="s-closed" onclick="setStatus('closed')"><span class="dot"></span>Odesláno</button>
+        </div></div>
         <button class="btn btn-gray btn-sm" onclick="printOrder()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Tisk objednávky</button>
         <button class="close-btn" onclick="closePanel()" aria-label="Zavřít">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -759,15 +767,6 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       </div>
     </div>
     <div class="ph-bar">
-      <div class="ph-group">
-        <div class="ph-label">Stav objednávky</div>
-        <div class="seg">
-          <button class="status-btn s-new" id="s-new" onclick="setStatus('new')"><span class="dot"></span>Nová</button>
-          <button class="status-btn s-open" id="s-open" onclick="setStatus('open')"><span class="dot"></span>Otevřená</button>
-          <button class="status-btn s-closed" id="s-closed" onclick="setStatus('closed')"><span class="dot"></span>Odesláno</button>
-        </div>
-      </div>
-      <div class="ph-divider"></div>
       <div class="kroky">
         <div class="krok" id="krok1">
           <div class="krok-h"><span class="krok-n" id="krok1-n">1</span>Vytvořit štítek</div>
@@ -782,6 +781,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
           <div class="qm-item"><button class="qm-btn qm-green" onclick="openShipEmail('ship')" title="Odesláno + číslo zásilky a odkaz na sledování PPL. Po odeslání se objednávka označí jako Odesláno."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Odesláno + PPL</button><div class="qm-sent" id="qm-sent-ship"></div></div>
           <div class="qm-item"><button class="qm-btn qm-amber" onclick="openShipEmail('supplier')" title="Část zboží není skladem a je objednaná u dodavatele. Objednávka zůstane otevřená."><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Objednáno u dodavatele</button><div class="qm-sent" id="qm-sent-supplier"></div></div>
           <div class="qm-item"><button class="qm-btn" onclick="openShipEmail('general')" title="Prázdný email zákazníkovi"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Obecný email</button><div class="qm-sent" id="qm-sent-general"></div></div>
+        </div>
         </div>
       </div>
     </div>
