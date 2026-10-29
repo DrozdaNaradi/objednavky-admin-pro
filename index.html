@@ -231,6 +231,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .pay-st.ne{background:#fee2e2;color:#991b1b;border-color:#fecaca}
 .pay-st.cast{background:#fef3c7;color:#78350f;border-color:#fde68a}
 .pay-st.nez{background:#f4f4f5;color:#52525b;border-color:#e4e4e7}
+.pay-st.pay-top{padding:4.5px 9px 4.5px 4px;font-size:11px;gap:6px}
+.fio-mark{display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:3px;background:#0b4ea2;color:#fff;font-size:10px;font-weight:800;letter-spacing:.02em;font-style:italic;text-transform:lowercase}
 .pay-box{margin-top:10px;border-top:1px solid var(--border-soft);padding-top:10px;display:flex;flex-direction:column;gap:8px}
 .pay-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .pay-det{font-size:12px;color:var(--ink-2)}
@@ -1753,7 +1755,7 @@ function orderRow(o) {
     <!-- horní řádek: badge+jméno vlevo | cena vpravo -->
     <div class="ocard-top-row">
       <div class="ocard-customer"><span class="badge ${badgeCls}">${badgeLbl}</span><span class="ocard-name-chip">${escHtml(o.customer_name||'—')}${unreadDot}</span></div>
-      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${payBadgeHtml}<div class="ocard-chip"><span class="ocard-price">${totalStr}</span></div></div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${platbaChip(o)}${payBadgeHtml}<div class="ocard-chip"><span class="ocard-price">${totalStr}</span></div></div>
     </div>
     <!-- spodní řádek: fotky vlevo | meta chipy vpravo -->
     <div class="ocard-bottom-row">
@@ -1761,7 +1763,6 @@ function orderRow(o) {
       <div class="ocard-meta-chips">
         ${shipHtml ? `<div class="ocard-chip ocard-ship-chip">${shipHtml}</div>` : ''}
         <div class="ocard-chip"><span class="ocard-date-chip">${dateStr}</span></div>
-        ${platbaChip(o)}
         ${o.ppl?.shipments?.length ? `<div class="ocard-chip"><span class="ppl-chip" title="PPL zásilka ${escHtml(o.ppl.shipments.join(', '))}">📦 ${escHtml(o.ppl.shipments[0])}${o.ppl.env==='test'?' · test':''}</span></div>` : ''}
         <div class="ocard-chip"><span class="ocard-ordernum-chip">#${escHtml(o.order_number||'')}</span></div>
       </div>
@@ -3178,7 +3179,7 @@ function platbaStav(o) {
 function platbaChip(o) {
   const st = platbaStav(o); if (!st) return '';
   const tip = o.platba?.stav === 'zaplaceno' ? `Zaplaceno ${kc(o.platba.zaplaceno)}${o.platba.platby?.[0] ? ' · ' + datumCz(o.platba.platby[0].datum) : ''}${o.platba.rucne ? ' · ručně: ' + (o.platba.kdo || '') : ''}` : (o.platba?.overeno ? 'Naposledy ověřeno ' + new Date(o.platba.overeno).toLocaleString('cs-CZ') : 'Platby ještě nebyly načtené');
-  return `<div class="ocard-chip"><span class="pay-st ${st.cls}" title="${escHtml(tip)}">${st.cls === 'ok' ? '✓' : st.cls === 'ne' ? '✕' : st.cls === 'cast' ? '◐' : '?'} ${st.txt}</span></div>`;
+  return `<span class="pay-st pay-top ${st.cls}" title="${escHtml(tip)}"><span class="fio-mark">fio</span>${st.cls === 'ok' ? '✓' : st.cls === 'ne' ? '✕' : st.cls === 'cast' ? '◐' : '?'} ${st.txt}</span>`;
 }
 function platbaBox(o) {
   const st = platbaStav(o); if (!st) return '';
