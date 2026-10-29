@@ -225,6 +225,24 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .qm-btn.qm-amber{background:#fffbeb;border-color:#fde68a;color:#78350f}.qm-btn.qm-amber svg{color:#d97706}.qm-btn.qm-amber:hover{background:#fef3c7;border-color:#fcd34d}
 .qm-sent{font-size:10.5px;line-height:1.3;min-height:14px;color:var(--ok-ink);font-weight:600;padding-left:2px;white-space:nowrap}
 .qm-sent.fail{color:#b91c1c}
+/* platby Fio */
+.pay-st{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;border-radius:5px;padding:3px 8px;white-space:nowrap;border:1px solid transparent}
+.pay-st.ok{background:#dcfce7;color:#14532d;border-color:#bbf7d0}
+.pay-st.ne{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+.pay-st.cast{background:#fef3c7;color:#78350f;border-color:#fde68a}
+.pay-st.nez{background:#f4f4f5;color:#52525b;border-color:#e4e4e7}
+.pay-box{margin-top:10px;border-top:1px solid var(--border-soft);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.pay-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pay-det{font-size:12px;color:var(--ink-2)}
+.pay-btns{display:flex;gap:6px;flex-wrap:wrap}
+.pay-btns .btn{height:30px}
+.pay-kand{font-size:12px;border:1px dashed #fcd34d;background:#fffbeb;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.pay-kand-r{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.fio-side{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-soft)}
+.fio-seznam{font-size:12px;border:1px solid var(--border);border-radius:8px;max-height:320px;overflow:auto}
+.fio-seznam table{width:100%;border-collapse:collapse}
+.fio-seznam td{padding:6px 10px;border-bottom:1px solid var(--border-soft)}
+.fio-seznam td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 /* ── Hlavička objednávky – jeden systém (2026-10-13): ovládací prvky 38–40 px, rádius 8, mezery 8/12/16,
    obě karty kroků stejně vysoké, řádky „nadpis / tlačítka / stav“ ve stejné výšce, vše zarovnané vlevo ── */
 .panel-header{padding:16px 20px 14px;gap:14px}
@@ -692,6 +710,10 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       <div class="sync-status-sep" id="ss-sep" style="display:none"></div>
       <div class="sync-status-row" id="ss-orders" style="display:none"></div>
       <div class="sync-status-row" id="ss-photos" style="display:none"></div>
+      <div class="fio-side" id="fio-side">
+        <div style="flex:1;min-width:0"><div class="sync-status-label">Platby Fio</div><div class="sync-status-time" id="fio-side-cas">—</div></div>
+        <button class="ss-refresh" id="fio-side-btn" onclick="fioNacist()" data-tip-r="Načíst platby z Fio teď a zkontrolovat objednávky.&#10;Jinak se načítají samy každou hodinu 7–20 h."><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></button>
+      </div>
     </div>
 
     <div class="stats-box">
@@ -988,6 +1010,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       <nav class="set-nav" id="set-nav">
         <button data-sec="profile" onclick="settingsTab('profile')">Můj profil a podpis</button>
         <button data-sec="ppl" onclick="settingsTab('ppl')">PPL štítky</button>
+        <button data-sec="fio" onclick="settingsTab('fio')">Platby Fio</button>
         <button data-sec="email" onclick="settingsTab('email')">Odesílání emailů</button>
         <button data-sec="tools" onclick="settingsTab('tools')">Fotky a údržba</button>
       </nav>
@@ -1043,6 +1066,21 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       <div class="ppl-s6" id="pset-msg"></div>
     </div>
           <div class="set-actions"><button class="btn btn-red" onclick="savePplSettings()">Uložit nastavení PPL</button></div>
+        </section>
+        <section class="set-sec" id="set-fio">
+          <div class="set-title">Platby Fio</div>
+          <div class="ppl-hint" style="margin-bottom:10px">Appka si z Fio banky sama načítá příchozí platby (každou hodinu 7–20 h) a u objednávek placených předem na účet ukáže <b>Zaplaceno / Nezaplaceno</b>. Platba se přiřadí podle <b>variabilního symbolu = číslo objednávky</b> (nebo čísla ve zprávě pro příjemce). Platby si můžeš načíst i ručně tlačítkem ↻ vlevo dole u „Platby Fio“.</div>
+          <div class="ppl-grid">
+            <div class="form-group ppl-s4"><div class="form-label">Token Fio (práva „Pouze sledovat účet“)</div>
+              <input class="form-input" id="fio-token" type="password" autocomplete="off" placeholder="vlož token z internetbankingu Fio"></div>
+            <div class="form-group ppl-s2" style="justify-content:flex-end;flex-direction:row;gap:6px;align-items:flex-end">
+              <button class="btn btn-red" onclick="fioUlozToken()">Ověřit a uložit</button>
+              <button class="btn" onclick="fioSmazToken()" title="Smaže uložený token – automatické načítání se zastaví">Smazat</button></div>
+            <div class="ppl-s6" id="fio-msg"></div>
+          </div>
+          <div class="ppl-info" style="margin-top:12px">Token se uloží <b>jen na server</b> (Supabase), ne do prohlížeče ani na GitHub, a nikdy se nezobrazí zpátky. Fio ho nejdřív ověří – špatný token se neuloží. Volání je chráněné stejným <b>PINem jako PPL</b> (Nastavení → PPL štítky).</div>
+          <div class="ppl-sec" style="margin-top:16px">Poslední příchozí platby</div>
+          <div id="fio-seznam" class="fio-seznam"><span class="ppl-hint">Načítám…</span></div>
         </section>
         <section class="set-sec" id="set-email">
           <div class="set-title">Odesílání emailů</div>
@@ -1429,6 +1467,7 @@ async function initSupabase(url, key, ejsService, ejsKey) {
     await loadOrders();
     loadPplMimo().then(() => renderOrders()).catch(() => {});
     loadTiskarny(); setInterval(loadTiskarny, 30000);
+    fioSide(); setInterval(fioSide, 5 * 60 * 1000);   // stav načítání plateb Fio (načítá server sám každou hodinu)
     setupRealtime();
     // Sync hned po načtení (5s zpoždění aby se UI stihlo vykreslit) + každou hodinu
     setTimeout(() => syncFromEshop(true), 5000);
@@ -1722,6 +1761,7 @@ function orderRow(o) {
       <div class="ocard-meta-chips">
         ${shipHtml ? `<div class="ocard-chip ocard-ship-chip">${shipHtml}</div>` : ''}
         <div class="ocard-chip"><span class="ocard-date-chip">${dateStr}</span></div>
+        ${platbaChip(o)}
         ${o.ppl?.shipments?.length ? `<div class="ocard-chip"><span class="ppl-chip" title="PPL zásilka ${escHtml(o.ppl.shipments.join(', '))}">📦 ${escHtml(o.ppl.shipments[0])}${o.ppl.env==='test'?' · test':''}</span></div>` : ''}
         <div class="ocard-chip"><span class="ocard-ordernum-chip">#${escHtml(o.order_number||'')}</span></div>
       </div>
@@ -1774,6 +1814,7 @@ function refreshPanelHeader() {
 
 function renderPanelOverview() {
   renderKroky(null);
+  setTimeout(() => platbaKandidati(currentOrder), 0);
   if (!currentOrder) return;
   const o = currentOrder;
   // Separate product items from special shipping/payment items
@@ -1908,6 +1949,7 @@ function renderPanelOverview() {
     <div class="delivery-row">
       <div class="delivery-label">Způsob platby</div>
       <div class="delivery-val">${escHtml(o.payment_method||'—')}</div>
+      ${platbaBox(o)}
     </div>
     ${pplOverviewBox(o)}
 
@@ -3106,6 +3148,145 @@ async function loadPplSettings(force) {
   pplSettings = { ...PPL_DEFAULTS, ...(v || {}) };
   return pplSettings;
 }
+// ─── PLATBY FIO ───────────────────────────────────────────────────────────────
+// Funkce „fio" v Supabase drží token (zadává se v Nastavení → Platby Fio, ukládá se jen na server),
+// načítá příchozí platby a páruje je s objednávkami (VS = číslo objednávky). Výsledek je u objednávky v poli „platba".
+const naUcet = o => /na\s*účet|převod/i.test(o.payment_method || '');
+async function fioCall(action, data = {}) {
+  let r;
+  try {
+    r = await fetch(window._sb.url.replace(/\/$/, '') + '/functions/v1/fio', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', apikey: window._sb.key, 'x-app-pin': pplPin() },
+      body: JSON.stringify({ action, ...data }) });
+  } catch (e) { throw new Error('Nepodařilo se spojit s funkcí „fio“ v Supabase (' + e.message + ').'); }
+  let d = null; try { d = await r.json(); } catch (e) {}
+  if (r.status === 404) throw new Error('V Supabase zatím není nasazená funkce „fio“.');
+  if (!r.ok || d?.error) throw new Error(d?.error || d?.message || ('HTTP ' + r.status));
+  return d;
+}
+const kc = n => Number(n || 0).toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kč';
+const datumCz = d => d ? new Date(d).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }) : '';
+function platbaStav(o) {
+  if (!naUcet(o)) return null;
+  const p = o.platba;
+  if (!p && !window._fioAktivni) return null;   // dokud Fio není zapojené, nic neukazovat
+  if (!p) return { cls: 'nez', txt: 'Platba neověřena' };
+  if (p.stav === 'zaplaceno') return { cls: 'ok', txt: 'Zaplaceno' };
+  if (p.stav === 'castecne') return { cls: 'cast', txt: 'Zaplaceno částečně' };
+  return { cls: 'ne', txt: 'Nezaplaceno' };
+}
+function platbaChip(o) {
+  const st = platbaStav(o); if (!st) return '';
+  const tip = o.platba?.stav === 'zaplaceno' ? `Zaplaceno ${kc(o.platba.zaplaceno)}${o.platba.platby?.[0] ? ' · ' + datumCz(o.platba.platby[0].datum) : ''}${o.platba.rucne ? ' · ručně: ' + (o.platba.kdo || '') : ''}` : (o.platba?.overeno ? 'Naposledy ověřeno ' + new Date(o.platba.overeno).toLocaleString('cs-CZ') : 'Platby ještě nebyly načtené');
+  return `<div class="ocard-chip"><span class="pay-st ${st.cls}" title="${escHtml(tip)}">${st.cls === 'ok' ? '✓' : st.cls === 'ne' ? '✕' : st.cls === 'cast' ? '◐' : '?'} ${st.txt}</span></div>`;
+}
+function platbaBox(o) {
+  const st = platbaStav(o); if (!st) return '';
+  const p = o.platba || {};
+  const det = p.stav && p.stav !== 'nezaplaceno'
+    ? `${kc(p.zaplaceno)} z ${kc(p.cena || o.total_amount)}${(p.platby || []).map(x => ` · ${datumCz(x.datum)}${x.nazev ? ' · ' + escHtml(x.nazev) : ''}`).join('')}`
+    : (p.overeno ? `Na účtu zatím žádná platba s VS ${escHtml(String(o.order_number || '').replace(/^0+/, ''))}` : 'Platby se ještě nenačetly');
+  const kdy = p.rucne ? `ručně · ${escHtml(p.kdo || '?')} · ${new Date(p.overeno).toLocaleString('cs-CZ')}` : (p.overeno ? `ověřeno ${new Date(p.overeno).toLocaleString('cs-CZ')}` : '');
+  return `<div class="pay-box">
+    <div class="pay-row"><span class="pay-st ${st.cls}">${st.cls === 'ok' ? '✓' : st.cls === 'ne' ? '✕' : st.cls === 'cast' ? '◐' : '?'} ${st.txt}</span><span class="pay-det">${det}</span></div>
+    ${kdy ? `<div class="pay-det" style="color:var(--muted);font-size:11px">${kdy}</div>` : ''}
+    <div id="pay-kand"></div>
+    <div class="pay-btns">
+      <button class="btn" onclick="fioNacist()" title="Načte platby z Fio teď a znovu zkontroluje objednávky">↻ Načíst platby z Fio</button>
+      ${p.stav !== 'zaplaceno' || !p.rucne ? `<button class="btn" onclick="platbaRucne('zaplaceno')" title="Když víš, že zaplatil (třeba jiný VS nebo hotově)">Označit jako zaplaceno</button>` : ''}
+      ${p.stav !== 'nezaplaceno' || !p.rucne ? `<button class="btn" onclick="platbaRucne('nezaplaceno')">Označit jako nezaplaceno</button>` : ''}
+      ${p.rucne ? `<button class="btn" onclick="platbaRucne(null)" title="Vrátí automatické ověřování z Fio">Zrušit ruční stav</button>` : ''}
+    </div>
+  </div>`;
+}
+// nezaplacená objednávka: ukázat příchozí platby se stejnou částkou, které se nespárovaly (jiný / chybějící VS)
+async function platbaKandidati(o) {
+  const el = document.getElementById('pay-kand'); if (!el || !o || !naUcet(o) || o.platba?.stav === 'zaplaceno') return;
+  const cena = Number(o.total_amount || 0); if (!cena) return;
+  const { data } = await db.from('fio_platby').select('*').is('objednavka', null).gte('castka', cena - 1).lte('castka', cena + 1).order('datum', { ascending: false }).limit(5);
+  if (!data?.length || currentOrder?.id !== o.id) return;
+  el.innerHTML = `<div class="pay-kand"><b>Možná tahle platba?</b> Stejná částka, ale nespárovala se (jiný nebo chybějící VS):
+    ${data.map(x => `<div class="pay-kand-r"><span>${datumCz(x.datum)} · <b>${kc(x.castka)}</b> · ${escHtml(x.nazev || '—')}${x.vs ? ' · VS ' + escHtml(x.vs) : ''}${x.zprava ? ' · „' + escHtml(x.zprava) + '“' : ''}</span>
+      <button class="btn btn-sm" onclick='platbaSparovat(${JSON.stringify({ id: x.id, datum: x.datum, castka: Number(x.castka), nazev: x.nazev || '' })})'>Spárovat</button></div>`).join('')}</div>`;
+}
+async function platbaUloz(nova) {
+  const o = currentOrder; if (!o) return;
+  const { error } = await db.from('orders').update({ platba: nova }).eq('id', o.id);
+  if (error) { toast('Neuložilo se: ' + error.message, 'error'); return; }
+  o.platba = nova; const oo = orders.find(x => x.id === o.id); if (oo) oo.platba = nova;
+  renderPanelOverview(); renderOrders();
+}
+async function platbaRucne(stav) {
+  const o = currentOrder; if (!o) return;
+  const kdo = (author || '');
+  if (stav === null) { await platbaUloz({ ...(o.platba || {}), rucne: false, overeno: null }); toast('Ruční stav zrušen – stav platby určí příští načtení z Fio'); return; }
+  const cena = Number(o.total_amount || 0);
+  await platbaUloz({ stav, zaplaceno: stav === 'zaplaceno' ? cena : 0, cena, platby: o.platba?.platby || [], rucne: true, kdo, overeno: new Date().toISOString(), zdroj: 'ručně' });
+  toast(stav === 'zaplaceno' ? 'Označeno jako zaplaceno (ručně)' : 'Označeno jako nezaplaceno (ručně)', 'success');
+}
+async function platbaSparovat(x) {
+  const o = currentOrder; if (!o) return;
+  const kdo = (author || '');
+  await db.from('fio_platby').update({ objednavka: o.order_number }).eq('id', x.id).then(() => {}, () => {});
+  const cena = Number(o.total_amount || 0);
+  await platbaUloz({ stav: x.castka >= cena - 1 ? 'zaplaceno' : 'castecne', zaplaceno: x.castka, cena, platby: [x], rucne: true, kdo, overeno: new Date().toISOString(), zdroj: 'spárováno ručně' });
+  toast('Platba spárována s objednávkou', 'success');
+}
+async function fioStav() {
+  try { const { data } = await db.from('app_settings').select('value').eq('key', 'fio_stav').maybeSingle(); return data?.value || null; } catch (e) { return null; }
+}
+async function fioSide() {
+  const s = await fioStav(), el = document.getElementById('fio-side-cas');
+  const bylo = window._fioAktivni; window._fioAktivni = !!(s && s.token);
+  if (bylo !== window._fioAktivni && typeof renderOrders === 'function') renderOrders();
+  if (!el) return;
+  if (!s || s.token === false) { el.textContent = 'token není zadaný'; el.title = 'Nastavení → Platby Fio'; return; }
+  const d = s.posledni ? new Date(s.posledni) : null;
+  el.textContent = s.chyba ? '⚠ ' + s.chyba : (d ? d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }) + ' ' + d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + (s.sparovano != null ? ` · ${s.sparovano} spárováno` : '') : '—');
+  el.title = s.chyba || (s.kdo ? 'Načteno: ' + s.kdo : '');
+}
+async function fioNacist() {
+  if (!pplPin()) { toast('Chybí PIN – zadej ho v Nastavení → PPL štítky', 'error'); openSettings('ppl'); return; }
+  const b = document.getElementById('fio-side-btn'); if (b) b.disabled = true;
+  toast('Načítám platby z Fio…');
+  try {
+    const kdo = (author || 'ručně');
+    const r = await fioCall('sync', { kdo });
+    await loadOrders();
+    if (currentOrderId) { currentOrder = orders.find(o => o.id === currentOrderId); if (currentOrder) renderPanelOverview(); }
+    toast(`Platby načteny: ${r.plateb} příchozích, ${r.sparovano} spárováno s objednávkami${r.zmeneno ? ` · ${r.zmeneno} změn stavu` : ''}`, 'success');
+  } catch (e) { toast('Fio: ' + e.message, 'error'); }
+  if (b) b.disabled = false;
+  fioSide();
+}
+async function fioNastaveniInfo() {
+  const s = await fioStav(), msg = document.getElementById('fio-msg');
+  if (msg) msg.innerHTML = !s || s.token === false ? '<div class="ppl-info warn">Token zatím není zadaný – automatické načítání plateb neběží.</div>'
+    : `<div class="ppl-info ${s.chyba ? 'err' : 'ok'}">${s.chyba ? '⚠ ' + escHtml(s.chyba) : '✓ Token je uložený.'} Poslední načtení: ${s.posledni ? new Date(s.posledni).toLocaleString('cs-CZ') : '—'}${s.plateb != null ? ` · ${s.plateb} příchozích plateb, ${s.sparovano} spárováno` : ''}</div>`;
+  const sez = document.getElementById('fio-seznam'); if (!sez) return;
+  const { data, error } = await db.from('fio_platby').select('*').order('datum', { ascending: false }).limit(60);
+  if (error) { sez.innerHTML = '<span class="ppl-hint" style="padding:8px;display:block">Databáze ještě není připravená (chybí tabulka fio_platby).</span>'; return; }
+  sez.innerHTML = data?.length ? `<table>${data.map(x => `<tr><td>${datumCz(x.datum)}</td><td>${escHtml(x.nazev || '—')}${x.zprava ? `<div class="ppl-hint">${escHtml(x.zprava)}</div>` : ''}</td><td>${x.vs ? 'VS ' + escHtml(x.vs) : '<span class="ppl-hint">bez VS</span>'}</td><td class="n"><b>${kc(x.castka)}</b></td><td>${x.objednavka ? `<span class="pay-st ok">#${escHtml(x.objednavka)}</span>` : '<span class="pay-st nez">nespárováno</span>'}</td></tr>`).join('')}</table>` : '<span class="ppl-hint" style="padding:8px;display:block">Zatím žádné načtené platby.</span>';
+}
+async function fioUlozToken() {
+  const inp = document.getElementById('fio-token'), t = inp.value.trim();
+  if (!t) { toast('Vlož token', 'error'); return; }
+  if (!pplPin()) { toast('Nejdřív zadej PIN v Nastavení → PPL štítky', 'error'); return; }
+  document.getElementById('fio-msg').innerHTML = '<div class="ppl-info">Ověřuji token u Fio…</div>';
+  try {
+    const r = await fioCall('token', { token: t });
+    inp.value = '';
+    toast(`Token ověřen a uložen · ${r.plateb} příchozích plateb za 45 dní`, 'success');
+    await loadOrders();
+  } catch (e) { document.getElementById('fio-msg').innerHTML = `<div class="ppl-info err">Token se neuložil: ${escHtml(e.message)}</div>`; return; }
+  fioNastaveniInfo(); fioSide();
+}
+async function fioSmazToken() {
+  if (!confirm('Smazat uložený token Fio? Automatické načítání plateb se zastaví.')) return;
+  try { await fioCall('token', { token: '' }); toast('Token smazán'); } catch (e) { toast(e.message, 'error'); }
+  fioNastaveniInfo(); fioSide();
+}
+
 function pplPin() { try { return localStorage.getItem('ppl_pin') || ''; } catch (e) { return ''; } }
 
 async function pplCall(action, data = {}) {
@@ -4050,6 +4231,7 @@ function settingsTab(sec) {
   document.querySelectorAll('.set-sec').forEach(el => el.classList.toggle('on', el.id === 'set-' + sec));
   if (sec === 'profile') renderEmailSignaturePreview();
   if (sec === 'ppl') { fillPplSettings(); pplAdresarInfo(); loadTiskarny().then(tiskNastaveniInfo); }
+  if (sec === 'fio') fioNastaveniInfo();
   if (sec === 'email') {
     const c = { ...DEFAULT_CONFIG, ...getConfig() };
     document.getElementById('set-ejs-service').value = c.emailjsService || '';
