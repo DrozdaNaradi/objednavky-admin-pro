@@ -240,7 +240,10 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .pay-btns .btn{height:30px}
 .pay-kand{font-size:12px;border:1px dashed #fcd34d;background:#fffbeb;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
 .pay-kand-r{display:flex;align-items:center;gap:8px;justify-content:space-between}
-.fio-side{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-soft)}
+.fio-side-btn{display:flex;align-items:center;justify-content:center;gap:7px;height:32px;border-radius:6px;border:1px solid var(--border-soft);background:#fff;color:#0b4ea2;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.fio-side-btn:hover{background:#eff6ff;border-color:#bfdbfe}
+.fio-side-btn:disabled{opacity:.55;cursor:wait}
+.fio-side{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-soft)}
 .fio-seznam{font-size:12px;border:1px solid var(--border);border-radius:8px;max-height:320px;overflow:auto}
 .fio-seznam table{width:100%;border-collapse:collapse}
 .fio-seznam td{padding:6px 10px;border-bottom:1px solid var(--border-soft)}
@@ -713,8 +716,8 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       <div class="sync-status-row" id="ss-orders" style="display:none"></div>
       <div class="sync-status-row" id="ss-photos" style="display:none"></div>
       <div class="fio-side" id="fio-side">
-        <div style="flex:1;min-width:0"><div class="sync-status-label">Platby Fio</div><div class="sync-status-time" id="fio-side-cas">—</div></div>
-        <button class="ss-refresh" id="fio-side-btn" onclick="fioNacist()" data-tip-r="Načíst platby z Fio teď a zkontrolovat objednávky.&#10;Jinak se načítají samy každou hodinu 7–20 h."><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></button>
+        <div style="min-width:0"><div class="sync-status-label">Platby Fio</div><div class="sync-status-time" id="fio-side-cas">—</div></div>
+        <button class="fio-side-btn" id="fio-side-btn" onclick="fioNacist()" data-tip-r="Načte platby z Fio hned teď a zkontroluje objednávky.&#10;Jinak se načítají samy každou hodinu 7–20 h."><span class="fio-mark">fio</span>Načíst platby</button>
       </div>
     </div>
 
