@@ -4075,13 +4075,14 @@ function tiskPopis(t) { return `${String(t.tiskarna || 'tiskárna').replace(/_/g
 async function tiskPrimo(cil, pdfB64, nazev) {
   const { data, error } = await db.from('tisk_fronta').insert({ created_by: author, nazev, tiskarna_id: cil.id, pdf: pdfB64 }).select('id').single();
   if (error) throw new Error('Tisková fronta: ' + error.message);
-  for (let i = 0; i < 20; i++) {
+  // pomocník hlásí „vytištěno“ až po převzetí tiskárnou (až ~20 s) a poruchu tiskárny (došel papír…) jako chybu
+  for (let i = 0; i < 30; i++) {
     await new Promise(r => setTimeout(r, 1500));
     const { data: j } = await db.from('tisk_fronta').select('stav,chyba').eq('id', data.id).single();
     if (j?.stav === 'vytisteno') return true;
     if (j?.stav === 'chyba') throw new Error(j.chyba || 'chyba tisku');
   }
-  throw new Error('Tiskárna neodpověděla do 30 s – je Mac u tiskárny zapnutý?');
+  throw new Error('Tiskárna neodpověděla do 45 s – je Mac u tiskárny zapnutý a tiskárna v pořádku (papír)?');
 }
 // společné pro tisk štítků: přímo na tiskárnu, nebo (bez pomocníka) otevřít PDF v okně
 async function tisknoutStitky(b64, nazev, win, cil) {
