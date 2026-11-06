@@ -1561,6 +1561,7 @@ async function prihlasit() {
   const heslo = document.getElementById('login-heslo').value;
   const msg = document.getElementById('login-msg'), btn = document.getElementById('login-btn');
   if (!email || !heslo) { msg.innerHTML = '<div class="ppl-info err">Vyplň e-mail a heslo.</div>'; return; }
+  if (loginPrvni && heslo.length < 8) { msg.innerHTML = '<div class="ppl-info err">Heslo k účtu musí mít aspoň 8 znaků (PIN pro PPL může být kratší).</div>'; return; }
   btn.disabled = true;
   msg.innerHTML = '<div class="ppl-info">Přihlašuji…</div>';
   try {
