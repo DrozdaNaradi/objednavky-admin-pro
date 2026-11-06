@@ -1147,6 +1147,8 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
             <div class="form-group ppl-s3" style="justify-content:flex-end"><button class="btn btn-red" onclick="ucetUlozit()">Uložit uživatele</button></div>
             <div class="ppl-s6" id="ucty-msg"></div>
           </div>
+          <div class="ppl-sec" style="margin-top:16px">Tiskový pomocník (Mac u tiskárny)</div>
+          <div id="tisk-pristup" class="ppl-info">Načítám…</div>
         </section>
         <section class="set-sec" id="set-eshop">
           <div class="set-title">Napojení e-shopu</div>
@@ -1641,7 +1643,28 @@ async function eshopUlozApi() {
     eshopNastaveniInfo();
   } catch (e) { m.innerHTML = `<div class="ppl-info err">${escHtml(e.message)}</div>`; }
 }
+async function tiskPristupInfo() {
+  const el = document.getElementById('tisk-pristup');
+  try {
+    const d = await objCall('tisk_cekajici');
+    el.className = 'ppl-info ' + (d.cekajici ? 'warn' : d.povoleno ? 'ok' : '');
+    el.innerHTML = d.cekajici
+      ? `Pomocník <b>${escHtml(d.cekajici.nazev)}</b> žádá o přístup k tiskové frontě (${formatTime(d.cekajici.kdy)}). Povol ho, jen když je to Mac u vaší tiskárny. <button class="btn btn-sm btn-red" onclick="tiskPovolit()">Povolit</button>`
+      : d.povoleno ? '✓ Tiskový pomocník je povolený. <button class="btn btn-sm" onclick="tiskZrusit()">Zrušit přístup</button>'
+      : 'Žádný tiskový pomocník není povolený – štítky se otevřou jako PDF. Pomocník na Macu u tiskárny se tu objeví sám, jakmile poběží.';
+  } catch (e) { el.className = 'ppl-info err'; el.textContent = e.message; }
+}
+async function tiskPovolit() {
+  try { await objCall('tisk_povolit'); toast('Tiskový pomocník povolen – do minuty začne tisknout', 'success'); } catch (e) { toast(escHtml(e.message), 'error'); }
+  tiskPristupInfo();
+}
+async function tiskZrusit() {
+  if (!confirm('Zrušit přístup tiskového pomocníka? Štítky se pak budou otevírat jako PDF.')) return;
+  try { await objCall('tisk_zrusit'); toast('Přístup pomocníka zrušen', 'success'); } catch (e) { toast(escHtml(e.message), 'error'); }
+  tiskPristupInfo();
+}
 async function uctyNacti() {
+  tiskPristupInfo();
   const el = document.getElementById('ucty-seznam');
   try {
     const { clenove } = await objCall('clenove');

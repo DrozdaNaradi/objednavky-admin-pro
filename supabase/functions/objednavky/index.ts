@@ -19,7 +19,9 @@
 //   pridat    (správce) { email, jmeno, heslo, admin } → založí / upraví účet
 //   heslo     (správce) { email, heslo } → nové heslo kolegovi
 //   odebrat   (správce) { email } → zruší přístup (účet smaže)
-//   tisk_prihlas { klic }        → přístup pro Tiskového pomocníka (klíč z tabulky tajne „tisk_klic")
+//   tisk_registrace { klic, nazev } → pomocník na Macu požádá o přístup (klíč si vygeneruje sám, na server jde jen jeho otisk)
+//   tisk_prihlas { klic }        → přístup pro povoleného Tiskového pomocníka (token na hodinu)
+//   tisk_cekajici / tisk_povolit / tisk_zrusit (správce) → povolení pomocníka v appce (Nastavení → Uživatelé)
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -218,6 +220,8 @@ async function zalozUcet(email: string, heslo: string, jmeno: string) {
   if (u) return auth(`admin/users/${u.id}`, { method: "PUT", body: JSON.stringify({ password: heslo, email_confirm: true, user_metadata: { jmeno } }) });
   return auth("admin/users", { method: "POST", body: JSON.stringify({ email, password: heslo, email_confirm: true, user_metadata: { jmeno } }) });
 }
+const otisk = async (t: string) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t))))
+  .map((x) => x.toString(16).padStart(2, "0")).join("");
 const platnyEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 const platneHeslo = (h: string) => h.length >= 8;
 
@@ -255,9 +259,17 @@ Deno.serve(async (req) => {
       try { return json({ ok: true, ...(await obnovFotky("automaticky")) }); }
       catch (e) { await ulozNastaveni("fotky_stav", { ...(st || {}), posledni: new Date().toISOString(), chyba: (e as Error).message }); throw e; }
     }
+    if (action === "tisk_registrace") {
+      const klic = String(p.klic || "");
+      if (klic.length < 32) return json({ error: "Krátký klíč." }, 400);
+      const o = await otisk(klic);
+      if (o === await tajne("tisk_klic")) return json({ ok: true, povoleno: true });
+      await ulozTajne("tisk_cekajici", JSON.stringify({ otisk: o, nazev: String(p.nazev || "Mac").slice(0, 60), kdy: new Date().toISOString() }));
+      return json({ ok: true, povoleno: false });
+    }
     if (action === "tisk_prihlas") {
-      const klic = await tajne("tisk_klic");
-      if (!klic || String(p.klic || "") !== klic) { await new Promise((r) => setTimeout(r, 1500)); return json({ error: "Špatný klíč tiskového pomocníka." }, 401); }
+      const povoleny = await tajne("tisk_klic");
+      if (!povoleny || await otisk(String(p.klic || "")) !== povoleny) { await new Promise((r) => setTimeout(r, 1500)); return json({ error: "Tiskový pomocník zatím není povolený (Nastavení → Uživatelé)." }, 401); }
       // účet tiskárny: heslo se vygeneruje znovu při každém přihlášení, nikdo ho nezná
       const heslo = crypto.randomUUID() + crypto.randomUUID();
       await zalozUcet(TISKARNA, heslo, "Tiskový pomocník");
@@ -286,6 +298,21 @@ Deno.serve(async (req) => {
       if (!j?.success) return json({ error: "E-shop tuhle adresu odmítl: " + (j?.report || ("HTTP " + r.status)) }, 400);
       await ulozTajne("eshop_api", url);
       return json({ ok: true, objednavek: (j.params?.orderList || []).length });
+    }
+    if (action === "tisk_cekajici") {
+      const c = await tajne("tisk_cekajici");
+      return json({ cekajici: c ? (({ nazev, kdy }) => ({ nazev, kdy }))(JSON.parse(c)) : null, povoleno: !!(await tajne("tisk_klic")) });
+    }
+    if (action === "tisk_povolit") {
+      const c = await tajne("tisk_cekajici");
+      if (!c) return json({ error: "Žádný pomocník nečeká na povolení." }, 400);
+      await ulozTajne("tisk_klic", JSON.parse(c).otisk);
+      await db("tajne?klic=eq.tisk_cekajici", { method: "DELETE" });
+      return json({ ok: true });
+    }
+    if (action === "tisk_zrusit") {
+      await db("tajne?klic=in.(tisk_klic,tisk_cekajici)", { method: "DELETE" });
+      return json({ ok: true });
     }
     if (action === "clenove") return json({ clenove: await db("clenove?select=email,jmeno,admin,pridal,created_at&order=created_at") });
     if (action === "pridat") {

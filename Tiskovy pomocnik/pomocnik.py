@@ -8,7 +8,7 @@ vytiskne to výchozí tiskárnou Macu a ve frontě to označí jako vytištěné
 Každých 30 s se ozve do tabulky tiskarny („jsem online, moje tiskárna je …“),
 aby appka věděla, kam může tisknout. Běží na pozadí přes launchd.
 """
-import base64, json, re, socket, subprocess, time, urllib.request
+import base64, json, re, secrets, socket, subprocess, time, urllib.error, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -34,13 +34,22 @@ def token():
     """Přístup do tiskové fronty: funkce „objednavky“ za klíč pomocníka vydá token na hodinu (účet tiskarna@objednavky.local)."""
     if _token['hodnota'] and time.time() < _token['do'] - 120:
         return _token['hodnota']
-    klic = KLIC.read_text().strip() if KLIC.exists() else ''
-    if not klic:
-        raise RuntimeError(f'chybí klíč pomocníka v {KLIC}')
-    req = urllib.request.Request(SB + '/functions/v1/objednavky', method='POST', headers={'Content-Type': 'application/json', 'apikey': KEY},
-                                 data=json.dumps({'action': 'tisk_prihlas', 'klic': klic}).encode())
-    with urllib.request.urlopen(req, timeout=30) as r:
-        d = json.loads(r.read())
+    if not KLIC.exists():   # klíč si pomocník vygeneruje sám; na server jde jen jeho otisk, povolí ho správce v appce
+        KLIC.write_text(secrets.token_hex(32))
+        KLIC.chmod(0o600)
+    klic = KLIC.read_text().strip()
+    def volej(action, **data):
+        req = urllib.request.Request(SB + '/functions/v1/objednavky', method='POST', headers={'Content-Type': 'application/json', 'apikey': KEY},
+                                     data=json.dumps({'action': action, 'klic': klic, **data}).encode())
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read())
+    try:
+        d = volej('tisk_prihlas')
+    except urllib.error.HTTPError as e:
+        if e.code != 401:
+            raise
+        volej('tisk_registrace', nazev=nazev_macu())
+        raise RuntimeError('čekám na povolení – v appce Nastavení → Uživatelé → Tiskový pomocník → Povolit')
     _token.update(hodnota=d['access_token'], do=time.time() + int(d.get('expires_in') or 3600))
     return _token['hodnota']
 
