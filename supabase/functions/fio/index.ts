@@ -97,7 +97,9 @@ async function sparuj(platby: any[]) {
   for (const p of platby) {
     let o = p.vs ? podleCisla.get(bezNul(p.vs)) : undefined;
     if (!o) {   // číslo objednávky ve zprávě pro příjemce
-      for (const [cislo, oo] of podleCisla) if (cislo.length >= 6 && bezNul(p.zprava).includes(cislo)) { o = oo; break; }
+      // každé číslo ve zprávě zvlášť – slepení „obj 2026 1105“ → „20261105“ dřív spárovalo cizí objednávku 261105
+      const cislaZpravy = (String(p.zprava || "").match(/\d+/g) || []).map((x) => x.replace(/^0+/, ""));
+      for (const c of cislaZpravy) { const oo = c.length >= 6 ? podleCisla.get(c) : undefined; if (oo) { o = oo; break; } }
     }
     p.objednavka = o ? o.order_number : null;
     if (o) { if (!kObj.has(o.id)) kObj.set(o.id, []); kObj.get(o.id)!.push(p); }
@@ -107,6 +109,8 @@ async function sparuj(platby: any[]) {
   for (const o of obj) {
     if (o.platba?.rucne) continue;   // ručně nastavený stav nepřepisovat
     const pl = kObj.get(o.id) || [];
+    // platby se čtou jen DNI dní zpět – starší zaplacená objednávka nesmí spadnout zpět na „nezaplaceno“
+    if (!pl.length && o.platba?.stav && o.platba.stav !== "nezaplaceno") continue;
     const suma = Math.round(pl.reduce((a, p) => a + p.castka, 0) * 100) / 100;
     const cena = Number(o.total_amount || 0);
     const stav = !pl.length ? "nezaplaceno" : (suma >= cena - 1 ? "zaplaceno" : "castecne");

@@ -1339,7 +1339,7 @@ const DEFAULT_CONFIG = {
 // ─── SYNC STATUS ─────────────────────────────────────────────────────────────
 const SYNC_STATUS_KEY = 'adminSyncStatus';
 
-function formatTime(ts) {
+function formatSyncTime(ts) {
   if (!ts) return '—';
   const d = new Date(ts);
   const hms = d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -1351,7 +1351,7 @@ function formatTime(ts) {
 }
 function timeAgo(ts) {
   if (!ts) return '—';
-  return formatTime(ts);
+  return formatSyncTime(ts);
 }
 
 function renderSyncStatus() {
@@ -1511,12 +1511,15 @@ function updateAuthorUI() {
 }
 
 // ─── LOAD ORDERS ─────────────────────────────────────────────────────────────
+let loadOrdersSeq = 0;
 async function loadOrders() {
+  const seq = ++loadOrdersSeq;
   const { data, error } = await db
     .from('orders')
     .select('*, order_notes(id, content, author, created_at, item_index)')
     .order('created_at', { ascending: false });
-  if (error) { toast('Chyba načítání: ' + error.message, 'error'); return; }
+  if (seq !== loadOrdersSeq) return;   // mezitím odešel novější dotaz – starší odpověď by přepsala čerstvá data
+  if (error) { toast('Chyba načítání: ' + escHtml(error.message), 'error'); return; }
   orders = data || [];
   renderOrders();
   renderStats();
@@ -1526,17 +1529,34 @@ async function loadOrders() {
 function setupRealtime() {
   const dot = document.getElementById('rt-dot');
   const lbl = document.getElementById('rt-label');
-  realtimeChannel = db.channel('admin-realtime')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async (payload) => {
+  // sync e-shopu mění desítky objednávek naráz → jedno znovunačtení po 600 ms místo desítek souběžných
+  let rtTimer = null, rtPanel = false, rtNotes = false;
+  const rtReload = () => {
+    clearTimeout(rtTimer);
+    rtTimer = setTimeout(async () => {
+      const panel = rtPanel, notes = rtNotes; rtPanel = rtNotes = false;
       await loadOrders();
-      if (currentOrderId && payload.new?.id === currentOrderId) {
-        currentOrder = orders.find(o => o.id === currentOrderId);
-        refreshPanelHeader();
+      if (!currentOrderId) return;
+      if (panel) {
+        const fresh = orders.find(o => o.id === currentOrderId);
+        if (fresh) { currentOrder = fresh; refreshPanelHeader(); renderKroky(window._lastActs || []); }
       }
+      if (notes) {
+        await loadPanelNotes();
+        loadItemNotes(currentOrderId, document.querySelectorAll('[id^="item-row-"]').length);
+        renderQuickNotes(); refreshSupplierBar();
+      }
+    }, 600);
+  };
+  realtimeChannel = db.channel('admin-realtime')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+      if (currentOrderId && payload.new?.id === currentOrderId) rtPanel = true;
+      rtReload();
     })
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'order_notes' }, async (payload) => {
-      if (currentOrderId && payload.new?.order_id === currentOrderId) await loadPanelNotes();
-      await loadOrders();
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'order_notes' }, (payload) => {
+      // smazání poznámky / zrušení „Objednáno u dodavatele“ nese jen id → obnovit otevřenou objednávku vždy
+      if (currentOrderId && (payload.new?.order_id === currentOrderId || payload.eventType === 'DELETE')) rtNotes = true;
+      rtReload();
     })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'order_activity' }, async (payload) => {
       if (currentOrderId && payload.new?.order_id === currentOrderId) await loadActivityLog();
@@ -1860,11 +1880,14 @@ function renderPanelOverview() {
   // Každý řádek adresy jako samostatný div s copy buttonem hned za textem
   const addrLinesHtml = addrParts.map(p => `<div style="line-height:1.8;font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p)}&thinsp;${cp(p)}</div>`).join('');
 
-  function addrBlock(title) {
+  function addrBlock(title, adresa) {
+    // fakturační adresa ze sync (billing_address); starší objednávky ji nemají → dodací
+    const radky = adresa ? adresa.split(/[,\n]+/).map(x => x.trim()).filter(Boolean)
+      .map(p => `<div style="line-height:1.8;font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p)}&thinsp;${cp(p)}</div>`).join('') : addrLinesHtml;
     return `<div class="addr-box">
       <div class="addr-box-title">${title}</div>
       <div class="addr-line"><b>${escHtml(o.customer_name||'—')}</b>${o.customer_name ? cp(o.customer_name) : ''}</div>
-      ${addrLinesHtml ? `<div style="margin-top:4px">${addrLinesHtml}</div>` : ''}
+      ${radky ? `<div style="margin-top:4px">${radky}</div>` : ''}
       ${o.customer_email ? `<div class="addr-line" style="margin-top:6px"><b>Email:</b>&nbsp;<a href="mailto:${escHtml(o.customer_email)}">${escHtml(o.customer_email)}</a>${cp(o.customer_email)}</div>` : ''}
       ${o.customer_phone ? `<div class="addr-line"><b>Telefon:</b>&nbsp;${escHtml(o.customer_phone)}${cp(o.customer_phone)}</div>` : ''}
       ${companyName ? `<div class="addr-line" style="margin-top:6px"><b>Firma:</b>&nbsp;${escHtml(companyName)}${cp(companyName)}</div>` : ''}
@@ -1876,7 +1899,7 @@ function renderPanelOverview() {
   // Items table rows
   const itemRowsHtml = items.map((it, idx) => {
     const imgHtml = it.img
-      ? `<img src="${it.img}" alt="" onerror="this.style.display='none'" loading="lazy" referrerpolicy="no-referrer">`
+      ? `<img src="${escHtml(it.img)}" alt="" onerror="this.style.display='none'" loading="lazy" referrerpolicy="no-referrer">`
       : `<div class="no-img"></div>`;
     // Sloupce = cena za všechny kusy (jako v e-shopu), cena za kus je drobně pod ní
     const fmtKc = v => Number(v).toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' Kč';
@@ -1943,7 +1966,7 @@ function renderPanelOverview() {
   document.getElementById('p-overview-body').innerHTML = `
     <div class="addr-grid">
       ${addrBlock('Dodací adresa')}
-      ${addrBlock('Fakturační údaje')}
+      ${addrBlock('Fakturační údaje', o.billing_address && o.billing_address !== o.delivery_address ? o.billing_address : '')}
     </div>
 
     <div class="delivery-row">
@@ -2191,14 +2214,14 @@ function toggleNoteContrast() {
 }
 
 // ─── STATUS ──────────────────────────────────────────────────────────────────
-async function setStatus(status) {
-  if (!currentOrderId || currentOrder?.status === status) return;
-  const oldStatus = currentOrder.status;
-  const { error } = await db.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', currentOrderId);
-  if (error) { toast('Chyba: ' + error.message, 'error'); return; }
-  await logActivity('status_changed', { from: oldStatus, to: status });
-  currentOrder.status = status;
-  updateStatusButtons(status);
+async function setStatus(status, oid = currentOrderId, ord = currentOrder) {
+  if (!oid || ord?.status === status) return;
+  const oldStatus = ord?.status;
+  const { error } = await db.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', oid);
+  if (error) { toast('Chyba: ' + escHtml(error.message), 'error'); return; }
+  await logActivity('status_changed', { from: oldStatus, to: status }, oid);
+  if (ord) ord.status = status;
+  if (oid === currentOrderId) updateStatusButtons(status);
   toast('Stav změněn na: ' + statusLabel(status), 'success');
   await loadOrders();
 }
@@ -2210,8 +2233,9 @@ function updateStatusButtons(status) {
 function statusLabel(s) { return s==='new'?'Nová':s==='open'?'Otevřená':'Odesláno'; }
 
 // ─── ACTIVITY ────────────────────────────────────────────────────────────────
-async function logActivity(action, details) {
-  await db.from('order_activity').insert({ order_id: currentOrderId, action, details, author });
+async function logActivity(action, details, oid = currentOrderId) {
+  if (!oid) return;
+  await db.from('order_activity').insert({ order_id: oid, action, details, author });
 }
 
 async function loadActivityLog() {
@@ -2408,16 +2432,16 @@ function renderEmailHistory(acts) {
   const mails = acts.filter(a => a.action === 'email_sent' || a.action === 'email_failed');
   el.innerHTML = mails.length ? mails.map(a => activityItem(a)).join('') : '<div class="empty-notes">Zatím žádné emaily.</div>';
 }
-async function sendLoggedEmail({ to, subject, body, kind, template, attachment }) {
+async function sendLoggedEmail({ to, subject, body, kind, template, attachment, oid = currentOrderId, ord = currentOrder }) {
   const sentAt = new Date().toISOString();
   try {
-    const params = { to_email: to, subject, message: body, message_html: emailHtml(body), order_number: currentOrder?.order_number, customer_name: currentOrder?.customer_name };
+    const params = { to_email: to, subject, message: body, message_html: emailHtml(body), order_number: ord?.order_number, customer_name: ord?.customer_name };
     const res = await emailjs.send(window._ejsService, 'template_2v1bgzs', params);
-    await logActivity('email_sent', { to, subject, body, kind, template, sentAt, status: res?.status, response: res?.text || '', attachment: attachment ? { name: attachment.name, size: attachment.size, url: attachment.url } : undefined });
+    await logActivity('email_sent', { to, subject, body, kind, template, sentAt, status: res?.status, response: res?.text || '', attachment: attachment ? { name: attachment.name, size: attachment.size, url: attachment.url } : undefined }, oid);
     return res;
   } catch (e) {
-    await logActivity('email_failed', { to, subject, body, kind, template, sentAt, error: e?.text || e?.message || String(e), status: e?.status, attachment: attachment ? { name: attachment.name, size: attachment.size, url: attachment.url } : undefined });
-    await loadActivityLog();
+    await logActivity('email_failed', { to, subject, body, kind, template, sentAt, error: e?.text || e?.message || String(e), status: e?.status, attachment: attachment ? { name: attachment.name, size: attachment.size, url: attachment.url } : undefined }, oid);
+    if (oid === currentOrderId) await loadActivityLog();
     throw e;
   }
 }
@@ -2506,7 +2530,7 @@ async function refreshSupplierBar() {
   const o = currentOrder;
   if (!el || !o) return;
   const split = await supplierSplit(o);
-  if (o !== currentOrder) return;
+  if (o.id !== currentOrder?.id) return;
   const n = split.missing.length;
   if (!n) { el.innerHTML = ''; return; }
   const sent = (window._lastActs || []).some(a => a.action === 'email_sent' && a.details?.kind === 'supplier');
@@ -2535,7 +2559,7 @@ function applyEmailTemplate(kind) {
     document.getElementById('email-subject').value = '';
     document.getElementById('email-body').value = '';
     supplierSplit(o).then(split => {
-      if (o !== currentOrder || emailTemplate !== 'supplier') return;
+      if (o.id !== currentOrder?.id || emailTemplate !== 'supplier') return;
       document.getElementById('email-template-hint').innerHTML = split.missing.length
         ? `Vypsané jsou položky, které nejsou skladem nebo jsou označené „Objednáno u dodavatele" (${split.missing.length}). Text můžeš upravit. Objednávka zůstane rozpracovaná (Otevřená).`
         : '<span style="color:#991b1b"><b>Tento email teď nejde poslat:</b> všechny položky jsou skladem a žádná není označená „Objednáno u dodavatele". Pokud něco objednáváš, klikni v Přehledu u položky na „Objednáno u dodavatele".</span>';
@@ -2605,13 +2629,14 @@ async function uploadInvoice(att) {
 
 async function sendEmail() {
   if (!window._ejsService) { toast('EmailJS není nakonfigurováno', 'error'); return; }
+  const oid = currentOrderId, ord = currentOrder, tpl = emailTemplate;   // odeslání trvá – mezitím může být otevřená jiná objednávka
   const to = document.getElementById('email-to').value.trim();
   const extra = document.getElementById('email-extra').value.trim();
   const subject = document.getElementById('email-subject').value.trim();
   let body = document.getElementById('email-body').value.trim();
   if (!to || !subject || !body) { toast('Vyplň všechna pole', 'error'); return; }
   const isShip = emailTemplate === 'ship' || emailTemplate === 'ship_inv';
-  if (emailTemplate === 'supplier' && !(await supplierSplit(currentOrder)).missing.length) {
+  if (emailTemplate === 'supplier' && !(await supplierSplit(ord)).missing.length) {
     toast('V objednávce není nic mimo sklad ani označené „Objednáno u dodavatele" — email nejde poslat', 'error');
     return;
   }
@@ -2634,16 +2659,15 @@ async function sendEmail() {
         : body.replace('\n\n--\n', `\n\nFakturu k objednávce si můžete stáhnout zde: ${att.url}\n\n--\n`);
       btn.lastChild.textContent = ' Odesílám…';
     }
-    const res = await sendLoggedEmail({ to: allTo, subject, body, kind: isShip ? 'shipping' : emailTemplate === 'supplier' ? 'supplier' : 'manual', template: emailTemplate, attachment: att });
-    if (isShip && currentOrder?.status !== 'closed') await setStatus('closed');
-    if (emailTemplate === 'supplier' && currentOrder?.status === 'new') await setStatus('open');
+    const res = await sendLoggedEmail({ to: allTo, subject, body, kind: isShip ? 'shipping' : tpl === 'supplier' ? 'supplier' : 'manual', template: tpl, attachment: att, oid, ord });
+    if (isShip && ord?.status !== 'closed') await setStatus('closed', oid, ord);
+    if (tpl === 'supplier' && ord?.status === 'new') await setStatus('open', oid, ord);
     if (att) { emailAttachment = null; renderEmailAttachment(); }
-    await loadActivityLog();
-    if (emailTemplate === 'supplier') refreshSupplierBar();
-    toast(isShip ? 'Email odeslán (potvrzeno) a objednávka označena jako Odesláno' : emailTemplate === 'supplier' ? 'Email odeslán (potvrzeno) — objednávka zůstává otevřená' : `Email odeslán — potvrzeno (${res?.status||''} ${res?.text||''})`, 'success');
+    if (oid === currentOrderId) { await loadActivityLog(); if (tpl === 'supplier') refreshSupplierBar(); }
+    toast(isShip ? 'Email odeslán (potvrzeno) a objednávka označena jako Odesláno' : tpl === 'supplier' ? 'Email odeslán (potvrzeno) — objednávka zůstává otevřená' : `Email odeslán — potvrzeno (${res?.status||''} ${res?.text||''})`, 'success');
   } catch (e) {
     const msg = e?.text || e?.message || '';
-    toast('Email se NEODESLAL: ' + msg, 'error');
+    toast('Email se NEODESLAL: ' + escHtml(msg), 'error');
   }
   btn.disabled = false;
   btn.lastChild.textContent = label;
@@ -2653,6 +2677,9 @@ async function sendEmail() {
 async function printOrder() {
   if (!currentOrder) return;
   const o = currentOrder;
+  const win = window.open('', '_blank');   // hned po kliknutí – po await by ho Safari zablokoval
+  if (!win) { toast('Prohlížeč zablokoval okno s tiskem – povol vyskakovací okna pro tuto stránku', 'error'); return; }
+  win.document.write('<p style="font:15px -apple-system,sans-serif;padding:40px">Připravuji tisk…</p>');
   const { data: notesData } = await db.from('order_notes').select('*').eq('order_id', o.id).is('item_index', null).order('created_at',{ascending:true});
   const notes = notesData || [];
   const items = Array.isArray(o.items) ? o.items : [];
@@ -2722,14 +2749,14 @@ h1{font-size:22px;font-weight:800;letter-spacing:-.4px}
 <div class="sec-title">Objednané položky</div>
 ${items.map(it => `
 <div class="item">
-  ${it.img ? `<img src="${it.img}" alt="">` : ''}
+  ${it.img ? `<img src="${escHtml(it.img)}" alt="">` : ''}
   <div class="item-body">
     <div class="item-name">${escHtml(it.name||'Položka')}</div>
     ${it.sku ? `<div class="item-sku">${escHtml(it.sku)}</div>` : ''}
   </div>
   <div class="item-right">
-    <div class="item-qty">${it.qty||1} ks</div>
-    <div class="item-price">${it.price_with_vat ? Number(it.price_with_vat).toLocaleString('cs-CZ') + ' Kč' : ''}</div>
+    <div class="item-qty">${it.qty||1} ks${(it.qty||1) > 1 && it.price_with_vat ? ' × ' + Number(it.price_with_vat).toLocaleString('cs-CZ') + ' Kč' : ''}</div>
+    <div class="item-price">${it.price_with_vat ? Number(it.total_with_vat || it.price_with_vat * (it.qty||1)).toLocaleString('cs-CZ') + ' Kč' : ''}</div>
   </div>
 </div>`).join('')}
 <div class="total-row"><span class="total-label">Celkem k platbě</span><span class="total-val">${totalStr}</span></div>
@@ -2737,13 +2764,13 @@ ${items.map(it => `
 ${notes.length ? `<div class="sec-title">Poznámky</div>${notes.map(n=>`
 <div class="note">
   <div class="note-meta">${escHtml(n.author||'')} · ${formatTime(n.created_at)}</div>
-  <div class="note-text">${escHtml(n.content)}</div>
+  <div class="note-text">${escHtml(String(n.content||'').replace(/^\[\[red\]\]\s*/, ''))}</div>
 </div>`).join('')}` : ''}
 
 <div class="footer">Vytisknuto z Admin Objednávek — Drozda Nářadí · ${new Date().toLocaleString('cs-CZ')}</div>
 </div></body></html>`;
 
-  const win = window.open('', '_blank');
+  win.document.open();
   win.document.write(html);
   win.document.close();
   win.focus();
@@ -3037,6 +3064,13 @@ async function fetchWithTimeout(url, ms) {
   catch(e) { clearTimeout(timer); throw e; }
 }
 
+// datum z e-shopu „2026-11-05 15:34:19.000000“ (Europe/Prague) – Safari ho přes new Date() neumí → ruční rozklad v místním čase
+function eshopDatum(s) {
+  const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
+  if (!m) return null;
+  const d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+  return isNaN(d) ? null : d.toISOString();
+}
 async function syncFromEshop(silent = false) {
   const btn = document.getElementById('sync-btn');
   const btnS = document.getElementById('sync-btn-side');
@@ -3091,23 +3125,27 @@ async function syncFromEshop(silent = false) {
       const dic = c.dic || b.dic || o.customer?.dic || o.dic || c.vat || b.vat || '';
       const companyName = c.company || b.company || '';
       const companyParts = [companyName, ico?'IČO:'+ico:'', dic?'DIČ:'+dic:''].filter(Boolean);
-      const row = { order_number:num, customer_name:c.name||b.name||'', customer_email:c.email||b.email||'', customer_phone:c.phone||b.phone||'', company:companyParts.join('|'), delivery_address:[c.street,city,c.zip].filter(Boolean).join(', '), shipping_method:o.delivery?.nazev_postovne||'', payment_method:o.payment?.nazev_platba||'', total_amount:parseFloat(o.total?.price_with_vat||0)||null, order_date:o.created?.date?new Date(o.created.date).toISOString():new Date().toISOString(), items };
-      const { data: ex } = await db.from('orders').select('id, items').eq('order_number', num).maybeSingle();
+      const bCity = (b.city||'').replace(/\s*\[.*?\]/g,'').trim();
+      const datum = eshopDatum(o.created?.date);
+      const row = { order_number:num, customer_name:c.name||b.name||'', customer_email:c.email||b.email||'', customer_phone:c.phone||b.phone||'', company:companyParts.join('|'), delivery_address:[c.street,city,c.zip].filter(Boolean).join(', '), billing_address:[b.street,bCity,b.zip].filter(Boolean).join(', ') || null, shipping_method:o.delivery?.nazev_postovne||'', payment_method:o.payment?.nazev_platba||'', total_amount:parseFloat(o.total?.price_with_vat||0)||null, items };
+      if (datum) row.order_date = datum;   // nečitelné datum: u stávající objednávky nechat, novou dát „teď“
+      const { data: ex, error: exErr } = await db.from('orders').select('id, items').eq('order_number', num).maybeSingle();
+      if (exErr) { console.warn('Sync: objednávku', num, 'nejde načíst –', exErr.message); continue; }   // ať nevznikne duplicita
       if (ex) {
-        // Pokud nemáme imgMap, zachováme existující fotky z DB
-        if (!hasImgMap && Array.isArray(ex.items)) {
+        // fotku, kterou mapa nezná, převzít z uložené objednávky (podle kódu, jinak podle pořadí)
+        if (Array.isArray(ex.items)) {
           const exProd = ex.items.filter(it => !it.type);
-          items.forEach((item, i) => { if (!item.img && exProd[i]?.img) item.img = exProd[i].img; });
+          items.forEach((item, i) => { if (!item.img && !item.type) item.img = exProd.find(x => x.sku && x.sku === item.sku && x.img)?.img || exProd[i]?.img || ''; });
         }
         await db.from('orders').update(row).eq('id', ex.id); updated++;
       }
-      else { await db.from('orders').insert({ ...row, status:'new' }); imported++; }
+      else { await db.from('orders').insert({ ...row, order_date: row.order_date || new Date().toISOString(), status:'new' }); imported++; }
       setSyncStatus(`Importuji… ${imported} nových, ${updated} aktualizováno`);
     }
     saveSyncStatus({ ts: Date.now(), imported, updated, auto: silent });
     if (silent) { if (imported || updated) await loadOrders(); }
     else { toast('Sync hotov: ' + imported + ' nových, ' + updated + ' aktualizováno', 'success'); await loadOrders(); }
-  } catch(e) { if (!silent) toast('Chyba sync: ' + e.message, 'error'); }
+  } catch(e) { if (!silent) toast('Chyba sync: ' + escHtml(e.message), 'error'); else console.warn('Automatický sync e-shopu selhal:', e); }
   if (!silent) { showLoading(false); if (btn) btn.disabled = false; if (btnS) btnS.disabled = false; }
 }
 
@@ -3208,10 +3246,13 @@ async function platbaKandidati(o) {
   const el = document.getElementById('pay-kand'); if (!el || !o || !naUcet(o) || o.platba?.stav === 'zaplaceno') return;
   const cena = Number(o.total_amount || 0); if (!cena) return;
   const { data } = await db.from('fio_platby').select('*').is('objednavka', null).gte('castka', cena - 1).lte('castka', cena + 1).order('datum', { ascending: false }).limit(5);
-  if (!data?.length || currentOrder?.id !== o.id) return;
+  const sparovane = new Set(orders.flatMap(x => (x.platba?.platby || []).map(p => p.id)).filter(Boolean));
+  const kand = (data || []).filter(x => !sparovane.has(x.id));   // ručně spárovaná platba už jinde nabízet
+  if (!kand.length || currentOrder?.id !== o.id) return;
+  window._payKand = kand.map(x => ({ id: x.id, datum: x.datum, castka: Number(x.castka), nazev: x.nazev || '' }));
   el.innerHTML = `<div class="pay-kand"><b>Možná tahle platba?</b> Stejná částka, ale nespárovala se (jiný nebo chybějící VS):
-    ${data.map(x => `<div class="pay-kand-r"><span>${datumCz(x.datum)} · <b>${kc(x.castka)}</b> · ${escHtml(x.nazev || '—')}${x.vs ? ' · VS ' + escHtml(x.vs) : ''}${x.zprava ? ' · „' + escHtml(x.zprava) + '“' : ''}</span>
-      <button class="btn btn-sm" onclick='platbaSparovat(${JSON.stringify({ id: x.id, datum: x.datum, castka: Number(x.castka), nazev: x.nazev || '' })})'>Spárovat</button></div>`).join('')}</div>`;
+    ${kand.map((x, i) => `<div class="pay-kand-r"><span>${datumCz(x.datum)} · <b>${kc(x.castka)}</b> · ${escHtml(x.nazev || '—')}${x.vs ? ' · VS ' + escHtml(x.vs) : ''}${x.zprava ? ' · „' + escHtml(x.zprava) + '“' : ''}</span>
+      <button class="btn btn-sm" onclick="platbaSparovat(window._payKand[${i}])">Spárovat</button></div>`).join('')}</div>`;
 }
 async function platbaUloz(nova) {
   const o = currentOrder; if (!o) return;
@@ -3406,7 +3447,7 @@ function pplShipment(f) {
       phone: pplPhone(f.phone) || undefined, email: f.email.trim() || undefined,
     },
   };
-  if (f.parcelShop.trim() && f.base !== 'BUSS') sh.specificDelivery = { parcelShopCode: f.parcelShop.trim() };
+  if (f.parcelShop.trim() && f.base === 'SMAR') sh.specificDelivery = { parcelShopCode: f.parcelShop.trim() };
   if (f.cod) sh.cashOnDelivery = {
     codPrice: Math.round(parseFloat(f.codPrice)), codCurrency: 'CZK', codVarSym: f.vs,
     account: s.acc, accountPre: s.accPre || undefined, bankCode: s.bank,
@@ -3732,6 +3773,20 @@ async function submitPpl() {
     : 'Zkušební režim — zásilky nebudou skutečné.';
   if (!confirm(`Vytvořit ${labels} ${pplPlural(labels, 'štítek', 'štítky', 'štítků')} u PPL?\n\n${real}\nTisk začne na místě ${pplPos} archu A4.`)) return;
 
+  // kolega mohl mezitím štítek vytvořit – čerstvý stav z databáze, ať nevzniknou dvě zásilky
+  const ids = sel.filter(d => d.orderId).map(d => d.orderId);
+  if (ids.length) {
+    const { data: cerstve } = await db.from('orders').select('id, order_number, ppl').in('id', ids);
+    const hotove = (cerstve || []).filter(x => x.ppl?.shipments?.length);
+    hotove.forEach(x => { const oo = orders.find(o => o.id === x.id); if (oo) oo.ppl = x.ppl; });
+    if (hotove.length) {
+      sel.filter(d => hotove.some(x => x.id === d.orderId)).forEach(d => { d.on = false; });
+      renderPpl();
+      pplMsg('err', `Objednávka ${hotove.map(x => escHtml(x.order_number)).join(', ')} už mezitím štítek má (vytvořil kolega) – vyřadil jsem ji. Zkontroluj výběr a pošli znovu.`);
+      return;
+    }
+  }
+
   pplBusy = true;
   const btn = document.getElementById('ppl-submit');
   btn.textContent = 'Posílám do PPL…';
@@ -3740,11 +3795,13 @@ async function submitPpl() {
   const pdfWin = tCil ? null : window.open('', '_blank');
   if (pdfWin) pdfWin.document.write('<p style="font:16px -apple-system,sans-serif;padding:40px">Čekám na štítky od PPL… (okno nezavírej)</p>');
   let tiskInfo = '';
+  let vzniklaDavka = null;
   try {
     const shipments = sel.map(d => pplShipment(d.f));
     pplMsg('', 'Posílám zásilky do PPL…');
     const body = { labelSettings: { format: 'Pdf', completeLabelSettings: { isCompleteLabelRequested: true, pageSize: 'A4', position: pplPos } }, shipments };
     const { batchId, env } = await pplCall('create', { body });
+    vzniklaDavka = batchId;
 
     let items = [];
     for (let i = 0; i < 40; i++) {
@@ -3788,14 +3845,20 @@ async function submitPpl() {
     }
 
     if (okLabels) {
-      const lab = await pplCall('label', { batchId, position: startPos });
+      let lab = null;
       try {
+        lab = await pplCall('label', { batchId, position: startPos });
         const t = await tisknoutStitky(lab.pdf, `PPL štítky ${okNums[0] || ''}`, pdfWin, tCil);
         pplLastPdf = t.url;
         tiskInfo = t.primo ? `🖨 Štítky se tisknou na <b>${escHtml(tiskPopis(tCil))}</b> (100 %, A4).` : 'Štítky se otevřely v novém okně → vytiskni je na arch A4.';
       } catch (e) {
-        pplLastPdf = URL.createObjectURL(new Blob([Uint8Array.from(atob(lab.pdf), c => c.charCodeAt(0))], { type: 'application/pdf' }));
-        tiskInfo = `<span style="color:#b91c1c">Na tiskárnu se to neposlalo: ${escHtml(e.message)}</span> Otevři štítky tlačítkem níže a vytiskni ručně.`;
+        if (lab) {
+          pplLastPdf = URL.createObjectURL(new Blob([Uint8Array.from(atob(lab.pdf), c => c.charCodeAt(0))], { type: 'application/pdf' }));
+          tiskInfo = `<span style="color:#b91c1c">Na tiskárnu se to neposlalo: ${escHtml(e.message)}</span> Otevři štítky tlačítkem níže a vytiskni ručně.`;
+        } else {
+          if (pdfWin) pdfWin.close();
+          tiskInfo = `<span style="color:#b91c1c">Zásilky vznikly, ale štítek se od PPL nestáhl (${escHtml(e.message)}).</span> Stáhni ho v detailu objednávky tlačítkem „Znovu stáhnout štítek“ – nevytvářej zásilku znovu.`;
+        }
       }
       pplPos = ((startPos - 1 + okLabels) % 4) + 1;
       try { localStorage.setItem('ppl_next_pos', pplPos); } catch (e) {}
@@ -3806,6 +3869,10 @@ async function submitPpl() {
       ${tiskInfo}<br>
       <button class="btn btn-sm" style="margin-top:6px" onclick="window.open(pplLastPdf,'_blank')">Otevřít štítky (PDF)</button>
       <div class="ppl-hint" style="margin-top:6px">Příští tisk začne na místě ${pplPos}.</div></div>`);
+    const zpracovava = failed.filter(x => x.it && !x.saveErr && x.it.importState !== 'Error');
+    if (zpracovava.length) parts.push(`<div class="ppl-info err"><b>PPL ještě zpracovává ${zpracovava.length} ${pplPlural(zpracovava.length, 'zásilku', 'zásilky', 'zásilek')}</b> (${zpracovava.map(x => escHtml(x.d.f.name)).join(', ')}). NEPOSÍLEJ je znovu – vznikla by druhá zásilka. Zkontroluj je za pár minut v klient.ppl.cz (dávka ${escHtml(batchId)}).</div>`);
+    zpracovava.forEach(x => { x.d.on = false; });
+    failed.splice(0, failed.length, ...failed.filter(x => !zpracovava.includes(x)));
     if (failed.length) parts.push(`<div class="ppl-info err"><b>${failed.length} ${pplPlural(failed.length, 'zásilka se nepovedla', 'zásilky se nepovedly', 'zásilek se nepovedlo')}:</b><br>${failed.map(x => `${escHtml(x.d.f.name)}: ${escHtml(x.saveErr || x.it?.errorMessage || x.it?.errorCode || (x.it ? x.it.importState : 'PPL nevrátilo výsledek'))}${x.it && !x.saveErr ? `<div class="ppl-log">${escHtml(JSON.stringify(x.it, null, 1))}</div>` : ''}`).join('<br>')}<br>Oprav údaje vlevo a zkus to znovu.</div>`);
     failed.forEach(x => { x.d.open = true; });
     document.getElementById('ppl-msg').innerHTML = parts.join('');
@@ -3814,7 +3881,10 @@ async function submitPpl() {
   } catch (e) {
     if (pdfWin) pdfWin.close();
     const det = e.detail ? `<div class="ppl-log">${escHtml(typeof e.detail === 'string' ? e.detail : JSON.stringify(e.detail, null, 1))}</div>` : '';
-    pplMsg('err', '<b>PPL zásilky nepřijalo:</b> ' + escHtml(e.message) + det + '<div style="margin-top:4px">Nic se nevytvořilo, můžeš opravit a zkusit znovu.</div>');
+    if (vzniklaDavka) {
+      sel.forEach(d => { d.on = false; });
+      pplMsg('err', '<b>Zásilky u PPL nejspíš VZNIKLY</b> (dávka ' + escHtml(vzniklaDavka) + '), ale nepodařilo se dočíst výsledek: ' + escHtml(e.message) + det + '<div style="margin-top:4px">NEPOSÍLEJ znovu – zkontroluj zásilky v klient.ppl.cz, jinak vzniknou dvakrát.</div>');
+    } else pplMsg('err', '<b>PPL zásilky nepřijalo:</b> ' + escHtml(e.message) + det + '<div style="margin-top:4px">Nic se nevytvořilo, můžeš opravit a zkusit znovu.</div>');
   }
   pplBusy = false;
   renderPpl();
@@ -4023,7 +4093,11 @@ async function zasStorno(cislo) {
   try {
     for (const n of r.z.shipments) await pplCall('cancel', { shipmentNumber: n });
     const p = r.src.ppl;
-    const ppl = { history: [...(p.history || []), { ...p, history: undefined, cancelledAt: new Date().toISOString(), cancelledBy: author }] };
+    const stamp = { cancelledAt: new Date().toISOString(), cancelledBy: author };
+    const aktualni = p.shipments?.length && p.shipments[0] === r.z.shipments[0];
+    // starší zásilka z historie: stornovat jen ji, aktuální zásilka objednávky zůstává platná
+    const ppl = aktualni ? { history: [...(p.history || []), { ...p, history: undefined, ...stamp }] }
+      : { ...p, history: (p.history || []).map(h => h.shipments?.[0] === r.z.shipments[0] ? { ...h, ...stamp } : h) };
     if (r.mimo) {
       const { error } = await db.from('ppl_zasilky_mimo').update({ ppl }).eq('id', r.src.id);
       if (error) throw new Error(error.message);
@@ -4080,9 +4154,12 @@ async function tiskPrimo(cil, pdfB64, nazev) {
     await new Promise(r => setTimeout(r, 1500));
     const { data: j } = await db.from('tisk_fronta').select('stav,chyba').eq('id', data.id).single();
     if (j?.stav === 'vytisteno') return true;
-    if (j?.stav === 'chyba') throw new Error(j.chyba || 'chyba tisku');
+    if (j?.stav === 'chyba') throw new Error(escHtml(j.chyba || 'chyba tisku'));
   }
-  throw new Error('Tiskárna neodpověděla do 45 s – je Mac u tiskárny zapnutý a tiskárna v pořádku (papír)?');
+  // stáhnout úlohu z fronty, ať nevyjede až za hodiny (nebo podruhé po ručním tisku z PDF)
+  const { data: zrus } = await db.from('tisk_fronta').update({ stav: 'zruseno', chyba: 'čas vypršel – zrušeno appkou' }).eq('id', data.id).eq('stav', 'ceka').select('id');
+  if (!zrus?.length) return true;   // pomocník ji mezitím převzal – tiskne se
+  throw new Error('Tiskárna neodpověděla do 45 s – je Mac u tiskárny zapnutý a tiskárna v pořádku (papír)? Tisk jsem zrušil.');
 }
 // společné pro tisk štítků: přímo na tiskárnu, nebo (bez pomocníka) otevřít PDF v okně
 async function tisknoutStitky(b64, nazev, win, cil) {
