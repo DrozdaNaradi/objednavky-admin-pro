@@ -1054,8 +1054,9 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <select class="form-input" id="pset-courier"><option value="PRIV">PPL Parcel CZ Private</option><option value="BUSS">PPL Parcel CZ Business</option></select></div>
       <div class="form-group ppl-s3"><div class="form-label">Firmám (s IČO) posílat jako</div>
         <select class="form-input" id="pset-courier-b2b"><option value="BUSS">PPL Parcel CZ Business</option><option value="PRIV">PPL Parcel CZ Private</option></select></div>
-      <div class="ppl-sec">Tisk štítků</div>
-      <div class="ppl-s6 ppl-hint">Štítky se otevřou jako PDF v novém okně → Tisk. V tiskovém okně nech <b>A4</b> a měřítko <b>100 %</b> (ne „přizpůsobit“), jinak štítky nesednou na arch.</div>
+      <div class="ppl-sec">Kam tisknout štítky (na tomto počítači)</div>
+      <div class="form-group ppl-s4"><select class="form-input" id="pset-tisk" onchange="try{localStorage.setItem('tisk_kam',this.value)}catch(e){};tiskNastaveniInfo()"></select></div>
+      <div class="ppl-s6 ppl-hint" id="pset-tisk-info"></div>
       <div class="ppl-sec">Adresář příjemců (pro „PPL mimo e‑shop“)</div>
       <div class="ppl-s6" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span>V adresáři: <b id="pset-adr-n">—</b></span>
@@ -3995,7 +3996,7 @@ async function pplImportAdresar(input) {
     msg.innerHTML = `<div class="ppl-info err">Nahrání se nepovedlo: ${escHtml(e.message)}</div>`;
   }
 }
-function tiskNastaveniInfo() {   // majitel 6. 11. 2026: žádný program na počítači – tisk jen přes PDF v prohlížeči
+function tiskNastaveniInfo() {
   const sel = document.getElementById('pset-tisk');
   if (!sel) return;
   const v = tiskVolba();
@@ -4065,7 +4066,6 @@ async function loadTiskarny() {
 function tiskVolba() { try { return localStorage.getItem('tisk_kam') || 'auto'; } catch (e) { return 'auto'; } }
 // kam tisknout – rozhoduje se hned (bez čekání), aby šlo případně otevřít okno s PDF
 function tiskCil() {
-  return null;   // majitel 6. 11. 2026: bez Tiskového pomocníka na počítači – štítky vždy jako PDF v okně prohlížeče
   const v = tiskVolba();
   if (v === 'pdf') return null;
   if (v !== 'auto') return tiskOnline.find(t => t.id === v) || null;
