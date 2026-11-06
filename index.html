@@ -1142,7 +1142,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
           <div class="ppl-grid">
             <div class="form-group ppl-s2"><div class="form-label">Jméno a příjmení</div><input class="form-input" id="ucet-jmeno"></div>
             <div class="form-group ppl-s2"><div class="form-label">E-mail</div><input class="form-input" id="ucet-email" type="email" autocomplete="off"></div>
-            <div class="form-group ppl-s2"><div class="form-label">Heslo (aspoň 8 znaků)</div><input class="form-input" id="ucet-heslo" type="text" autocomplete="new-password"></div>
+            <div class="form-group ppl-s2"><div class="form-label">Heslo (aspoň 4 znaky)</div><input class="form-input" id="ucet-heslo" type="text" autocomplete="new-password"></div>
             <div class="form-group ppl-s3" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" id="ucet-admin"> <label for="ucet-admin">Správce (smí spravovat uživatele a napojení e-shopu)</label></div>
             <div class="form-group ppl-s3" style="justify-content:flex-end"><button class="btn btn-red" onclick="ucetUlozit()">Uložit uživatele</button></div>
             <div class="ppl-s6" id="ucty-msg"></div>
@@ -1540,6 +1540,10 @@ async function objCall(action, data = {}) {
   if (!r.ok || d?.error) { const err = new Error(d?.error || d?.message || ('HTTP ' + r.status)); err.status = r.status; throw err; }
   return d;
 }
+// Majitel 6. 11.: heslo stačí 4 znaky. Supabase chce aspoň 6 → k heslu se v appce vždy přidá pevná přípona
+// (stejně při zakládání, změně i přihlášení). Pokusy o hádání hesla brzdí Supabase (omezení počtu přihlášení).
+const HESLO_MIN = 4;
+const plneHeslo = h => h + '·drozda-objednavky';
 let loginPrvni = false;
 async function ukazLogin(zprava) {
   document.getElementById('app-layout').classList.add('hidden');
@@ -1551,7 +1555,7 @@ async function ukazLogin(zprava) {
   document.getElementById('login-sub').textContent = loginPrvni
     ? 'Zatím nikdo nemá účet. Založ si účet správce – pak v Nastavení → Uživatelé přidáš kolegy.'
     : 'Přihlas se svým e-mailem a heslem. V tomto prohlížeči pak zůstaneš přihlášený.';
-  document.getElementById('login-heslo-label').textContent = loginPrvni ? 'Heslo (aspoň 8 znaků)' : 'Heslo';
+  document.getElementById('login-heslo-label').textContent = loginPrvni ? 'Heslo (aspoň 4 znaky)' : 'Heslo';
   document.getElementById('login-btn').textContent = loginPrvni ? 'Založit účet a přihlásit' : 'Přihlásit';
   document.getElementById('login-msg').innerHTML = zprava ? `<div class="ppl-info err">${escHtml(zprava)}</div>` : '';
   setTimeout(() => document.getElementById(loginPrvni ? 'login-jmeno' : 'login-email').focus(), 50);
@@ -1561,12 +1565,12 @@ async function prihlasit() {
   const heslo = document.getElementById('login-heslo').value;
   const msg = document.getElementById('login-msg'), btn = document.getElementById('login-btn');
   if (!email || !heslo) { msg.innerHTML = '<div class="ppl-info err">Vyplň e-mail a heslo.</div>'; return; }
-  if (loginPrvni && heslo.length < 8) { msg.innerHTML = '<div class="ppl-info err">Heslo k účtu musí mít aspoň 8 znaků (PIN pro PPL může být kratší).</div>'; return; }
+  if (loginPrvni && heslo.length < HESLO_MIN) { msg.innerHTML = '<div class="ppl-info err">Heslo musí mít aspoň 4 znaky.</div>'; return; }
   btn.disabled = true;
   msg.innerHTML = '<div class="ppl-info">Přihlašuji…</div>';
   try {
-    if (loginPrvni) await objCall('prvni', { email, heslo, jmeno: document.getElementById('login-jmeno').value.trim(), pin: document.getElementById('login-pin').value.trim() });
-    const { error } = await db.auth.signInWithPassword({ email, password: heslo });
+    if (loginPrvni) await objCall('prvni', { email, heslo: plneHeslo(heslo), jmeno: document.getElementById('login-jmeno').value.trim(), pin: document.getElementById('login-pin').value.trim() });
+    const { error } = await db.auth.signInWithPassword({ email, password: plneHeslo(heslo) });
     if (error) throw new Error(/invalid/i.test(error.message) ? 'Špatný e-mail nebo heslo.' : error.message);
     document.getElementById('login-heslo').value = '';
     msg.innerHTML = '';
@@ -1689,8 +1693,9 @@ async function ucetUlozit() {
   const v = { jmeno: document.getElementById('ucet-jmeno').value.trim(), email: document.getElementById('ucet-email').value.trim().toLowerCase(),
     heslo: document.getElementById('ucet-heslo').value, admin: document.getElementById('ucet-admin').checked };
   const m = document.getElementById('ucty-msg');
+  if (v.heslo && v.heslo.length < HESLO_MIN) { m.innerHTML = '<div class="ppl-info err">Heslo musí mít aspoň 4 znaky.</div>'; return; }
   try {
-    await objCall('pridat', v);
+    await objCall('pridat', { ...v, heslo: v.heslo ? plneHeslo(v.heslo) : '' });
     m.innerHTML = `<div class="ppl-info ok">✓ Uloženo. ${v.heslo ? `Řekni kolegovi: e-mail <b>${escHtml(v.email)}</b> a heslo, které jsi zadal.` : ''}</div>`;
     ['ucet-jmeno', 'ucet-email', 'ucet-heslo'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('ucet-admin').checked = false;
@@ -1699,9 +1704,10 @@ async function ucetUlozit() {
 }
 async function ucetHeslo(i) {
   const c = window._clenove[i];
-  const h = prompt(`Nové heslo pro ${c.jmeno || c.email} (aspoň 8 znaků):`);
+  const h = prompt(`Nové heslo pro ${c.jmeno || c.email} (aspoň 4 znaky):`);
   if (!h) return;
-  try { await objCall('heslo', { email: c.email, heslo: h }); toast('Heslo změněno – řekni ho kolegovi', 'success'); }
+  if (h.length < HESLO_MIN) { toast('Heslo musí mít aspoň 4 znaky', 'error'); return; }
+  try { await objCall('heslo', { email: c.email, heslo: plneHeslo(h) }); toast('Heslo změněno – řekni ho kolegovi', 'success'); }
   catch (e) { toast(escHtml(e.message), 'error'); }
 }
 async function ucetOdebrat(i) {
