@@ -12,9 +12,11 @@ import base64, json, re, socket, subprocess, time, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-URL = 'https://jihbeduncgspzuamvfbt.supabase.co/rest/v1'
+SB = 'https://jihbeduncgspzuamvfbt.supabase.co'
+URL = SB + '/rest/v1'
 KEY = 'sb_publishable_hsx9W9DmppixFce-mSrrEA_cPM9hkKc'   # veřejný klíč appky (stejný jako v prohlížeči)
 DIR = Path.home() / 'tiskovy-pomocnik'
+KLIC = DIR / 'klic.txt'   # klíč pomocníka (tabulka tajne „tisk_klic“) – od 6. 11. 2026 je databáze jen pro přihlášené
 TISK = DIR / 'tisk'
 LOG = DIR / 'pomocnik.log'
 ID = re.sub(r'[^\w-]+', '-', socket.gethostname().split('.')[0]).strip('-').lower() or 'mac'
@@ -25,8 +27,26 @@ def log(t):
         f.write(f'{datetime.now():%Y-%m-%d %H:%M:%S}  {t}\n')
 
 
+_token = {'hodnota': None, 'do': 0}
+
+
+def token():
+    """Přístup do tiskové fronty: funkce „objednavky“ za klíč pomocníka vydá token na hodinu (účet tiskarna@objednavky.local)."""
+    if _token['hodnota'] and time.time() < _token['do'] - 120:
+        return _token['hodnota']
+    klic = KLIC.read_text().strip() if KLIC.exists() else ''
+    if not klic:
+        raise RuntimeError(f'chybí klíč pomocníka v {KLIC}')
+    req = urllib.request.Request(SB + '/functions/v1/objednavky', method='POST', headers={'Content-Type': 'application/json', 'apikey': KEY},
+                                 data=json.dumps({'action': 'tisk_prihlas', 'klic': klic}).encode())
+    with urllib.request.urlopen(req, timeout=30) as r:
+        d = json.loads(r.read())
+    _token.update(hodnota=d['access_token'], do=time.time() + int(d.get('expires_in') or 3600))
+    return _token['hodnota']
+
+
 def api(method, path, data=None, prefer=None):
-    h = {'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json'}
+    h = {'apikey': KEY, 'Authorization': 'Bearer ' + token(), 'Content-Type': 'application/json'}
     if prefer:
         h['Prefer'] = prefer
     req = urllib.request.Request(URL + path, data=json.dumps(data).encode() if data is not None else None, method=method, headers=h)
@@ -183,5 +203,7 @@ if __name__ == '__main__':
             kolo()
         except Exception as e:
             log(f'spojení: {e}')
+            if '401' in str(e) or '403' in str(e):
+                _token['hodnota'] = None   # přístup vypršel / klíč změněn → příště se přihlásit znovu
             time.sleep(10)
         time.sleep(2)

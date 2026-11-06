@@ -653,6 +653,28 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
   </div>
 </div>
 
+<!-- LOGIN (6. 11. 2026: do appky jen přihlášení členové týmu) -->
+<div id="login-screen" class="setup-screen hidden">
+  <div class="setup-card" style="max-width:400px">
+    <div style="width:40px;height:40px;background:var(--ink);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+      <svg width="22" height="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+    </div>
+    <div class="setup-title" id="login-title">Přihlášení</div>
+    <div class="setup-sub" id="login-sub">Přihlas se svým e-mailem a heslem. V tomto prohlížeči pak zůstaneš přihlášený.</div>
+    <div id="login-prvni" class="hidden">
+      <div class="form-group" style="margin-bottom:12px"><div class="form-label">Jméno a příjmení</div><input id="login-jmeno" class="form-input" autocomplete="name" placeholder="např. Robert Klat"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px"><div class="form-label">E-mail</div><input id="login-email" class="form-input" type="email" autocomplete="username"></div>
+    <div class="form-group" style="margin-bottom:12px"><div class="form-label" id="login-heslo-label">Heslo</div><input id="login-heslo" class="form-input" type="password" autocomplete="current-password"></div>
+    <div id="login-prvni-pin" class="hidden">
+      <div class="form-group" style="margin-bottom:12px"><div class="form-label">PIN pro PPL (ověření, že jsi z firmy)</div><input id="login-pin" class="form-input" type="password" autocomplete="off"></div>
+    </div>
+    <button class="btn btn-red" id="login-btn" style="width:100%;justify-content:center" onclick="prihlasit()">Přihlásit</button>
+    <div id="login-msg" style="margin-top:12px"></div>
+    <div class="ppl-hint" style="margin-top:16px" id="login-pomoc">Účet ti založí správce appky (Nastavení → Uživatelé). Zapomenuté heslo ti tam také nastaví nové.</div>
+  </div>
+</div>
+
 <!-- AUTHOR MODAL -->
 <div id="author-modal" class="modal-overlay">
   <div class="modal" style="width:380px">
@@ -709,7 +731,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
       <div class="sync-status-head">
         <span class="sync-status-dot" id="ss-dot"></span>
         <div style="flex:1;min-width:0"><div class="sync-status-label">E-shop</div><div class="sync-status-time" id="ss-time">Ještě neproběhl</div></div>
-        <button class="ss-refresh" id="sync-btn-side" onclick="syncFromEshop()" data-tip-r="Stáhnout nové objednávky z e-shopu hned.&#10;Jinak se stahují samy každou hodinu."><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></button>
+        <button class="ss-refresh" id="sync-btn-side" onclick="syncFromEshop()" data-tip-r="Stáhnout nové objednávky z e-shopu hned.&#10;Jinak se stahují samy každých 15 minut."><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></button>
       </div>
       <div id="ss-badge-row" style="display:none"></div>
       <div class="sync-status-sep" id="ss-sep" style="display:none"></div>
@@ -750,6 +772,9 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <div id="sidebar-user-dot" style="width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">?</div>
         <span id="sidebar-user-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">...</span>
       </button>
+      <button class="nav-item" onclick="odhlasit()" data-tip-r="Odhlásit se z appky v tomto prohlížeči" style="color:var(--muted)">
+        <span class="ni" style="background:#9ca3af"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>Odhlásit
+      </button>
     </div>
   </aside>
 
@@ -764,7 +789,6 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         </div>
       </div>
       <div class="main-header-right">
-        <input type="file" id="img-xml-input" accept=".xml" style="display:none" onchange="importImagesFromXml(this)">
         <div class="ppl-hbox" aria-label="PPL zásilky">
           <img class="ppl-hlogo" src="img/ppl-logo.png" alt="PPL" title="PPL zásilky">
           <button class="btn btn-sm ppl-hbtn ppl-blue" onclick="openPplBatch()" data-tip="Štítky pro objednávky z e-shopu:&#10;všechny nové a otevřené PPL objednávky&#10;bez štítku – tisk na A4, 4 na arch"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><rect x="2.5" y="9" width="19" height="8.5" rx="2"/><path d="M6 14.5h12V21H6z" fill="none"/><path d="M9 17.5h6" /></svg><span class="ppl-ht">Štítky k objednávkám</span><span class="ppl-hn" id="count-ppl-ready">0</span></button>
@@ -1018,6 +1042,8 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <button data-sec="fio" onclick="settingsTab('fio')">Platby Fio</button>
         <button data-sec="email" onclick="settingsTab('email')">Odesílání emailů</button>
         <button data-sec="tools" onclick="settingsTab('tools')">Fotky a údržba</button>
+        <button data-sec="ucty" class="jen-admin" onclick="settingsTab('ucty')">Uživatelé</button>
+        <button data-sec="eshop" class="jen-admin" onclick="settingsTab('eshop')">Napojení e-shopu</button>
       </nav>
       <div class="set-body">
         <section class="set-sec" id="set-profile">
@@ -1065,8 +1091,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <span class="ppl-hint">klient.ppl.cz → Adresář → Export. Stejné kontakty se aktualizují, nové přibudou.</span>
       </div>
       <div class="ppl-s6" id="pset-adr-msg"></div>
-      <div class="ppl-sec">Přístup k PPL</div>
-      <div class="form-group ppl-s3"><div class="form-label">PIN (PPL_APP_PIN)</div><input class="form-input" id="pset-pin" type="password" autocomplete="off"></div>
+      <div class="ppl-sec">Spojení s PPL</div>
       <div class="form-group ppl-s3" style="justify-content:flex-end"><button class="btn" onclick="testPpl()">Otestovat spojení s PPL</button></div>
       <div class="ppl-s6" id="pset-msg"></div>
     </div>
@@ -1083,7 +1108,7 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
               <button class="btn" onclick="fioSmazToken()" title="Smaže uložený token – automatické načítání se zastaví">Smazat</button></div>
             <div class="ppl-s6" id="fio-msg"></div>
           </div>
-          <div class="ppl-info" style="margin-top:12px">Token se uloží <b>jen na server</b> (Supabase), ne do prohlížeče ani na GitHub, a nikdy se nezobrazí zpátky. Fio ho nejdřív ověří – špatný token se neuloží. Volání je chráněné stejným <b>PINem jako PPL</b> (Nastavení → PPL štítky).</div>
+          <div class="ppl-info" style="margin-top:12px">Token se uloží <b>jen na server</b> (Supabase), ne do prohlížeče ani na GitHub, a nikdy se nezobrazí zpátky. Fio ho nejdřív ověří – špatný token se neuloží. Měnit ho smí jen přihlášený člen týmu.</div>
           <div class="ppl-sec" style="margin-top:16px">Poslední příchozí platby</div>
           <div id="fio-seznam" class="fio-seznam"><span class="ppl-hint">Načítám…</span></div>
         </section>
@@ -1101,16 +1126,37 @@ code{background:var(--card-alt);padding:2px 6px;border-radius:4px;font-family:in
         <section class="set-sec" id="set-tools">
           <div class="set-title">Fotky a údržba</div>
           <div class="set-tool">
-            <div><b>Nahrát fotky produktů</b><div class="ppl-hint">Soubor heureka_cz.xml z administrace e-shopu. Aktualizuje databázi fotek.</div></div>
-            <button class="btn" onclick="document.getElementById('img-xml-input').click()">Vybrat XML…</button>
-          </div>
-          <div class="set-tool">
-            <div><b>Opravit chybějící fotky</b><div class="ppl-hint">Doplní fotky u objednávek, kde se při syncu nenačetly. Nejdřív nahraj XML.</div></div>
-            <button class="btn" id="repair-btn" onclick="repairMissingPhotos()">Opravit fotky</button>
+            <div><b>Fotky produktů</b><div class="ppl-hint">Server si je sám stahuje z e-shopu každou hodinu (7:30–20:30) a doplní je do objednávek. <span id="fotky-stav"></span></div></div>
+            <button class="btn" id="repair-btn" onclick="repairMissingPhotos()">Obnovit fotky teď</button>
           </div>
           <div class="set-tool">
             <div><b>Diagnostika</b><div class="ppl-hint">Stav dat, cache fotek a případné chyby — pro řešení problémů.</div></div>
             <button class="btn" onclick="closeSettings();showDebug()">Zobrazit</button>
+          </div>
+        </section>
+        <section class="set-sec" id="set-ucty">
+          <div class="set-title">Uživatelé appky</div>
+          <div class="ppl-hint" style="margin-bottom:10px">Do appky se dostane jen člověk, kterému tady založíš účet (e-mail + heslo). Heslo mu řekni osobně – appka žádné e-maily neposílá. Zapomenuté heslo nastavíš nové tlačítkem „Nové heslo“.</div>
+          <div id="ucty-seznam" class="fio-seznam"><span class="ppl-hint">Načítám…</span></div>
+          <div class="ppl-sec" style="margin-top:16px">Přidat kolegu / změnit údaje</div>
+          <div class="ppl-grid">
+            <div class="form-group ppl-s2"><div class="form-label">Jméno a příjmení</div><input class="form-input" id="ucet-jmeno"></div>
+            <div class="form-group ppl-s2"><div class="form-label">E-mail</div><input class="form-input" id="ucet-email" type="email" autocomplete="off"></div>
+            <div class="form-group ppl-s2"><div class="form-label">Heslo (aspoň 8 znaků)</div><input class="form-input" id="ucet-heslo" type="text" autocomplete="new-password"></div>
+            <div class="form-group ppl-s3" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" id="ucet-admin"> <label for="ucet-admin">Správce (smí spravovat uživatele a napojení e-shopu)</label></div>
+            <div class="form-group ppl-s3" style="justify-content:flex-end"><button class="btn btn-red" onclick="ucetUlozit()">Uložit uživatele</button></div>
+            <div class="ppl-s6" id="ucty-msg"></div>
+          </div>
+        </section>
+        <section class="set-sec" id="set-eshop">
+          <div class="set-title">Napojení e-shopu</div>
+          <div class="ppl-hint" style="margin-bottom:10px">Objednávky z e-shopu stahuje server každých 15 minut (6–21 h), ručně tlačítkem ↻ vlevo u „E-shop“. Adresa API e-shopu (obsahuje heslo) je uložená <b>jen na serveru</b> – ve stránce ani na GitHubu není a nikdy se nezobrazí zpátky.</div>
+          <div id="eshop-stav" class="ppl-info">Načítám stav…</div>
+          <div class="ppl-sec" style="margin-top:16px">Nová adresa API (po změně hesla v administraci e-shopu)</div>
+          <div class="ppl-grid">
+            <div class="form-group ppl-s4"><div class="form-label">Adresa API (…request.php?action=GetOrders&amp;version=v2.0&amp;password=…)</div><input class="form-input" id="eshop-api" type="password" autocomplete="off"></div>
+            <div class="form-group ppl-s2" style="justify-content:flex-end"><button class="btn btn-red" onclick="eshopUlozApi()">Ověřit a uložit</button></div>
+            <div class="ppl-s6" id="eshop-msg"></div>
           </div>
         </section>
       </div>
@@ -1461,27 +1507,184 @@ function showSetupError(msg) {
 async function initSupabase(url, key, ejsService, ejsKey) {
   showLoading(true);
   try {
-    db = window.supabase.createClient(url, key);
+    db = window.supabase.createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true } });
     window._sb = { url, key };
-    const { data, error } = await db.from('orders').select('id').limit(1);
-    if (error) throw new Error('Databáze: ' + error.message + ' (kód: ' + error.code + ')');
     if (ejsService && ejsKey) { emailjs.init(ejsKey); window._ejsService = ejsService; }
     document.getElementById('setup-screen').classList.add('hidden');
-    document.getElementById('app-layout').classList.remove('hidden');
-    checkAuthor();
-    await loadOrders();
-    loadPplMimo().then(() => renderOrders()).catch(() => {});
-    loadTiskarny(); setInterval(loadTiskarny, 30000);
-    fioSide(); setInterval(fioSide, 5 * 60 * 1000);   // stav načítání plateb Fio (načítá server sám každou hodinu)
-    setupRealtime();
-    // Sync hned po načtení (5s zpoždění aby se UI stihlo vykreslit) + každou hodinu
-    setTimeout(() => syncFromEshop(true), 5000);
-    setInterval(() => syncFromEshop(true), 60 * 60 * 1000);
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) { showLoading(false); await ukazLogin(); return; }
+    await poPrihlaseni();
   } catch (e) {
     showLoading(false);
     showSetupError(e.message || 'Neznámá chyba připojení.');
   }
   showLoading(false);
+}
+
+// ─── PŘIHLÁŠENÍ (6. 11. 2026) ───────────────────────────────────────────────
+// Do databáze se dostane jen přihlášený člen týmu (tabulka clenove, pravidla v supabase-zabezpeceni.sql).
+// Účty zakládá správce v Nastavení → Uživatelé přes funkci „objednavky“ – žádná veřejná registrace.
+async function authHlavicky() {
+  const { data: { session } } = await db.auth.getSession();
+  return { 'Content-Type': 'application/json', apikey: window._sb.key, Authorization: 'Bearer ' + (session?.access_token || window._sb.key) };
+}
+async function objCall(action, data = {}) {
+  let r;
+  try {
+    r = await fetch(window._sb.url.replace(/\/$/, '') + '/functions/v1/objednavky', { method: 'POST', headers: await authHlavicky(), body: JSON.stringify({ action, ...data }) });
+  } catch (e) { throw new Error('Nepodařilo se spojit se serverem (' + e.message + ').'); }
+  let d = null; try { d = await r.json(); } catch (e) {}
+  if (r.status === 404) throw new Error('V Supabase zatím není nasazená funkce „objednavky“.');
+  if (!r.ok || d?.error) { const err = new Error(d?.error || d?.message || ('HTTP ' + r.status)); err.status = r.status; throw err; }
+  return d;
+}
+let loginPrvni = false;
+async function ukazLogin(zprava) {
+  document.getElementById('app-layout').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  loginPrvni = false;
+  try { loginPrvni = !!(await objCall('verejny')).prvni; } catch (e) {}
+  ['login-prvni', 'login-prvni-pin'].forEach(id => document.getElementById(id).classList.toggle('hidden', !loginPrvni));
+  document.getElementById('login-title').textContent = loginPrvni ? 'První spuštění – účet správce' : 'Přihlášení';
+  document.getElementById('login-sub').textContent = loginPrvni
+    ? 'Zatím nikdo nemá účet. Založ si účet správce – pak v Nastavení → Uživatelé přidáš kolegy.'
+    : 'Přihlas se svým e-mailem a heslem. V tomto prohlížeči pak zůstaneš přihlášený.';
+  document.getElementById('login-heslo-label').textContent = loginPrvni ? 'Heslo (aspoň 8 znaků)' : 'Heslo';
+  document.getElementById('login-btn').textContent = loginPrvni ? 'Založit účet a přihlásit' : 'Přihlásit';
+  document.getElementById('login-msg').innerHTML = zprava ? `<div class="ppl-info err">${escHtml(zprava)}</div>` : '';
+  setTimeout(() => document.getElementById(loginPrvni ? 'login-jmeno' : 'login-email').focus(), 50);
+}
+async function prihlasit() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const heslo = document.getElementById('login-heslo').value;
+  const msg = document.getElementById('login-msg'), btn = document.getElementById('login-btn');
+  if (!email || !heslo) { msg.innerHTML = '<div class="ppl-info err">Vyplň e-mail a heslo.</div>'; return; }
+  btn.disabled = true;
+  msg.innerHTML = '<div class="ppl-info">Přihlašuji…</div>';
+  try {
+    if (loginPrvni) await objCall('prvni', { email, heslo, jmeno: document.getElementById('login-jmeno').value.trim(), pin: document.getElementById('login-pin').value.trim() });
+    const { error } = await db.auth.signInWithPassword({ email, password: heslo });
+    if (error) throw new Error(/invalid/i.test(error.message) ? 'Špatný e-mail nebo heslo.' : error.message);
+    document.getElementById('login-heslo').value = '';
+    msg.innerHTML = '';
+    await poPrihlaseni();
+  } catch (e) { msg.innerHTML = `<div class="ppl-info err">${escHtml(e.message)}</div>`; }
+  btn.disabled = false;
+}
+async function odhlasit() {
+  if (!confirm('Odhlásit se z appky v tomto prohlížeči?')) return;
+  try { await db.auth.signOut(); } catch (e) {}
+  location.reload();
+}
+let appSpustena = false;
+async function poPrihlaseni() {
+  showLoading(true);
+  let ja;
+  try { ja = await objCall('ja'); }
+  catch (e) {
+    showLoading(false);
+    if (e.status === 401) { try { await db.auth.signOut(); } catch (x) {} await ukazLogin('Tenhle účet nemá přístup do appky – požádej správce.'); return; }
+    throw e;
+  }
+  window._ja = ja;
+  if (ja.jmeno) { author = ja.jmeno; try { localStorage.setItem('admin_author', author); } catch (e) {} }
+  document.querySelectorAll('.jen-admin').forEach(el => el.style.display = ja.admin ? '' : 'none');
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-layout').classList.remove('hidden');
+  if (appSpustena) { showLoading(false); return; }
+  appSpustena = true;
+  checkAuthor();
+  await loadOrders();
+  loadPplMimo().then(() => renderOrders()).catch(() => {});
+  loadTiskarny(); setInterval(loadTiskarny, 30000);
+  fioSide(); setInterval(fioSide, 5 * 60 * 1000);   // stav načítání plateb Fio (načítá server sám každou hodinu)
+  setupRealtime();
+  eshopStav(); setInterval(eshopStav, 2 * 60 * 1000);   // objednávky stahuje server sám každých 15 min – tady jen stav
+  db.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT') location.reload(); });
+  showLoading(false);
+}
+// stav stahování z e-shopu a fotek (počítá server) → panel vlevo „E-shop“
+async function eshopStav() {
+  try {
+    const st = await objCall('stav');
+    window._eshopStav = st;
+    const e = st.eshop || {}, f = st.fotky || {};
+    saveSyncStatus({ ts: e.posledni ? new Date(e.posledni).getTime() : null, imported: e.nove ?? null, updated: e.upraveno ?? null,
+      auto: e.kdo === 'automaticky', photosTs: f.posledni ? new Date(f.posledni).getTime() : null, photosCount: f.fotek || null });
+    const box = document.getElementById('sync-status-box');
+    if (box) box.title = e.chyba ? 'Poslední stažení z e-shopu selhalo: ' + e.chyba : '';
+    const dot = document.getElementById('ss-dot');
+    if (dot && e.chyba) dot.className = 'sync-status-dot err';
+    const fs = document.getElementById('fotky-stav');
+    if (fs) fs.textContent = f.posledni ? `Naposledy ${formatTime(f.posledni)} · ${Number(f.fotek || 0).toLocaleString('cs-CZ')} fotek${f.chyba ? ' · ⚠ ' + f.chyba : ''}` : '';
+    return st;
+  } catch (e) { return null; }
+}
+async function eshopNastaveniInfo() {
+  const el = document.getElementById('eshop-stav');
+  el.className = 'ppl-info'; el.textContent = 'Načítám stav…';
+  const st = await eshopStav();
+  if (!st) { el.className = 'ppl-info err'; el.textContent = 'Stav se nepodařilo načíst.'; return; }
+  const e = st.eshop || {};
+  el.className = 'ppl-info ' + (!st.api || e.chyba ? 'err' : 'ok');
+  el.innerHTML = !st.api ? '⚠ Adresa API e-shopu zatím není zadaná – objednávky se nestahují. Vlož ji níže.'
+    : (e.chyba ? '⚠ Poslední stažení selhalo: ' + escHtml(e.chyba) : '✓ Napojeno') + (e.posledni ? ` · naposledy ${formatTime(e.posledni)} (${escHtml(e.kdo || '')}) · v e-shopu ${e.v_eshopu ?? '—'} objednávek, ${e.nove ?? 0} nových, ${e.upraveno ?? 0} změněných` : '');
+}
+async function eshopUlozApi() {
+  const inp = document.getElementById('eshop-api'), url = inp.value.trim(), m = document.getElementById('eshop-msg');
+  if (!url) { m.innerHTML = '<div class="ppl-info err">Vlož adresu API.</div>'; return; }
+  m.innerHTML = '<div class="ppl-info">Ověřuji u e-shopu…</div>';
+  try {
+    const d = await objCall('api', { url });
+    inp.value = '';
+    m.innerHTML = `<div class="ppl-info ok">✓ Uloženo – e-shop vrátil ${d.objednavek} objednávek.</div>`;
+    eshopNastaveniInfo();
+  } catch (e) { m.innerHTML = `<div class="ppl-info err">${escHtml(e.message)}</div>`; }
+}
+async function uctyNacti() {
+  const el = document.getElementById('ucty-seznam');
+  try {
+    const { clenove } = await objCall('clenove');
+    window._clenove = clenove;
+    el.innerHTML = clenove.map((c, i) => `<div class="fio-r" style="display:flex;align-items:center;gap:10px;justify-content:space-between">
+      <span><b>${escHtml(c.jmeno || '—')}</b> · ${escHtml(c.email)}${c.admin ? ' · <b>správce</b>' : ''}</span>
+      <span style="display:flex;gap:6px"><button class="btn btn-sm" onclick="ucetUpravit(${i})">Upravit</button>
+      <button class="btn btn-sm" onclick="ucetHeslo(${i})">Nové heslo</button>
+      ${c.email !== window._ja?.email ? `<button class="btn btn-sm" onclick="ucetOdebrat(${i})">Odebrat</button>` : ''}</span></div>`).join('') || '<span class="ppl-hint">Zatím nikdo.</span>';
+  } catch (e) { el.innerHTML = `<div class="ppl-info err">${escHtml(e.message)}</div>`; }
+}
+function ucetUpravit(i) {
+  const c = window._clenove[i];
+  document.getElementById('ucet-jmeno').value = c.jmeno || '';
+  document.getElementById('ucet-email').value = c.email;
+  document.getElementById('ucet-heslo').value = '';
+  document.getElementById('ucet-admin').checked = !!c.admin;
+  document.getElementById('ucty-msg').innerHTML = '<div class="ppl-info">Heslo nech prázdné, když ho nechceš měnit.</div>';
+}
+async function ucetUlozit() {
+  const v = { jmeno: document.getElementById('ucet-jmeno').value.trim(), email: document.getElementById('ucet-email').value.trim().toLowerCase(),
+    heslo: document.getElementById('ucet-heslo').value, admin: document.getElementById('ucet-admin').checked };
+  const m = document.getElementById('ucty-msg');
+  try {
+    await objCall('pridat', v);
+    m.innerHTML = `<div class="ppl-info ok">✓ Uloženo. ${v.heslo ? `Řekni kolegovi: e-mail <b>${escHtml(v.email)}</b> a heslo, které jsi zadal.` : ''}</div>`;
+    ['ucet-jmeno', 'ucet-email', 'ucet-heslo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('ucet-admin').checked = false;
+    uctyNacti();
+  } catch (e) { m.innerHTML = `<div class="ppl-info err">${escHtml(e.message)}</div>`; }
+}
+async function ucetHeslo(i) {
+  const c = window._clenove[i];
+  const h = prompt(`Nové heslo pro ${c.jmeno || c.email} (aspoň 8 znaků):`);
+  if (!h) return;
+  try { await objCall('heslo', { email: c.email, heslo: h }); toast('Heslo změněno – řekni ho kolegovi', 'success'); }
+  catch (e) { toast(escHtml(e.message), 'error'); }
+}
+async function ucetOdebrat(i) {
+  const c = window._clenove[i];
+  if (!confirm(`Odebrat ${c.jmeno || c.email} z appky? Už se nepřihlásí.`)) return;
+  try { await objCall('odebrat', { email: c.email }); toast('Uživatel odebrán', 'success'); uctyNacti(); }
+  catch (e) { toast(escHtml(e.message), 'error'); }
 }
 
 function checkAuthor() {
@@ -2849,211 +3052,21 @@ async function saveNewOrder() {
 }
 
 // ─── SYNC Z ESHOPU ──────────────────────────────────────────────────────────
-const ESHOP_API = 'https://www.drozda-naradi.cz/request.php?action=GetOrders&version=v2.0&password=0b32cf860ef67dc19fa0fce62d18c962';
-const CORS_PROXY = 'https://corsproxy.io/?';
+// Objednávky z e-shopu a fotky stahuje server (funkce „objednavky“) – adresa API s heslem ve stránce není (6. 11. 2026).
 
-function importImagesFromXml(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async e => {
-    const xmlText = e.target.result;
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlText, 'text/xml');
-    const map = {};
-    doc.querySelectorAll('SHOPITEM').forEach(item => {
-      const id = item.querySelector('ITEM_ID')?.textContent?.trim();
-      const img = item.querySelector('IMGURL')?.textContent?.trim();
-      if (id && img) map[id] = img;
-    });
-    if (!Object.keys(map).length) {
-      doc.querySelectorAll('item').forEach(item => {
-        const ns = 'http://base.google.com/ns/1.0';
-        const id = (item.getElementsByTagNameNS(ns,'id')[0]||item.querySelector('id'))?.textContent?.trim();
-        const img = (item.getElementsByTagNameNS(ns,'image_link')[0]||item.querySelector('image_link'))?.textContent?.trim();
-        if (id && img) map[id] = img;
-      });
-    }
-    const count = Object.keys(map).length;
-    if (!count) { toast('Špatný soubor! Nahraj heureka_cz.xml (ne dostupnost_heureka_cz.xml)', 'error'); input.value=''; return; }
-    try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify({ ts: Date.now(), map })); } catch(e) {}
-    await saveImgMapToSupabase(map);
-    toast(`✅ Načteno ${count} fotek z XML — sdíleno pro všechny uživatele`, 'success');
-    input.value = '';
-  };
-  reader.readAsText(file);
-}
-
-// ── OPRAVIT CHYBĚJÍCÍ FOTKY ──
+// ── OBNOVIT FOTKY (server stáhne feed z e-shopu a doplní fotky do objednávek) ──
 async function repairMissingPhotos() {
   const btn = document.getElementById('repair-btn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Opravuji…'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Obnovuji…'; }
   try {
-    // 1. Načti XML feed → imgMap[product_id] = imgUrl
-    const imgMap = await fetchProductImages();
-    const hasImgMap = Object.keys(imgMap).length > 0;
-
-    // 2. Stáhni eshop API → získej product_id pro každý produkt
-    //    (imgMap je keyed by product_id = ITEM_ID v XML, ne SKU)
-    let eshopOrderMap = {}; // order_number → { sku → product_id }
-    try {
-      let text;
-      try {
-        const r = await fetchWithTimeout(ESHOP_API, 10000);
-        if (r.ok) text = await r.text();
-      } catch(e) {}
-      if (!text) {
-        const r2 = await fetchWithTimeout(CORS_PROXY + encodeURIComponent(ESHOP_API), 15000);
-        if (r2.ok) { const raw = await r2.text(); text = raw.trimStart().startsWith('{') ? JSON.parse(raw).contents : raw; }
-      }
-      if (text) {
-        const json = JSON.parse(text);
-        if (json.success) {
-          for (const o of (json.params?.orderList||[])) {
-            const num = String(o.number||o.id_order||'');
-            if (!num) continue;
-            const pidMap = {};
-            for (const p of (o.row_list||[])) {
-              const sku = String(p.product_number||'');
-              const pid = String(p.product_id||'');
-              if (sku && pid) pidMap[sku] = pid;
-            }
-            eshopOrderMap[num] = pidMap;
-          }
-        }
-      }
-    } catch(e) { /* eshop API selhalo při opravě fotek */ }
-    const hasEshopMap = Object.keys(eshopOrderMap).length > 0;
-
-    // 3. Načti všechny objednávky z DB
-    const { data: allOrders, error } = await db.from('orders').select('id, order_number, items');
-    if (error) throw error;
-
-    // 4. Fallback ze stávajících objednávek s fotkami (sku→img)
-    const skuImgFallback = {};
-    for (const o of (allOrders||[])) {
-      for (const it of (o.items||[])) {
-        if (it.img && !it.type && it.sku) skuImgFallback[it.sku] = it.img;
-      }
-    }
-
-    let fixed = 0, itemsFixed = 0;
-    for (const order of (allOrders||[])) {
-      const items = order.items;
-      if (!Array.isArray(items)) continue;
-      const hasMissing = items.some(it => !it.img && !it.type);
-      if (!hasMissing) continue;
-
-      const pidMap = eshopOrderMap[order.order_number] || {};
-      let changed = false;
-      const newItems = items.map(it => {
-        if (it.img || it.type) return it;
-        const pid = it.sku ? (pidMap[it.sku]||'') : '';
-        const img =
-          (hasImgMap && pid && imgMap[pid])      ||  // product_id → XML feed (nejlepší zdroj)
-          (hasImgMap && it.sku && imgMap[it.sku])||  // zkus i sku přímo (fallback)
-          skuImgFallback[it.sku]                 ||  // stejné SKU v jiné obj.
-          '';
-        if (img) { changed = true; itemsFixed++; return { ...it, img }; }
-        return it;
-      });
-      if (changed) {
-        await db.from('orders').update({ items: newItems }).eq('id', order.id);
-        fixed++;
-      }
-    }
-
-    if (fixed) {
-      toast(`✓ Opraveno ${fixed} objednávek, ${itemsFixed} fotek doplněno`, 'success');
-      await loadOrders();
-    } else if (!hasImgMap) {
-      toast('Nejdřív klikni Fotky → nahraj XML soubor z eshopu, pak Opravit fotky znovu', 'warn');
-    } else {
-      toast(`Fotky nenalezeny ani v XML feedu (${Object.keys(imgMap).length} produktů). Zkus Debug → ukaž klíče.`, 'warn');
-    }
-  } catch(e) {
-    toast('Chyba: ' + e.message, 'error');
-  } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> Opravit fotky'; }
-  }
+    const d = await objCall('fotky');
+    toast(`Fotky obnoveny: ${Number(d.fotek || 0).toLocaleString('cs-CZ')} produktů, ${d.novych || 0} nových, doplněno do ${d.doplneno || 0} objednávek`, 'success');
+    await loadOrders(); eshopStav();
+  } catch (e) { toast('Fotky: ' + escHtml(e.message), 'error'); }
+  if (btn) { btn.disabled = false; btn.textContent = 'Obnovit fotky teď'; }
 }
 
-const IMG_CACHE_KEY = 'productImgCache';
-const IMG_CACHE_TTL = 60 * 60 * 1000; // 1 hodina lokálně, Supabase je sdílený zdroj pravdy
-
-async function saveImgMapToSupabase(map) {
-  try { await db.from('product_image_cache').upsert({ id: 'main', map, updated_at: new Date().toISOString() }); } catch(e) {}
-  saveSyncStatus({ photosTs: Date.now(), photosCount: Object.keys(map).length });
-}
-
-async function fetchProductImages() {
-  // 1. localStorage rychlý cache (1 hod.) — zabrání zbytečným dotazům
-  try {
-    const cached = JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || 'null');
-    if (cached && (Date.now() - cached.ts) < IMG_CACHE_TTL && Object.keys(cached.map || {}).length >= 1000) return cached.map;   // useknutou mapu ignorovat
-  } catch(e) {}
-
-  // 2. Supabase sdílený cache — platný pro všechny uživatele
-  let sbMap = null;
-  try {
-    const { data } = await db.from('product_image_cache').select('map, updated_at').eq('id','main').maybeSingle();
-    if (data?.map && Object.keys(data.map).length >= 1000) {
-      const sbAge = Date.now() - new Date(data.updated_at).getTime();
-      if (sbAge < IMG_CACHE_TTL) {
-        // Supabase je čerstvý — uložit do localStorage a vrátit
-        try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify({ ts: Date.now(), map: data.map })); } catch(e) {}
-        return data.map;
-      }
-      sbMap = data.map; // starší než 1 hod. — použít jako fallback pokud XML selže
-    }
-  } catch(e) {}
-
-  // 3. Stáhnout čerstvý XML feed a uložit do Supabase + localStorage
-  const FEED_URL = 'https://www.drozda-naradi.cz/fotky92438/xml/heureka_cz.xml';
-  let xmlText;
-  setSyncStatus('Načítám katalog fotek…');
-  try { const r = await fetchWithTimeout(FEED_URL, 15000); if (r.ok) xmlText = await r.text(); } catch(e) {}
-  if (!xmlText) { try { const r = await fetchWithTimeout('https://corsproxy.io/?'+encodeURIComponent(FEED_URL), 20000); if (r.ok) { const raw = await r.text(); xmlText = raw.startsWith('{')?JSON.parse(raw).contents:raw; } } catch(e) {} }
-  if (!xmlText) { try { const r = await fetchWithTimeout('https://api.allorigins.win/raw?url='+encodeURIComponent(FEED_URL), 20000); if (r.ok) xmlText = await r.text(); } catch(e) {} }
-  if (!xmlText) {
-    // XML selhalo — vrátit co máme (stale Supabase nebo localStorage)
-    if (sbMap) return sbMap;
-    try { const c = JSON.parse(localStorage.getItem(IMG_CACHE_KEY)||'null'); if (c?.map) return c.map; } catch(e) {}
-    return {};
-  }
-  const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
-  const nova = {};
-  doc.querySelectorAll('SHOPITEM').forEach(item => {
-    const id = item.querySelector('ITEM_ID')?.textContent?.trim();
-    const img = item.querySelector('IMGURL')?.textContent?.trim();
-    if (id && img) nova[id] = img;
-  });
-  // POJISTKA: feed má ~15 000 produktů a proxy občas vrátí jen kousek (13. 10. přepsal mapu 53 položkami
-  // → nové objednávky bez fotek). Nová data se proto jen PŘIDAJÍ ke stávající mapě a useknutý feed se neuloží.
-  let stara = sbMap;
-  if (!stara) { try { stara = JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || 'null')?.map || null; } catch(e) {} }
-  const pocetStara = stara ? Object.keys(stara).length : 0, pocetNova = Object.keys(nova).length;
-  const map = { ...(stara || {}), ...nova };
-  if (pocetNova < 1000 || (pocetStara && pocetNova < pocetStara * 0.5)) {
-    console.warn(`Feed fotek vypadá useknutý (${pocetNova} položek, dřív ${pocetStara}) – sdílenou mapu nepřepisuji.`);
-    return map;
-  }
-  // Uložit sdíleně do Supabase + lokálně do localStorage
-  try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify({ ts: Date.now(), map })); } catch(e) {}
-  await saveImgMapToSupabase(map);
-  return map;
-}
-
-// Sestaví mapu SKU→img ze všech objednávek v DB (fallback pro nové objednávky bez XML)
-function buildSkuImgMapFromOrders(orders) {
-  const map = {};
-  for (const o of (orders||[])) {
-    for (const it of (o.items||[])) {
-      if (it.sku && it.img) map[it.sku] = it.img;
-    }
-  }
-  return map;
-}
+const IMG_CACHE_KEY = 'productImgCache';   // starší lokální kopie mapy fotek (jen pro Diagnostiku)
 
 function setSyncStatus(msg) { document.getElementById('loading').querySelector('div:last-child').textContent = msg; }
 
@@ -3064,89 +3077,19 @@ async function fetchWithTimeout(url, ms) {
   catch(e) { clearTimeout(timer); throw e; }
 }
 
-// datum z e-shopu „2026-11-05 15:34:19.000000“ (Europe/Prague) – Safari ho přes new Date() neumí → ruční rozklad v místním čase
-function eshopDatum(s) {
-  const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
-  if (!m) return null;
-  const d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
-  return isNaN(d) ? null : d.toISOString();
-}
-async function syncFromEshop(silent = false) {
-  const btn = document.getElementById('sync-btn');
+async function syncFromEshop() {
   const btnS = document.getElementById('sync-btn-side');
-  if (!silent) { if (btn) btn.disabled = true; if (btnS) btnS.disabled = true; showLoading(true); }
+  if (btnS) btnS.disabled = true;
+  showLoading(true);
+  setSyncStatus('Server stahuje objednávky z e-shopu…');
   try {
-    setSyncStatus('Připojuji k eshopu…');
-    let text;
-    try {
-      const r = await fetchWithTimeout(ESHOP_API, 10000);
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      text = await r.text();
-    } catch(e) {
-      setSyncStatus('Přímé připojení selhalo, zkouším proxy…');
-      const r2 = await fetchWithTimeout(CORS_PROXY + encodeURIComponent(ESHOP_API), 15000);
-      if (!r2.ok) throw new Error('Proxy HTTP ' + r2.status);
-      const raw = await r2.text();
-      text = raw.trimStart().startsWith('{') ? JSON.parse(raw).contents : raw;
-    }
-    let json;
-    try { json = JSON.parse(text); } catch(e) { throw new Error('Nepodařilo se naparsovat odpověď eshopu'); }
-    if (!json.success) throw new Error('Eshop API vrátil chybu: ' + (json.report||'neznámá'));
-    const orderList = json.params?.orderList || [];
-    if (!orderList.length) { if (!silent) toast('Eshop nemá žádné objednávky', ''); if (!silent) { showLoading(false); if (btn) btn.disabled=false; if (btnS) btnS.disabled=false; } return; }
-    const imgMap = await fetchProductImages();
-    const hasImgMap = Object.keys(imgMap).length > 0;
-    // Fallback: mapa SKU→img ze všech existujících objednávek v DB
-    const { data: allDbOrders } = await db.from('orders').select('items');
-    const skuImgFallback = buildSkuImgMapFromOrders(allDbOrders);
-    setSyncStatus(`Nalezeno ${orderList.length} objednávek, importuji…`);
-    let imported = 0, updated = 0;
-    for (const o of orderList) {
-      const num = String(o.number||o.id_order||'');
-      if (!num) continue;
-      const c = o.customer?.delivery_information || {};
-      const items = (o.row_list||[]).map(p => {
-        const pid = String(p.product_id||'');
-        const sku = String(p.product_number||'');
-        const imgFromMap = pid ? (imgMap[pid]||'') : '';
-        const imgFromFallback = sku ? (skuImgFallback[sku]||'') : '';
-        return { name:p.product_name||'', sku, qty:parseInt(p.count||1), price_with_vat:parseFloat(p.price_per_unit_with_vat||0), price_without_vat:parseFloat(p.price_per_unit||0), total_with_vat:parseFloat(p.price_total_with_vat||0), img: imgFromMap || imgFromFallback, availability: p.availability ?? null, availability_text: String(p.availabilityText||'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim() };
-      });
-      // Store shipping + payment as special items so we can display correct prices
-      const shipVat = parseFloat(o.delivery?.postovne||0);
-      const shipNoVat = parseFloat(o.delivery?.postovne_bez_dph||o.delivery?.postovne_bez||0) || (shipVat ? Math.round(shipVat/1.21*100)/100 : 0);
-      const payVat = parseFloat(o.payment?.castka_platba||0);
-      const payNoVat = parseFloat(o.payment?.castka_platba_bez_dph||o.payment?.castka_bez||0) || (payVat ? Math.round(payVat/1.21*100)/100 : 0);
-      if (o.delivery?.nazev_postovne !== undefined) items.push({ type:'shipping', name:o.delivery.nazev_postovne||'Doprava', price_with_vat:shipVat, price_without_vat:shipNoVat, qty:1 });
-      if (o.payment?.nazev_platba !== undefined) items.push({ type:'payment', name:o.payment.nazev_platba||'Platba', price_with_vat:payVat, price_without_vat:payNoVat, qty:1 });
-      const city = (c.city||'').replace(/\s*\[.*?\]/g,'').trim();
-      const b = o.customer?.billing_information || o.customer?.invoice_information || {};
-      const ico = c.ico || b.ico || o.customer?.ico || o.ico || '';
-      const dic = c.dic || b.dic || o.customer?.dic || o.dic || c.vat || b.vat || '';
-      const companyName = c.company || b.company || '';
-      const companyParts = [companyName, ico?'IČO:'+ico:'', dic?'DIČ:'+dic:''].filter(Boolean);
-      const bCity = (b.city||'').replace(/\s*\[.*?\]/g,'').trim();
-      const datum = eshopDatum(o.created?.date);
-      const row = { order_number:num, customer_name:c.name||b.name||'', customer_email:c.email||b.email||'', customer_phone:c.phone||b.phone||'', company:companyParts.join('|'), delivery_address:[c.street,city,c.zip].filter(Boolean).join(', '), billing_address:[b.street,bCity,b.zip].filter(Boolean).join(', ') || null, shipping_method:o.delivery?.nazev_postovne||'', payment_method:o.payment?.nazev_platba||'', total_amount:parseFloat(o.total?.price_with_vat||0)||null, items };
-      if (datum) row.order_date = datum;   // nečitelné datum: u stávající objednávky nechat, novou dát „teď“
-      const { data: ex, error: exErr } = await db.from('orders').select('id, items').eq('order_number', num).maybeSingle();
-      if (exErr) { console.warn('Sync: objednávku', num, 'nejde načíst –', exErr.message); continue; }   // ať nevznikne duplicita
-      if (ex) {
-        // fotku, kterou mapa nezná, převzít z uložené objednávky (podle kódu, jinak podle pořadí)
-        if (Array.isArray(ex.items)) {
-          const exProd = ex.items.filter(it => !it.type);
-          items.forEach((item, i) => { if (!item.img && !item.type) item.img = exProd.find(x => x.sku && x.sku === item.sku && x.img)?.img || exProd[i]?.img || ''; });
-        }
-        await db.from('orders').update(row).eq('id', ex.id); updated++;
-      }
-      else { await db.from('orders').insert({ ...row, order_date: row.order_date || new Date().toISOString(), status:'new' }); imported++; }
-      setSyncStatus(`Importuji… ${imported} nových, ${updated} aktualizováno`);
-    }
-    saveSyncStatus({ ts: Date.now(), imported, updated, auto: silent });
-    if (silent) { if (imported || updated) await loadOrders(); }
-    else { toast('Sync hotov: ' + imported + ' nových, ' + updated + ' aktualizováno', 'success'); await loadOrders(); }
-  } catch(e) { if (!silent) toast('Chyba sync: ' + escHtml(e.message), 'error'); else console.warn('Automatický sync e-shopu selhal:', e); }
-  if (!silent) { showLoading(false); if (btn) btn.disabled = false; if (btnS) btnS.disabled = false; }
+    const d = await objCall('sync');
+    toast(`Staženo z e-shopu: ${d.nove} nových, ${d.upraveno} změněných` + (d.chyby?.length ? ` · ${d.chyby.length} s chybou` : ''), d.chyby?.length ? 'error' : 'success');
+    await loadOrders();
+  } catch (e) { toast('E-shop: ' + escHtml(e.message), 'error'); }
+  eshopStav();
+  showLoading(false);
+  if (btnS) btnS.disabled = false;
 }
 
 // ─── TABS ────────────────────────────────────────────────────────────────────
@@ -3198,7 +3141,7 @@ async function fioCall(action, data = {}) {
   let r;
   try {
     r = await fetch(window._sb.url.replace(/\/$/, '') + '/functions/v1/fio', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', apikey: window._sb.key, 'x-app-pin': pplPin() },
+      method: 'POST', headers: await authHlavicky(),
       body: JSON.stringify({ action, ...data }) });
   } catch (e) { throw new Error('Nepodařilo se spojit s funkcí „fio“ v Supabase (' + e.message + ').'); }
   let d = null; try { d = await r.json(); } catch (e) {}
@@ -3291,7 +3234,7 @@ async function fioSide() {
   el.title = s.chyba || (s.kdo ? 'Načteno: ' + s.kdo : '');
 }
 async function fioNacist() {
-  if (!pplPin()) { toast('Chybí PIN – zadej ho v Nastavení → PPL štítky', 'error'); openSettings('ppl'); return; }
+  if (!pplPin()) { toast('Nejsi přihlášený – obnov stránku', 'error'); return; }
   const b = document.getElementById('fio-side-btn'); if (b) b.disabled = true;
   toast('Načítám platby z Fio…');
   try {
@@ -3316,7 +3259,7 @@ async function fioNastaveniInfo() {
 async function fioUlozToken() {
   const inp = document.getElementById('fio-token'), t = inp.value.trim();
   if (!t) { toast('Vlož token', 'error'); return; }
-  if (!pplPin()) { toast('Nejdřív zadej PIN v Nastavení → PPL štítky', 'error'); return; }
+  if (!pplPin()) { toast('Nejsi přihlášený – obnov stránku', 'error'); return; }
   document.getElementById('fio-msg').innerHTML = '<div class="ppl-info">Ověřuji token u Fio…</div>';
   try {
     const r = await fioCall('token', { token: t });
@@ -3332,14 +3275,14 @@ async function fioSmazToken() {
   fioNastaveniInfo(); fioSide();
 }
 
-function pplPin() { try { return localStorage.getItem('ppl_pin') || ''; } catch (e) { return ''; } }
+function pplPin() { return window._ja ? 'prihlasen' : ''; }   // dřív PIN; teď stačí být přihlášený člen týmu
 
 async function pplCall(action, data = {}) {
   let r;
   try {
     r = await fetch(window._sb.url.replace(/\/$/, '') + '/functions/v1/ppl', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: window._sb.key, 'x-app-pin': pplPin() },
+      headers: await authHlavicky(),
       body: JSON.stringify({ action, ...data }),
     });
   } catch (e) {
@@ -3348,7 +3291,7 @@ async function pplCall(action, data = {}) {
   let d = null;
   try { d = await r.json(); } catch (e) {}
   if (r.status === 404) throw new Error('V Supabase zatím není nasazená funkce „ppl" — postup je v PPL-NAVOD.md.');
-  if (r.status === 401 && !d?.error) throw new Error('Supabase odmítl volání funkce — u funkce „ppl" vypni „Verify JWT".');
+  if (r.status === 401 && !d?.error) throw new Error('Supabase odmítl volání funkce — u funkce „ppl" vypni „Verify JWT", nebo se znovu přihlas.');
   if (!r.ok || d?.error) {
     const err = new Error(d?.error || d?.message || ('HTTP ' + r.status));
     err.detail = d?.detail;
@@ -3473,7 +3416,7 @@ function pplPlural(n, one, few, many) { return n === 1 ? one : (n >= 2 && n <= 4
 function pplSetupIssues() {
   const out = [];
   if (window._pplSettingsErr) out.push({ txt: 'Databáze ještě není připravená pro PPL (chybí spuštění <b>supabase-ppl.sql</b> v Supabase).', btn: '' });
-  if (!pplPin()) out.push({ txt: 'Chybí <b>PIN pro PPL</b>.', btn: 'Zadat PIN' });
+  if (!pplPin()) out.push({ txt: 'Nejsi přihlášený do appky – obnov stránku.', btn: '' });
   else if (pplConn.state === 'err') out.push({ txt: 'PPL není připojené: ' + escHtml(pplConn.msg), btn: 'Otevřít nastavení' });
   if (pplSenderMissing().length) out.push({ txt: 'Chybí údaje <b>odesílatele</b>.', btn: 'Doplnit odesílatele' });
   const codN = pplDrafts.filter(d => d.on && !d.done && d.f.cod).length;
@@ -3510,7 +3453,7 @@ function closePplModal() { document.getElementById('ppl-modal').classList.remove
 async function pplCheckEnv() {
   pplConn = { state: 'checking', env: '', msg: '' };
   renderPplConn();
-  if (!pplPin()) { pplConn = { state: 'err', env: '', msg: 'chybí PIN' }; renderPplConn(); renderPplSetup(); renderPplSide(); return; }
+  if (!pplPin()) { pplConn = { state: 'err', env: '', msg: 'nejsi přihlášený' }; renderPplConn(); renderPplSetup(); renderPplSide(); return; }
   try {
     const d = await pplCall('ping');
     pplConn = { state: 'ok', env: d.env, msg: '' };
@@ -4235,7 +4178,7 @@ async function zasObnovit() {
   const info = document.getElementById('zas-info');
   const nums = [...new Set(zasRadky().filter(r => !r.z.cancelledAt).map(r => r.z.shipments).flat())].slice(0, 200);
   if (!nums.length) { info.textContent = 'Zatím žádné zásilky.'; return; }
-  if (!pplPin()) { info.innerHTML = 'Pro načtení stavu od PPL zadej PIN v <button class="ppl-link" onclick="openSettings(\'ppl\')">Nastavení → PPL štítky</button>.'; return; }
+  if (!pplPin()) { info.innerHTML = 'Pro načtení stavu od PPL se přihlas.'; return; }
   info.textContent = `Načítám stav ${nums.length} ${nums.length === 1 ? 'zásilky' : 'zásilek'} od PPL…`;
   try {
     const d = await pplCall('track', { numbers: nums });
@@ -4314,6 +4257,9 @@ function settingsTab(sec) {
   if (sec === 'profile') renderEmailSignaturePreview();
   if (sec === 'ppl') { fillPplSettings(); pplAdresarInfo(); loadTiskarny().then(tiskNastaveniInfo); }
   if (sec === 'fio') fioNastaveniInfo();
+  if (sec === 'ucty') uctyNacti();
+  if (sec === 'eshop') eshopNastaveniInfo();
+  if (sec === 'tools') eshopStav();
   if (sec === 'email') {
     const c = { ...DEFAULT_CONFIG, ...getConfig() };
     document.getElementById('set-ejs-service').value = c.emailjsService || '';
@@ -4333,14 +4279,12 @@ async function fillPplSettings() {
   const s = await loadPplSettings(true);
   const map = { name: 'name', contact: 'contact', street: 'street', city: 'city', zip: 'zip', phone: 'phone', email: 'email', accpre: 'accPre', acc: 'acc', bank: 'bank', courier: 'courier', 'courier-b2b': 'courierB2b' };
   Object.entries(map).forEach(([id, k]) => { document.getElementById('pset-' + id).value = s[k] || ''; });
-  document.getElementById('pset-pin').value = pplPin();
   document.getElementById('pset-msg').innerHTML = window._pplSettingsErr
     ? `<div class="ppl-info warn">Databáze zatím nemá tabulku pro nastavení (${escHtml(window._pplSettingsErr)}). Spusť v Supabase <b>supabase-ppl.sql</b>, jinak se nastavení neuloží.</div>` : '';
 }
 async function savePplSettings() {
   const g = id => document.getElementById('pset-' + id).value.trim();
   const v = { name: g('name'), contact: g('contact'), street: g('street'), city: g('city'), zip: g('zip').replace(/\s/g, ''), phone: g('phone'), email: g('email'), accPre: g('accpre'), acc: g('acc'), bank: g('bank'), courier: g('courier'), courierB2b: g('courier-b2b') };
-  try { localStorage.setItem('ppl_pin', g('pin')); } catch (e) {}
   const { error } = await db.from('app_settings').upsert({ key: 'ppl', value: v, updated_at: new Date().toISOString() });
   if (error) { document.getElementById('pset-msg').innerHTML = `<div class="ppl-info err">Nastavení se neuložilo: ${escHtml(error.message)}<br>Spusť v Supabase <b>supabase-ppl.sql</b>.</div>`; return; }
   pplSettings = { ...PPL_DEFAULTS, ...v };
@@ -4349,7 +4293,6 @@ async function savePplSettings() {
   if (document.getElementById('ppl-modal').classList.contains('active')) { renderPpl(); pplCheckEnv(); }
 }
 async function testPpl() {
-  try { localStorage.setItem('ppl_pin', document.getElementById('pset-pin').value.trim()); } catch (e) {}
   const m = document.getElementById('pset-msg');
   m.innerHTML = '<div class="ppl-info">Zkouším spojení s PPL…</div>';
   try {
@@ -4386,6 +4329,7 @@ function toast(msg, type='') {
 function showLoading(v) { document.getElementById('loading').classList.toggle('hidden', !v); }
 
 document.getElementById('author-input').addEventListener('keydown', e => { if(e.key==='Enter') saveAuthor(); });
+['login-email', 'login-heslo', 'login-pin'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') prihlasit(); }));
 </script>
 </body>
 </html>

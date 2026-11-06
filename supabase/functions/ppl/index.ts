@@ -5,7 +5,7 @@
 //   PPL_CLIENT_ID      – od PPL
 //   PPL_CLIENT_SECRET  – od PPL
 //   PPL_ENV            – "test" (api-dev.dhl.com) nebo "prod" (api.dhl.com), výchozí "test"
-//   PPL_APP_PIN        – libovolné heslo; aplikace ho posílá v hlavičce x-app-pin
+//   (přístup: jen přihlášený člen týmu – tabulka clenove; SUPABASE_URL / SERVICE_ROLE_KEY dává Supabase sám)
 //
 // Volání: POST { action, ... }
 //   ping                         → ověří přihlášení k PPL
@@ -30,6 +30,20 @@ const CORS = {
 
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { ...CORS, "Content-Type": "application/json" } });
+
+// přihlášený člen týmu (token supabase-js z prohlížeče) – nahrazuje dřívější PIN (6. 11. 2026)
+const SB_URL = Deno.env.get("SUPABASE_URL")!;
+const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+async function jeClen(req: Request) {
+  const a = req.headers.get("authorization") || "";
+  if (!a.startsWith("Bearer ") || a.slice(7) === Deno.env.get("SUPABASE_ANON_KEY")) return false;
+  const r = await fetch(`${SB_URL}/auth/v1/user`, { headers: { apikey: SB_KEY, Authorization: a } });
+  if (!r.ok) return false;
+  const email = String((await r.json())?.email || "").toLowerCase();
+  if (!email) return false;
+  const c = await fetch(`${SB_URL}/rest/v1/clenove?select=email&email=eq.${encodeURIComponent(email)}`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+  return c.ok && (await c.json()).length > 0;
+}
 
 let token: { value: string; exp: number } | null = null;
 
@@ -66,9 +80,7 @@ async function readBody(r: Response) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
-    const pin = Deno.env.get("PPL_APP_PIN");
-    if (!pin) return json({ error: "Chybí PPL_APP_PIN v Supabase Secrets." }, 500);
-    if (req.headers.get("x-app-pin") !== pin) return json({ error: "Špatný PIN pro PPL (Nastavení PPL v aplikaci)." }, 401);
+    if (!(await jeClen(req))) return json({ error: "Nejsi přihlášený do appky – obnov stránku a přihlas se." }, 401);
 
     const p = await req.json().catch(() => ({}));
     const action = String(p.action || "");

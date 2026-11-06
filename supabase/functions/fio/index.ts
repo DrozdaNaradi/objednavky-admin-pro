@@ -4,15 +4,15 @@
 // Token od Fio se zadává v appce (Nastavení → Platby Fio): appka ho pošle sem (akce „token"), funkce ho ověří u Fio
 // a uloží do tabulky „tajne", kterou prohlížeč NEMŮŽE číst (RLS bez pravidel, jen service role). Zpátky se nikdy neposílá.
 // Secrets (Supabase → Edge Functions → Secrets):
-//   PPL_APP_PIN   – stejný PIN jako pro PPL (appka ho posílá v hlavičce x-app-pin)
+//   (přístup: jen přihlášený člen týmu – tabulka clenove)
 //   FIO_TOKEN     – volitelně; když je, má přednost před tokenem z appky
 //   (SUPABASE_URL a SUPABASE_SERVICE_ROLE_KEY dává Supabase funkcím sám)
 //
 // Volání: POST { action }
-//   sync  (s PINem)  → načte platby a spáruje (ruční „Načíst platby" v appce)
+//   sync  (člen)  → načte platby a spáruje (ruční „Načíst platby" v appce)
 //   cron  (bez PINu) → totéž pro automatické spouštění; nic nevrací kromě počtů, max 1× za 10 min
-//   ping  (s PINem)  → ověří token u Fio
-//   token (s PINem) { token } → ověří a uloží token (prázdný = smazat)
+//   ping  (člen)  → ověří token u Fio
+//   token (člen) { token } → ověří a uloží token (prázdný = smazat)
 //
 // Párování: objednávky placené předem na účet (QR / převodem). Platba patří k objednávce, když
 // variabilní symbol = číslo objednávky (bez úvodních nul), nebo je číslo objednávky ve zprávě pro příjemce.
@@ -39,6 +39,18 @@ async function db(path: string, init: RequestInit = {}) {
   const t = await r.text();
   if (!r.ok) throw new Error(`Databáze (${r.status}): ${t.slice(0, 200)}`);
   return t ? JSON.parse(t) : null;
+}
+
+// přihlášený člen týmu (token supabase-js z prohlížeče) – nahrazuje dřívější PIN (6. 11. 2026)
+async function jeClen(req: Request) {
+  const a = req.headers.get("authorization") || "";
+  if (!a.startsWith("Bearer ") || a.slice(7) === Deno.env.get("SUPABASE_ANON_KEY")) return false;
+  const r = await fetch(`${SB_URL}/auth/v1/user`, { headers: { apikey: SB_KEY, Authorization: a } });
+  if (!r.ok) return false;
+  const email = String((await r.json())?.email || "").toLowerCase();
+  if (!email) return false;
+  const c = await fetch(`${SB_URL}/rest/v1/clenove?select=email&email=eq.${encodeURIComponent(email)}`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+  return c.ok && (await c.json()).length > 0;
 }
 
 const den = (d: Date) => d.toISOString().slice(0, 10);
@@ -159,9 +171,7 @@ Deno.serve(async (req) => {
       const s = await synchronizuj("automaticky");
       return json({ ok: true, plateb: s.plateb, sparovano: s.sparovano });
     }
-    const pin = Deno.env.get("PPL_APP_PIN");
-    if (!pin) return json({ error: "Chybí PPL_APP_PIN v Supabase Secrets." }, 500);
-    if (req.headers.get("x-app-pin") !== pin) return json({ error: "Špatný PIN (Nastavení → PPL štítky)." }, 401);
+    if (!(await jeClen(req))) return json({ error: "Nejsi přihlášený do appky – obnov stránku a přihlas se." }, 401);
     if (action === "ping") { const pl = await nactiFio(); return json({ ok: true, plateb: pl.length }); }
     if (action === "token") {
       const t = String(p.token || "").trim();
